@@ -1,3 +1,5 @@
+__author__="Paul Gradie"
+
 import argparse
 import csv
 import os
@@ -10,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-class OsChecker:
+class PrepareOutputDirectory:
     def __init__(self, out_folder):
 
         if platform.system() == "Windows":
