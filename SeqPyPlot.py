@@ -2,6 +2,8 @@ from SeqPlotLib import *
 import os
 import time
 
+__author__ = "Paul Gradie"
+
 
 if __name__ == '__main__':
 
@@ -23,7 +25,7 @@ if __name__ == '__main__':
     
     
         # Create Output files
-        OsChecker(args.out)
+        PrepareOutputDirectory(args.out)
     
         # Read Data
         plot_data = Data_Reader.read_data(args.plotter_data)  # create plot data object
