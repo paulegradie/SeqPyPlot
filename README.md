@@ -34,7 +34,7 @@ First make sure that all of the programs files are in the same directory. Then r
  
 ## Tests and Sample Output
 
-In the Tests folder, there is located a genelisttest.txt and a testplotdata.txt file. Using these files with the {-o Test_out option} and the other options at left to default, the following output is produced:
+In the Tests folder, there is located a genelisttest.txt and a testplotdata.txt file. Using these files with the options at left to default, the following output is produced:
 
 ![Alt text](images/1_[u'Mdk',u'Mdm1',u'Mdm2',u'Mdm4',u'Mdn1',u'Mdp1'].png?raw=true "Full Usage")
 ![Alt text](images/2_[u'Me1',u'Me2',u'Me3',u'Mea1',u'Meaf6',u'Mecom'].png?raw=true "Full Usage")
