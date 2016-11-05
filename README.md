@@ -16,11 +16,7 @@ This program imports Numpy and MatPlotLib.
 
 ## Contributors
 
-I am currently the only contributor t this project, but if you'd like to contribute, by all means please do. Let me know so I can include you here if you wish.
-
-## License
-
-This is free to use OpenSource software. Public Domain.
+I am currently the only contributor on this project, but if you'd like to contribute, by all means please do. Let me know so I can include your name here if you wish.
 
 ## Code Example - Typical Usage
 
@@ -35,11 +31,13 @@ Output will be a folder named "Dev_genes" with files containing plot with a maxi
 First make sure that all of the programs files are in the same directory. Then run the script:
 
 ![Alt text](images/Full_run.png?raw=true "Full Usage")
-
-
  
 
 ## The run Script
 
 In the run script, SeqPyPlot.py, you should aim to first read in any command line argumentscreate an output directory, then read in the data, and finally produce the plots.
  
+
+## License
+
+This is free to use OpenSource software. Public Domain.
