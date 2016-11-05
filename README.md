@@ -32,6 +32,8 @@ First make sure that all of the programs files are in the same directory. Then r
 
 ![Alt text](images/Full_run.png?raw=true "Full Usage")
  
+## Tests and Sample Output
+
 
 ## The run Script
 
