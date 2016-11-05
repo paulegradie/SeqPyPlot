@@ -34,8 +34,9 @@ Output will be a folder named "Dev_genes" with files containing plot with a maxi
 
 First make sure that all of the programs files are in the same directory. Then run the script:
 
-![Alt text](images/Full_usage_combined.png?raw=true "Full Usage")
+![Alt text](images/Run_usage.PNG?raw=true "Full Usage")
 
+![Alt text](images/Usage.PNG?raw=true "Full Usage")
 
  
 
