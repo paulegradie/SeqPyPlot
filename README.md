@@ -53,7 +53,7 @@ In the Tests folder, there is located a genelisttest.txt and a testplotdata.txt 
 
 ## The run Script
 
-In the run script, SeqPyPlot.py, you should aim to first read in any command line argumentscreate an output directory, then read in the data, and finally produce the plots.
+In the run script, SeqPyPlot.py, you should aim to first read in any command line arguments, create an output directory, then read in the data, and finally produce the plots.
  
 ## License
 
