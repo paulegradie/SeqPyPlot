@@ -38,14 +38,14 @@ optional arguments:
  >$ python SeqPyPlot.py -t e12,e13,e14,e15 -o Dev_genes -c Control,Mutant genelist.txt plotter_data.txt
  
  
- # Positional Arguments
+# Positional Arguments
 These arguments need to be added in the same order as above after any options.
 
 gene_list               A list of genes saved as a text file. One gene per row.
 plotter_data            A text file containing tab delimited rows of gene expression data. See Data Formatting below.
 
- # Optional Arguments
- The arguments are read in as strings.
+# Optional Arguments
+The arguments are read in as strings.
  
  -t or --time           To set this argument, write as many times as you need to match your data, and only put a comma between them.
  -o or --out            The name of the output directory AND the name of the main figure output (where all of the plots are).
