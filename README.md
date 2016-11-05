@@ -36,13 +36,12 @@ First make sure that all of the programs files are in the same directory. Then r
 ### Data Prep 
 
 Format your data as shown below in excel, or similar program, and save as a Tab-deliminted .txt file.
-![Alt text](images/GeneList.PNG?raw=true "Full Usage")
+![Alt text](images/DataFormat1.PNG?raw=true "Full Usage")
 
 
 The gene list should be formatted in a simlar way. One gene name per line.
 
-
-
+![Alt text](images/GeneList.PNG?raw=true "Full Usage")
 
 
 ## Tests and Sample Output
