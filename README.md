@@ -32,6 +32,19 @@ First make sure that all of the programs files are in the same directory. Then r
 
 ![Alt text](images/Full_run.png?raw=true "Full Usage")
  
+ 
+### Data Prep 
+
+Format your data as shown below in excel, or similar program, and save as a Tab-deliminted .txt file.
+![Alt text](images/GeneList.PNG?raw=true "Full Usage")
+
+
+The gene list should be formatted in a simlar way. One gene name per line.
+
+
+
+
+
 ## Tests and Sample Output
 
 In the Tests folder, there is located a genelisttest.txt and a testplotdata.txt file. Using these files with the options at left to default, the following output is produced:
@@ -43,7 +56,6 @@ In the Tests folder, there is located a genelisttest.txt and a testplotdata.txt 
 
 In the run script, SeqPyPlot.py, you should aim to first read in any command line argumentscreate an output directory, then read in the data, and finally produce the plots.
  
-
 ## License
 
 This is free to use OpenSource software. Public Domain.
