@@ -237,14 +237,14 @@ class MainDataPlotter:
                        loc='upper right')
 
             plt.savefig("{0}\\{1}_{2}.png".format(figure_name,
-                                                  str(figure_list_count),
-                                                  str(figure)),
-                        format='png',
-                        bbox_inches='tight')
+                                                  str(figure_list_count).replace(" ", ""),
+                                                  str(figure).replace(" ", ""),
+                                                  format='png',
+                                                  bbox_inches='tight'))
 
             plt.savefig("{0}\\{1}_{2}.svg".format(figure_name,
-                                                  figure_list_count,
-                                                  str(figure)),
+                                                  str(figure_list_count).replace(" ", ""),
+                                                  str(figure).replace(" ", "")),
                         format='svg',
                         bbox_inches='tight')
 
