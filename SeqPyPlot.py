@@ -23,7 +23,6 @@ if __name__ == '__main__':
         time_label = Argparser.time_parser(args.time)
         condition_label = args.condition
     
-    
         # Create Output files
         PrepareOutputDirectory(args.out)
     
