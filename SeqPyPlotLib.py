@@ -46,13 +46,13 @@ class ArgumentParser:
         parser.add_argument('gene_list',
                             nargs='?',
                             type=str,
-                            default='genefile.txt',
+                            default=None,
                             help='\tSingle Column Gene list in txt file.')
 
         parser.add_argument('plotter_data',
                             nargs='?',
                             type=str,
-                            default='plot_data.txt',
+                            default=None,
                             help='\t_Plotter_data.txt output from GetCuffData_v2.0.py')
         return parser.parse_args()
 
