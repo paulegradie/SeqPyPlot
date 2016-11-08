@@ -12,6 +12,69 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+class ArgumentParser:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def argument_parser():
+        # type: () -> NameSpace()
+
+        parser = argparse.ArgumentParser(description='Plot time series expression data without replicates. \n')
+
+        parser.add_argument('-t', '--time',
+                            metavar='\b',
+                            default='1,2,3,4,5',
+                            type=str,
+                            help='\tA comma separated list of time points.')
+        parser.add_argument('-o', '--out',
+                            metavar='\b',
+                            default='Default_out',
+                            type=str,
+                            help='\tOutput Folder Name')
+
+        parser.add_argument('-c', '--condition',
+                            metavar='\b',
+                            default=('Series1,Series2'),
+                            type=str,
+                            help='\tA comma separated list of conditions (max 2)')
+        parser.add_argument('-n', '--num',
+                            metavar='\b',
+                            default='2',
+                            type=str,
+                            help='\tNumber of samples per plot.')
+        parser.add_argument('gene_list',
+                            nargs='?',
+                            type=str,
+                            default='genefile.txt',
+                            help='\tSingle Column Gene list in txt file.')
+
+        parser.add_argument('plotter_data',
+                            nargs='?',
+                            type=str,
+                            default='plot_data.txt',
+                            help='\t_Plotter_data.txt output from GetCuffData_v2.0.py')
+        return parser.parse_args()
+
+    @staticmethod
+    def __label_parser(argument):
+
+        # type: (character_string) -> list of strings
+        try:
+            parsed_list = [x for x in argument.split(',')]
+            return parsed_list
+
+        except AttributeError:
+            print "The group labels have to be comma separated."
+            sys.exit()
+
+    def time_parser(self, time_label_arg):
+        return self.__label_parser(str(time_label_arg))
+
+    def condition_label_parser(self, condition_label_arg):
+        return self.__label_parser(str(condition_label_arg))
+
+
 class PrepareOutputDirectory:
     def __init__(self, out_folder):
 
@@ -340,66 +403,3 @@ class MainDataPlotter:
                         markerfacecolor='red',
                         markeredgewidth=.95,
                         markersize=6)
-
-
-class ArgumentParser:
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def argument_parser():
-        # type: () -> NameSpace()
-
-        parser = argparse.ArgumentParser(description='Plot time series expression data without replicates. \n')
-
-        parser.add_argument('-t', '--time',
-                            metavar='\b',
-                            default='1,2,3,4,5',
-                            type=str,
-                            help='\tA comma separated list of time points.')
-        parser.add_argument('-o', '--out',
-                            metavar='\b',
-                            default='Default_out',
-                            type=str,
-                            help='\tOutput Folder Name')
-
-        parser.add_argument('-c', '--condition',
-                            metavar='\b',
-                            default=('Series1,Series2'),
-                            type=str,
-                            help='\tA comma separated list of conditions (max 2)')
-        parser.add_argument('-n', '--num',
-                            metavar='\b',
-                            default='2',
-                            type=str,
-                            help='\tNumber of samples per plot.')
-        parser.add_argument('gene_list',
-                            nargs='?',
-                            type=str,
-                            default='genefile.txt',
-                            help='\tSingle Column Gene list in txt file.')
-
-        parser.add_argument('plotter_data',
-                            nargs='?',
-                            type=str,
-                            default='plot_data.txt',
-                            help='\t_Plotter_data.txt output from GetCuffData_v2.0.py')
-        return parser.parse_args()
-
-    @staticmethod
-    def __label_parser(argument):
-
-        # type: (character_string) -> list of strings
-        try:
-            parsed_list = [x for x in argument.split(',')]
-            return parsed_list
-
-        except AttributeError:
-            print "The group labels have to be comma separated."
-            sys.exit()
-
-    def time_parser(self, time_label_arg):
-        return self.__label_parser(str(time_label_arg))
-
-    def condition_label_parser(self, condition_label_arg):
-        return self.__label_parser(str(condition_label_arg))
