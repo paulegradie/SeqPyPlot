@@ -53,7 +53,7 @@ In the Tests folder, there is located a genelisttest.txt and a testplotdata.txt 
 
 ## The run Script
 
-If you'd like to edit the run script, SeqPyPlot.py, you should aim to first read in any command line arguments using the ArgumentParser class, then create an output directoryu using the PrepareOutputDirectory class, followed by reading in the data usnigthe  ReadNormalized Data class, and finally producing the plots using the MainDataPlotter class.
+If you'd like to edit the run script, SeqPyPlot.py, you should aim to first read in any command line arguments using the ArgumentParser class, then create an output directoryu using the PrepareOutputDirectory class, followed by reading in the data using the ReadNormalized Data class, and finally producing the plots using the MainDataPlotter class.
  
 ## License
 
