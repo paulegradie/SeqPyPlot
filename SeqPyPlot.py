@@ -40,5 +40,5 @@ if __name__ == '__main__':
 
     except TypeError:
         print 'Parameters aren\'t set...'
-        os.system('python SeqPlot.py -h')
+        os.system('python SeqPyPlot.py -h')
         
