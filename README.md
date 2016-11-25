@@ -24,7 +24,8 @@ I am currently the only contributor on this project, but if you'd like to contri
  >$ python SeqPyPlot.py -t e12,e13,e14,e15 -o Dev_genes -c Control,Mutant genelist.txt plotter_data.txt
 
 
-Output will be a folder named "Dev_genes" with files containing plot with a maximum of six plots per file.
+Output in this case will be a folder named "Dev_genes" with files containing plot with a maximum of six plots per file.
+
 
 ## Full usage
 
@@ -35,11 +36,21 @@ First make sure that all of the programs files are in the same directory. Then r
  
 ### Data Prep 
 
+In the current version, data that includes statistical testing is not supported. This will change in the next couple of weeks. So for this version, the intended use is to plot gene expression using data that has been quantified, and then normalized together. 
+
+For example, you can imagine a scenario where you have produced time series transcriptome data across five time points and you've aligned the raw reads using some alignment program - lets say tophat2. From here, you could use the cufflinks program 'CuffQuant' to quantify gene expression using the FPKM normalization method. Following this, you could then use CuffNorm to normalize all of your datasets to make them directly comparable. The output from this step would be normalized expression values in FPKM that you could then plot using SeqPyPlot.
+
+DISCLAIMER: While it is okay to use this pipeline to roughly gaudge expression, I do not recommend it generally and will say that you should not attempt to publish any information processed in this way. This pipeline technically normalizes your data twice, which is probably not very good in terms of precision in your results. It is probably better to use a program such as HT-seq to generate raw fragment counts per locus, and then normalize datasets together in this way.
+
+I am currently writing the code necessary to parse output from a number of programs that will assess differential expression, which will allow the user to plot normalized expression data along with relevant statistical error information (i.e. error bars). 
+
+If you have generated normalized data as described above, you can follow the data prep instructions below:
+
 Format your data as shown below in excel, or similar program, and save as a Tab-deliminted .txt file.
 ![Alt text](images/DataFormat1.PNG?raw=true "Full Usage")
 
 
-The gene list should be formatted in a simlar way. One gene name per line.
+The gene list should be formatted in a simlar way. One gene name per line. The idea here is that you use your annotation or  file to select gene names so that the names in your 
 
 ![Alt text](images/GeneList.PNG?raw=true "Full Usage")
 
