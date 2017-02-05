@@ -1,6 +1,11 @@
 ## Synopsis
 
-SeqPyPlot is a program for plotting time series data. Data is formatted in to a tab delimeted text file and then fed in to the main script. The script accesses code stored in SeqPyPlotLib and generates plots for the input data, saving them to .png and .svg files. 
+SeqPyPlot is a tool to visualize time series data and provide feedback on low replicate RNA-seq pilot studies. With it, you can generalize about the differential expression in various aspects, set a user defined log2fold change cutoff difference as well a lower expression limit,
+and plot expression plots by loading in raw output from various data sources. In addition to It is a truly useful tool for exploring budget RNA-seq data.
+
+
+
+is a program for plotting time series data. Data is formatted in to a tab delimeted text file and then fed in to the main script. The script accesses code stored in SeqPyPlotLib and generates plots for the input data, saving them to .png and .svg files.
 
 ## Motivation
 
