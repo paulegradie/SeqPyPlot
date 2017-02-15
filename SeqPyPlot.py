@@ -54,6 +54,7 @@ if __name__ == '__main__':
             Plot_Builder = MainDataPlotter(args, Analyzer, None)  # object used for generating plots
             Plot_Builder.de_bar('black')
             Plot_Builder.plot_tally()
+            Plot_Builder.plot_histograms()
             Analyzer.print_analyzer_results()
 
         print(
@@ -92,6 +93,7 @@ if __name__ == '__main__':
             if args.tally:
                 Plot_Builder.de_bar('black')
                 Plot_Builder.plot_tally()
+                Plot_Builder.plot_histograms()
                 Analyzer.print_analyzer_results()
 
             Plot_Builder.plot_figures()
@@ -108,6 +110,7 @@ if __name__ == '__main__':
 
             # if args.tally:
             Plot_Builder.de_bar('black')
+            Plot_Builder.plot_histograms()
             Analyzer.print_analyzer_results()
 
             print "Finished."

@@ -514,3 +514,68 @@ class MainDataPlotter(object):
         plt.savefig(self.path + "_DE_cutoff_by_log2fold.png",
                     format='png',
                     bbox_inches='tight')
+
+    @staticmethod
+    def __hist_plot(num_list, bins, rang, color):
+
+        return plt.hist(num_list, bins, range=rang, facecolor=color)#, normed=1, alpha=0.75)
+
+    def plot_histograms(self):
+
+        plt.close()
+        gene_map = self.gene_map
+        histogram_list = []
+        setup = True
+        for gene in gene_map.values():
+            for index, value in enumerate(gene):
+                if setup:
+                    histogram_list.append([value])
+                else:
+                    histogram_list[index].append(value)
+            setup = False
+
+        figurelist=[]
+        sublist = []
+        counter = 0
+        for sample in histogram_list:
+            counter += 1
+            sublist.append(sample)
+            if counter == 4:
+                figurelist.append(sublist)
+                counter = 0
+                sublist = []
+
+
+        samp_name = self.data_frame_header.values()
+        for figure in figurelist:
+            fig = plt.figure(num=1,
+                             dpi=300,
+                             figsize=(4,4),
+                             edgecolor='black',
+                             frameon=True,
+                             )
+            fig.suptitle('Count distribution',
+                         verticalalignment='top',
+                         horizontalalignment='center',
+                         fontsize=10,
+                         x=0.415
+                         )
+            position = 0
+            sample_count = 1
+            for sample in figure:
+
+                position+=1
+                if len(figure) == 1:
+                    fig.add_subplot(1, 1, position)#.set_title('- ' + str(samp_name[sample_count]) + ' -', fontsize=20)
+                else:
+                    fig.add_subplot(2, 2, position)#.set_title('- ' + str(samp_name[sample_count]) + ' -', fontsize=20)
+                    sample_count += 1
+                    # position += 1
+
+                samp = [float(x) for x in sample]
+                self.__hist_plot(samp, 75, (100, 1000), 'black')
+
+                if position == 4:
+                    fig.tight_layout()
+                    plt.show()
+                    position = 1

@@ -47,10 +47,12 @@ class DataAnalyzer(object):
 
 
     def seqpyfilter(self, use_iterator=None):
+
         """Running this function drops all of the outputs in to the SELF properties."""
+
         # args_log = self.args.log
         args = self.args
-
+        original_map = dict()
         if args.time[0] == 'None':
             # print "FALSE"
             labels = [self.data_frame_header["Gene"][x] for x in range(int(len(self.data_frame_header["Gene"])/2))]
