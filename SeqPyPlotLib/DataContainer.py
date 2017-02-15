@@ -175,8 +175,13 @@ class DataContainer(object):
         try:
             norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
             print 'norm_path: ', norm_path
-            subprocess.call('Rscript ' + os.path.join(
-                '.', 'SeqPyPlotLib', 'Normalization_Method.R ') + matrix_path + ' ' + norm_path)
+            subprocess.call('Rscript '
+                            + os.path.join('.',
+                                            'SeqPyPlotLib',
+                                            'Normalization_Method.R ')
+                            + matrix_path
+                            + ' '
+                            + norm_path)
 
             print "Data Normalized Successfully"
 

@@ -57,14 +57,13 @@ instant_pkgs <- function(pkgs) {
 }
 
 #Install edgeR - and load it
-instant_pkgs(c("edgeR"))
+instant_pkgs(c("edgeR", "biomaRt"))
 require("edgeR")
-
+require("biomaRt")
 #####################
 #PERFORM NORMALIZATION
 data_matrix=as.data.frame(read.delim(args[1], sep="\t", row.names="Gene"))
 
 to_normalize_matrix = DGEList(data_matrix, remove.zeros=TRUE)
 normalized_matrix = calcNormFactors(to_normalize_matrix)
-
 write.table(as.matrix(normalized_matrix), file=args[2], sep = '\t', col.names=FALSE)

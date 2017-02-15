@@ -75,7 +75,7 @@ class Parameters:
         # set list of file names based on paramter list (thousands)
         self.name_list = [str(x) + '_' for x in range(len(self.parameter_list))]
 
-    def main():
+def main():
     # Prep Gene Onotology useing GOaTools
     print("\nDownloading Gene Ontology database...\n")
     obo_fname = download_go_basic_obo()
@@ -116,10 +116,7 @@ class Parameters:
 
     print "\nDone. Performing optimization tests.\n"
 
-    cur = 1
-    total = len(conversion_table.keys())
     pos = 0
-    start = time()
 
     param_file = open("paramaters_for_palate.txt", 'wb+')
     paramwriter = csv.writer(param_file, delimiter='\t')
@@ -132,8 +129,6 @@ class Parameters:
 
         #set Constant paramters
         args.prefix = parameters.name_list[pos] + 'optimize '
-        # print(args.prefix)
-        # print(param_set)
 
         # set variable parameters
         # args.hi = str(param_set[0])
@@ -148,14 +143,13 @@ class Parameters:
 
         FullContainer = DataContainer.DataContainer(args, Optimize=True)
         Analyzer = DataAnalyzer(None, FullContainer, optimization_mode=True)
-        # print("Analyzing plot Data....")
         Analyzer.seqpyfilter()
-        # print("Data analyzed...forming plots...")
-        # Plot_Builder = MainDataPlotter(args, Analyzer, None)
+        print("Data analyzed...forming plots...")
+        Plot_Builder = MainDataPlotter(args, Analyzer, None)
 
-        # Plot_Builder.de_bar('black')
-        # Analyzer.print_analyzer_results()
-        # print("Plots made, initiating GOTerm analysis...")
+        Plot_Builder.de_bar('black')
+        Analyzer.print_analyzer_results()
+        print("Plots made, initiating GOTerm analysis...")
 
         # Do a GOTERM analysis for gene seet enrichment using 'gene list'
 
@@ -194,14 +188,15 @@ class Parameters:
         else:
             print "Unusable parameters.\n"
         cur_param += 1
-        # Plot_Builder.plot_tally()
+
+        Plot_Builder.plot_tally()
+
         check = True
         pos += 1
         endloop = time()
-        # sys.exit()
-        # print (start - endloop)/60.0
-    end = time()
-    totaltime = (end - start) / 60.0
+
     param_file.close()
 
     print("Test Done")
+if __name__ == "__main__":
+    main()
