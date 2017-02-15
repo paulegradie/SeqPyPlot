@@ -1,0 +1,8 @@
+#First install goatools
+#https://github.com/tanghaibao/goatools
+#Then run this code to produce the ontology file. About 130mb
+#python
+from goatools.base import download_go_basic_obo
+
+obodag = GODag("go-basic.obo")
+
