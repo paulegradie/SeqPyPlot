@@ -92,51 +92,53 @@ class DataAnalyzer(object):
                     if float(sub_list[0]) == 0 or float(sub_list[1]) == 0:
                         if float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
                             if abs(float(sub_list[0]) - float(sub_list[1])) >= args.dif:
-                                if max(float(sub_list[0]), float(sub_list[1])) <= args.hi:
-                                    keep = True
+                                if abs(float(sub_list[0]) - float(sub_list[1])) <= args.dif_upper:
+                                    if max(float(sub_list[0]), float(sub_list[1])) <= args.hi:
+                                        keep = True
 
-                                    if use_iterator is None:  # avoid value inflation during tally routine
-                                     # assign results to various maps
-                                        if labels[v] not in self.de_gene_list_by_stage.keys():
-                                            self.de_count_by_stage[labels[v]] = 1
-                                        else:
-                                            self.de_count_by_stage[labels[v]] += 1
+                                        if use_iterator is None:  # avoid value inflation during tally routine
+                                         # assign results to various maps
+                                            if labels[v] not in self.de_gene_list_by_stage.keys():
+                                                self.de_count_by_stage[labels[v]] = 1
+                                            else:
+                                                self.de_count_by_stage[labels[v]] += 1
 
-                                        if labels[v] not in self.de_gene_list_by_stage.keys():
-                                            self.de_gene_list_by_stage[labels[v]] = [key]
-                                        else:
-                                            self.de_gene_list_by_stage[labels[v]].append(key)
+                                            if labels[v] not in self.de_gene_list_by_stage.keys():
+                                                self.de_gene_list_by_stage[labels[v]] = [key]
+                                            else:
+                                                self.de_gene_list_by_stage[labels[v]].append(key)
 
-                                        if key not in self.de_count_by_gene.keys():
-                                            self.de_count_by_gene[key] = 1
-                                        else:
-                                            self.de_count_by_gene[key] += 1
+                                            if key not in self.de_count_by_gene.keys():
+                                                self.de_count_by_gene[key] = 1
+                                            else:
+                                                self.de_count_by_gene[key] += 1
 
 
                     # Condition 2: Both are non-zero - DO THE LOG TEST
                     elif float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
                         if abs(np.log2(float(sub_list[1]) / float(sub_list[0]))) >= float(args_log):
                             if abs(float(sub_list[0]) - float(sub_list[1])) >= float(args.dif):
-                                if max(float(sub_list[0]), float(sub_list[1])) <= float(args.hi):
-                                    keep = True
+                                if abs(float(sub_list[0]) - float(sub_list[1])) <= float(args.dif_upper):
+                                    if max(float(sub_list[0]), float(sub_list[1])) <= float(args.hi):
+                                        keep = True
 
-                                    if use_iterator is None:  # avoid value inflation during tally routine
+                                        if use_iterator is None:  # avoid value inflation during tally routine
 
-                                        # assign results to various maps
-                                        if labels[v] not in self.de_gene_list_by_stage.keys():
-                                            self.de_count_by_stage[labels[v]] = 1
-                                        else:
-                                            self.de_count_by_stage[labels[v]] += 1
+                                            # assign results to various maps
+                                            if labels[v] not in self.de_gene_list_by_stage.keys():
+                                                self.de_count_by_stage[labels[v]] = 1
+                                            else:
+                                                self.de_count_by_stage[labels[v]] += 1
 
-                                        if labels[v] not in self.de_gene_list_by_stage.keys():
-                                            self.de_gene_list_by_stage[labels[v]] = [key]
-                                        else:
-                                            self.de_gene_list_by_stage[labels[v]].append(key)
+                                            if labels[v] not in self.de_gene_list_by_stage.keys():
+                                                self.de_gene_list_by_stage[labels[v]] = [key]
+                                            else:
+                                                self.de_gene_list_by_stage[labels[v]].append(key)
 
-                                        if key not in self.de_count_by_gene.keys():
-                                            self.de_count_by_gene[key] = 1
-                                        else:
-                                            self.de_count_by_gene[key] += 1
+                                            if key not in self.de_count_by_gene.keys():
+                                                self.de_count_by_gene[key] = 1
+                                            else:
+                                                self.de_count_by_gene[key] += 1
                     else:
                         pass
                         # print "ERROR - anomoly detected."

@@ -74,6 +74,12 @@ class Args:
                             type=float,
                             dest='dif',
                             help='Default: 60. Set minimum difference in expression.')
+        parser.add_argument('-dif_upper',
+                            metavar='60',
+                            default=100000,
+                            type=float,
+                            dest='dif_upper',
+                            help='Default: 100000. Set minimum difference in expression.')
         parser.add_argument('-log2',
                             metavar='1.0',
                             default=1.0,
