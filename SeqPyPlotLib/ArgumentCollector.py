@@ -16,7 +16,7 @@ class Args:
 
     def arg_parser(self):
         # type: () -> NameSpace()
-        parser = argparse.ArgumentParser(description='Plot time series expression data without replicates. \n',
+        parser = argparse.ArgumentParser(description='Required: -raw_data or -plot_data',
                                          prog='SeqPyPlot v0.2')
 
         # plotter args

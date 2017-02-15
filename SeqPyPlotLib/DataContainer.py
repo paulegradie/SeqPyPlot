@@ -14,7 +14,10 @@ class DataContainer(object):
         self.args = args
         self.analyzed = self.analyzed()  # Function call to datermine if contain contains flitered data
         datatype = self.args.datatype
-
+        self.gene_map = dict()
+        self.ercc_map = dict()
+        self.data_frame_header = dict()
+        self.raw_counts = dict()
         if Optimize is True:
             print("Engaging optimization mode.")
             self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
@@ -24,10 +27,14 @@ class DataContainer(object):
             if datatype == 'cuffnorm':
                 print "Reading data as cuffnorm. (This method is not recommended.)"
                 self.gene_map, self.ercc_map, self.data_frame_header = self.parse_cuffnorm(self.args.raw_data)
+
             elif datatype == 'htseq':
+
                 print "Reading data from FOLDER as HTSeq counts and normalizing using edgeR Methodology..."
                 print "See: Loraine, A.E. et al., Analysis and Visualization of RNA-Seq Expression Data Using RStudio, Bioconductor, and Integrated Genome Browser.(2015)\n"
+
                 self.gene_map, self.ercc_map, self.data_frame_header = self.parse_htseq()
+
             else:
                 print "Raw_data type selected: ", self.args.datatype
                 print "Software under development. Other raw data types will be added for parsing in the future."
@@ -94,6 +101,7 @@ class DataContainer(object):
         insert_zero_list = []
         missing_file = 0  # counter for recording empty files for later  fill with zeros
         missing_file_name = []
+        self.data_frame_header = dict()
 
         if os.path.isdir(self.args.raw_data):
 
@@ -108,15 +116,13 @@ class DataContainer(object):
                 tot = len(datafolder[2])
                 self.data_frame_header["Gene"] = []
 
-                # print "\n", self.args.time
-
-                # print "\n", tot
                 if len(self.args.time) != int(tot/2):
                     print "Check your -time option, make sure it matches the no. of input files."
                     sys.exit()
-                for _file in datafolder[2]:
 
+                for _file in datafolder[2]:
                     file_string = os.path.join('.', self.args.raw_data, _file)
+
                     if int(os.stat(file_string).st_size) == 0:  # if file is empty, record the list position
                         print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot) + ' --empty file')
                         insert_zero_list.append(missing_file)
@@ -131,11 +137,14 @@ class DataContainer(object):
                     with open(file_string, 'r') as countfile:
                         # ht_reader = csv.reader(countfile, delimiter='\t')
                         # for row in ht_reader:
-                        for row in countfile.readlines():
-                            if row.split()[0].rstrip() not in self.raw_counts.keys():
-                                self.raw_counts[str(row.split()[0].rstrip())] = [int(row.split()[1].rstrip())]
-                            else:
-                                self.raw_counts[str(row.split()[0].rstrip())].append(row.split()[1].rstrip())
+                        try:
+                            for row in countfile.readlines():
+                                if row.split()[0].rstrip() not in self.raw_counts.keys():
+                                    self.raw_counts[str(row.split()[0].rstrip())] = [int(row.split()[1].rstrip())]
+                                else:
+                                    self.raw_counts[str(row.split()[0].rstrip())].append(row.split()[1].rstrip())
+                        except IndexError:
+                            "Sorry for that! Make sure there are no unrelated files in the counts directory."
                     current_file_count += 1
                     missing_file += 1
         else:
