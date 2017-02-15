@@ -1,0 +1,15 @@
+#Create this file by using the following code:
+# Download and install goatools
+#https://github.com/tanghaibao/goatools
+
+
+#start
+
+from goatools.base import download_ncbi_associations
+
+gene2go = download_ncbi_associations()
+geneid2gos_mouse = read_ncbi_gene2go('gene2go', taxids=[10090])
+
+#End
+
+#This should produce a file called 'gene2go', about 35mb.
