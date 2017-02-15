@@ -63,10 +63,8 @@ require("edgeR")
 #####################
 #PERFORM NORMALIZATION
 data_matrix=as.data.frame(read.delim(args[1], sep="\t", row.names="Gene"))
-#data_matrix=as.matrix(read.delim("current_test_count_matrix.txt", sep="\t", row.names="Gene"))
 
-#dat_matrix=as.matrix(dat)
 to_normalize_matrix = DGEList(data_matrix, remove.zeros=TRUE)
 normalized_matrix = calcNormFactors(to_normalize_matrix)
 
-write.table(as.matrix(normalized_matrix), file="normalized_count_data.txt", sep = '\t', col.names=FALSE)
+write.table(as.matrix(normalized_matrix), file=args[2], sep = '\t', col.names=FALSE)

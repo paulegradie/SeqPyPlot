@@ -153,13 +153,10 @@ class DataContainer(object):
             print("Alternatively, you may need to reset the -data_type parameter. Use -h for usage.")
             sys.exit()
 
-        # write out raw matrix
-        if self.args.out is not None:
-            path = os.path.join(self.args.out, self.args.prefix)
-        else:
-            path = os.path.join('.', self.args.prefix)
+        matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
+        print 'matrix path: ', matrix_path
 
-        with open(path + "_count_matrix.txt", 'wb+') as matrix:
+        with open(matrix_path, 'wb+') as matrix:
             matrix_writer = csv.writer(matrix, delimiter='\t')
             for key, value in self.data_frame_header.items():
                 matrix_writer.writerow([key] + value)
@@ -176,8 +173,11 @@ class DataContainer(object):
 
         print "Attempting data normalization by edgeR...\n"
         try:
+            norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
+            print 'norm_path: ', norm_path
             subprocess.call('Rscript ' + os.path.join(
-                '.', 'Normalization_Method.R ' + self.args.out + "_count_matrix.txt"))
+                '.', 'SeqPyPlotLib', 'Normalization_Method.R ') + matrix_path + ' ' + norm_path)
+
             print "Data Normalized Successfully"
 
         except WindowsError:
@@ -192,7 +192,10 @@ class DataContainer(object):
 
             You have to add the path of Rscript.exe in you system path in environment variables.""")
 
-        with open("normalized_count_data.txt", 'r') as normalized:
+        # normalized_data_path = os.path.join('.', self.args.out,  'normalized_count_data.txt')
+        # normalized_data_path = os.path.join('normalized_count_data.txt')
+
+        with open(norm_path, 'r') as normalized:
             normalized_reader = csv.reader(normalized, delimiter='\t')
 
             # add normalized data to the gene_map
@@ -453,5 +456,5 @@ class DataPrinter:
     def write_de_results(self):
         with open(self.path + "_de_gene_list.txt", 'wb+') as results_out:
             result_writer = csv.writer(results_out, delimiter='\n')
-            for de_gene in self.analyzer.filtered_data:
+            for de_gene in sorted(self.analyzer.filtered_data):
                 result_writer.writerow([de_gene])

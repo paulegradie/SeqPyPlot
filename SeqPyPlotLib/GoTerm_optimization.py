@@ -154,7 +154,7 @@ class Parameters:
         # Plot_Builder = MainDataPlotter(args, Analyzer, None)
 
         # Plot_Builder.de_bar('black')
-        # Analyzer.print_de_tallies()
+        # Analyzer.print_analyzer_results()
         # print("Plots made, initiating GOTerm analysis...")
 
         # Do a GOTERM analysis for gene seet enrichment using 'gene list'

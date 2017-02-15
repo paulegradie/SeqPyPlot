@@ -54,7 +54,7 @@ if __name__ == '__main__':
             Plot_Builder = MainDataPlotter(args, Analyzer, None)  # object used for generating plots
             Plot_Builder.de_bar('black')
             Plot_Builder.plot_tally()
-            Analyzer.print_de_tallies()
+            Analyzer.print_analyzer_results()
 
         print(
             "Data analyzed, select genes for plotting from {}_filtered.txt and rerun the program with plot data.".format(
@@ -92,7 +92,7 @@ if __name__ == '__main__':
             if args.tally:
                 Plot_Builder.de_bar('black')
                 Plot_Builder.plot_tally()
-                Analyzer.print_de_tallies()
+                Analyzer.print_analyzer_results()
 
             Plot_Builder.plot_figures()
         else:
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
             # if args.tally:
             Plot_Builder.de_bar('black')
-            Analyzer.print_de_tallies()
+            Analyzer.print_analyzer_results()
 
             print "Finished."
             sys.exit()

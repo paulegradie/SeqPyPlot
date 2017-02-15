@@ -473,9 +473,12 @@ class MainDataPlotter(object):
 
         expression_upper = mlines.Line2D([], [], color='white')
         expression_lower = mlines.Line2D([], [], color='white')
+        expression_dif = mlines.Line2D([], [], color='white')
 
-        fig.legend(handles=[expression_upper, expression_lower],
-                   labels=(["Upper: " + str(self.args.hi), "Lower: " + str(self.args.low)]),
+        fig.legend(handles=[expression_upper, expression_lower, expression_dif],
+                   labels=(["Upper: " + str(self.args.hi),
+                            "Lower: " + str(self.args.low),
+                            "Dif: " + str(self.args.dif)]),
                    loc='upper right')
 
         plt.plot(cutoffs,

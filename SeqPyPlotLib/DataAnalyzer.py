@@ -166,7 +166,7 @@ class DataAnalyzer(object):
     #     for key, value in gene_map.items():
     #         control_data
 
-    def print_de_tallies(self):
+    def print_analyzer_results(self):
         self.args = self.args
 
         # For log2fold parameter iterative testing
