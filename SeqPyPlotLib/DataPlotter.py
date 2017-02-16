@@ -557,26 +557,46 @@ class MainDataPlotter(object):
         for figure in figurelist:
 
             n_bins = 100
-            # color = 'black'
+            color = 'black'
             rang = tuple([float(x) for x in self.args.hist_range.split(',')])
 
             fig, axes = plt.subplots(nrows=2, ncols=2)
             ax0, ax1, ax2, ax3 = axes.flatten()
 
-            ax0.hist([float(x) for x in figure[0]], n_bins, normed=100, range=rang)
+            ax0.hist([float(x) for x in figure[0]], n_bins, color=color, range=rang)
             ax0.set_title(figure_labels[fig_pos][0])
 
             if len(figure) > 1:
-                ax1.hist([float(x) for x in figure[1]], n_bins, normed=100, range=rang)
+                ax1.hist([float(x) for x in figure[1]], n_bins, color=color, range=rang)
                 ax1.set_title(figure_labels[fig_pos][1])
 
             if len(figure) > 2:
-                ax2.hist([float(x) for x in figure[2]], n_bins, normed=100, range=rang)
+                ax2.hist([float(x) for x in figure[2]], n_bins, color=color, range=rang)
                 ax2.set_title(figure_labels[fig_pos][2])
 
             if len(figure) > 3:
-                ax3.hist([float(x) for x in figure[3]], n_bins, normed=100, range=rang)
+                ax3.hist([float(x) for x in figure[3]], n_bins, color=color, range=rang)
                 ax3.set_title(figure_labels[fig_pos][3])
+
+
+            lower = int(rang[0])
+            upper = int(rang[1])
+            difference = int(upper - lower)
+            inc = int(difference // 6)
+            xlabels = [lower//100,
+                       lower + inc*1,
+                       lower + inc*2,
+                       lower + inc*3,
+                       lower + inc*4,
+                       lower + inc*5,
+                       upper]
+
+            for ax in axes.flatten():
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.get_xaxis().tick_bottom()
+                ax.get_yaxis().tick_left()
+                ax.set_xticklabels(xlabels)
 
             fig.tight_layout()
             # plt.show()
