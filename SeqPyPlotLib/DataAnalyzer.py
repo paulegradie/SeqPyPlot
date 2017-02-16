@@ -73,8 +73,16 @@ class DataAnalyzer(object):
         # self.de_gene_list = []  # list; only de gene names
         # self.filtered_data = dict()  # dictoinary; all de genes with expression values
         # self.de_count_by_gene = dict()  # dictionary; keys = gene names, values number of time points de
+        analysis_map = dict()
+        if self.args.num == 1:
+            analysis_map = self.data_container.single_analysis_map
+        elif self.args.num == 2:
+            analysis_map == self.gene_map
+        else:
+            print "Can't support more than 2 series yet!"
+            sys.exit()
 
-        for key, value in sorted(self.gene_map.items()):
+        for key, value in sorted(analysis_map.items()):
             # print "Key, Value: ", key, value, "WEIRED"
             # continue
             # Set preconditions

@@ -108,10 +108,12 @@ if __name__ == '__main__':
             DataPrinter.write_de_results()
             DataPrinter.write_filtered_data()
 
-            # if args.tally:
-            Plot_Builder.de_bar('black')
             Plot_Builder.plot_histograms()
             Analyzer.print_analyzer_results()
+
+            if args.tally:
+                Plot_Builder.de_bar('black')
+                Plot_Builder.plot_tally()
 
             print "Finished."
             sys.exit()

@@ -122,13 +122,12 @@ class MainDataPlotter(object):
                                              str([str(fig.replace(" ", "")) for fig in figure])),
                         format='png', bbox_inches='tight')
 
-            # TODO implement svg argument
-            # if self.args.svg:
-            # plt.savefig("{}_{}_{}.png".format(path,
-            #                                   str(figure_list_count).replace(" ", ""),
-            #                                   str(figure).replace(" ", "")),
-            #                 format='svg',
-            #                 bbox_inches='tight')
+            if self.args.svg:
+                plt.savefig("{}_{}_{}.png".format(path,
+                                                  str(figure_list_count).replace(" ", ""),
+                                                  str(figure).replace(" ", "")),
+                                format='svg',
+                                bbox_inches='tight')
 
             # plt.show()
             plt.clf()
@@ -288,7 +287,6 @@ class MainDataPlotter(object):
 
         return found, series1, s1mask, series2, s2mask  # series masks are a True/False list for use in _calculate_mean
 
-    # TODO: consolidate the series plot and make the differnces parameters to add in at calltime
     @staticmethod
     def __series1_plot(series1, s1mask, xs, label):
         return plt.plot(xs[s1mask],
@@ -518,7 +516,7 @@ class MainDataPlotter(object):
 
     def plot_histograms(self):
 
-        plt.close()
+        # plt.close()
         gene_map = self.gene_map
         histogram_list = []
         setup = True
@@ -540,6 +538,8 @@ class MainDataPlotter(object):
                 figurelist.append(sublist)
                 counter = 0
                 sublist = []
+        if len(sublist) != 0:
+            figurelist.append(sublist)
 
         counter = 0
         sublist = []
@@ -551,9 +551,12 @@ class MainDataPlotter(object):
                 figure_labels.append(sublist)
                 counter = 0
                 sublist = []
+        if len(sublist) != 0:
+            figure_labels.append(sublist)
 
         filecnt = 1
         fig_pos = 0
+
         for figure in figurelist:
 
             n_bins = 100
@@ -561,6 +564,17 @@ class MainDataPlotter(object):
             rang = tuple([float(x) for x in self.args.hist_range.split(',')])
 
             fig, axes = plt.subplots(nrows=2, ncols=2)
+            fig.suptitle("Count Density Per Sample",
+                         verticalalignment='top',
+                         horizontalalignment='right',
+                         fontsize=12,
+                         y=1.05
+                         )
+            expression_upper = mlines.Line2D([], [], color='white')
+            fig.legend(handles=[expression_upper],
+                       labels=(["Range: " + str(self.args.hist_range)]),
+                       loc='upper right')
+
             ax0, ax1, ax2, ax3 = axes.flatten()
 
             ax0.hist([float(x) for x in figure[0]], n_bins, color=color, range=rang)

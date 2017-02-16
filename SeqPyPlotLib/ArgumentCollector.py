@@ -7,7 +7,12 @@ class Args:
     def __init__(self):
         self.args = self.arg_parser()
         self.args.time = self.time_parser()
-        self.args.condition = self.condition_label_parser()
+        if self.args.num == 1:
+            self.args.condition = 'C1'
+        elif self.args.num == 2:
+            self.args.condition = self.condition_label_parser()
+        else:
+            print 'Cant support more than two yet.'
 
         if not os.path.isdir(self.args.out):
             os.makedirs(self.args.out)
@@ -99,6 +104,12 @@ class Args:
                             action='store_true',
                             dest='remove',
                             help='Default: False. Use to remove genes not always on.')
+
+        parser.add_argument('-svg',
+                            default=False,
+                            action='store_true',
+                            dest='svg',
+                            help='Default: False. Use to svg plots.')
 
         parser.add_argument('-tally',
                             action='store_true',

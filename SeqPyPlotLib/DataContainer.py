@@ -18,6 +18,8 @@ class DataContainer(object):
         self.ercc_map = dict()
         self.data_frame_header = dict()
         self.raw_counts = dict()
+        self.single_analysis_map = dict()
+
         if Optimize is True:
             print("Engaging optimization mode.")
             self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
@@ -33,7 +35,7 @@ class DataContainer(object):
                 print "Reading data from FOLDER as HTSeq counts and normalizing using edgeR Methodology..."
                 print "See: Loraine, A.E. et al., Analysis and Visualization of RNA-Seq Expression Data Using RStudio, Bioconductor, and Integrated Genome Browser.(2015)\n"
 
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_htseq()
+                self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_htseq()
 
             else:
                 print "Raw_data type selected: ", self.args.datatype
@@ -44,7 +46,7 @@ class DataContainer(object):
             if self.args.gene_list is not None:
                 self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
             else:
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
+                self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_plot_data(self.args.plot_data)
         else:
             "Anomaly. Exiting."
             sys.exit()
@@ -52,6 +54,10 @@ class DataContainer(object):
 
     def __getitem__(self, key):
         return self.data_frame_header[key]
+
+    @staticmethod
+    def rotate(l, n):
+        return l[n:] + l[:n]
 
     def analyzed(self):
         if self.args.plot_data is None:
@@ -117,7 +123,7 @@ class DataContainer(object):
                 tot = len(datafolder[2])
                 self.data_frame_header["Gene"] = []
 
-                if len(self.args.time) != int(tot/2):
+                if self.args.num == 2 and len(self.args.time) != int(tot/2):
                     print "Check your -time option, make sure it matches the no. of input files."
                     sys.exit()
 
@@ -173,6 +179,7 @@ class DataContainer(object):
                 # RStudio, Bioconductor, and Integrated Genome Browser. pp. 481–501.
 
         print "Attempting data normalization by edgeR...\n"
+        norm_path = ''
         try:
             norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
             print 'norm_path: ', norm_path
@@ -200,7 +207,9 @@ class DataContainer(object):
 
         # normalized_data_path = os.path.join('.', self.args.out,  'normalized_count_data.txt')
         # normalized_data_path = os.path.join('normalized_count_data.txt')
-
+        if norm_path == '':
+            print 'path unable to be constructed - Datacontainer line 178'
+            sys.exit()
         with open(norm_path, 'r') as normalized:
             normalized_reader = csv.reader(normalized, delimiter='\t')
 
@@ -217,26 +226,36 @@ class DataContainer(object):
                     for key, value in self.gene_map.items():
                         value.insert(position[0], None)
 
-            # Reorder the data so that series1 comes before series2
-            self.reorder(self.data_frame_header)
-            self.reorder(self.gene_map)
-            self.reorder(self.ercc_map)
+            if self.args.num == 1:
 
-            # produce flaking averages for each series if any stage is missing.
-            if len(insert_zero_list) > 0:  # If any data is missing...average flanking data
+
                 for key, value in self.gene_map.items():
-                    series1 = value[:len(value) / 2]  # split the data
-                    series2 = value[len(value) / 2:]
-                    self.gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
+                    rotate_value = self.rotate(value, 1)
+                    self.single_analysis_map[key] = value + rotate_value
 
-            # finaly, add in zeroed out genes
-            for key in self.raw_counts.keys():
-                if key not in self.gene_map.keys():
-                    self.gene_map[key] = [0] * int(len(self.data_frame_header["Gene"]))
-                else:
-                    pass
+            elif self.args.num == 2:
+                # Reorder the data so that series1 comes before series2
+                self.reorder(self.data_frame_header)
+                self.reorder(self.gene_map)
+                self.reorder(self.ercc_map)
 
-        return self.gene_map, self.ercc_map, self.data_frame_header
+                # produce flaking averages for each series if any stage is missing.
+                if len(insert_zero_list) > 0:  # If any data is missing...average flanking data
+                    for key, value in self.gene_map.items():
+                        series1 = value[:len(value) / 2]  # split the data
+                        series2 = value[len(value) / 2:]
+                        self.gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
+
+                # finaly, add in zeroed out genes
+                for key in self.raw_counts.keys():
+                    if key not in self.gene_map.keys():
+                        self.gene_map[key] = [0] * int(len(self.data_frame_header["Gene"]))
+                    else:
+                        pass
+            elif self.args.num > 2:
+                print "Data Container line 229 - does not support more than three series yet!"
+
+        return self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map
 
     def parse_cuffnorm(self, infile):
         """This function expects output from Cuffnorm. If the ERCC option is set, it will also return any ERCCs.
@@ -298,24 +317,28 @@ class DataContainer(object):
         gene_map = dict()
         data_frame_header = dict()
         ercc_map = dict()
+        single_analysis_map = dict()
 
         if os.path.exists(datafile):
             with open(datafile, 'rb') as datafile:
                 data_reader = csv.reader(datafile, delimiter='\t')
-                rowcount = 0
 
+                header = True
                 for row in data_reader:
-                    if rowcount == 0:
+                    if header:
                         data_frame_header[row[0]] = row[1:]
+                        header = False
                     else:
                         gene_map[row[0].capitalize()] = row[1:]
-                    rowcount += 1
+            for key, value in gene_map.items():
+                reordered_value = self.rotate(value, 1)
+                single_analysis_map[key] = value + reordered_value
 
         else:
             print "Couldn't open file."
             sys.exit()
 
-        return gene_map, ercc_map, data_frame_header
+        return gene_map, ercc_map, data_frame_header, single_analysis_map
 
     def parse_edgeR(self, infile, filelist=None):
         pass
