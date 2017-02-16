@@ -1,5 +1,5 @@
 from __future__ import division
-#Test
+# Test
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 
@@ -421,7 +421,8 @@ class MainDataPlotter(object):
         # range =
 
         fig.legend(handles=[expression_upper, expression_lower, log_line, difference],
-                   labels=(["Log2: " + str(self.args.log), "Range: " + str(self.args.low) + "-" + str(self.args.hi), "Diff: " + str(self.args.dif)]),
+                   labels=(["Log2: " + str(self.args.log), "Range: " + str(self.args.low) + "-" + str(self.args.hi),
+                            "Diff: " + str(self.args.dif)]),
                    loc='upper right')
 
         plt.savefig(self.path + "{}_DE_Gene_by_time.png".format(self.args.prefix), format='png', bbox_inches='tight')
@@ -515,11 +516,6 @@ class MainDataPlotter(object):
                     format='png',
                     bbox_inches='tight')
 
-    @staticmethod
-    def __hist_plot(num_list, bins, rang, color):
-
-        return plt.hist(num_list, bins, range=rang, facecolor=color)#, normed=1, alpha=0.75)
-
     def plot_histograms(self):
 
         plt.close()
@@ -534,7 +530,7 @@ class MainDataPlotter(object):
                     histogram_list[index].append(value)
             setup = False
 
-        figurelist=[]
+        figurelist = []
         sublist = []
         counter = 0
         for sample in histogram_list:
@@ -545,37 +541,52 @@ class MainDataPlotter(object):
                 counter = 0
                 sublist = []
 
+        counter = 0
+        sublist = []
+        figure_labels = []
+        for name in self.data_frame_header.values()[0]:
+            counter += 1
+            sublist.append(name)
+            if counter == 4:
+                figure_labels.append(sublist)
+                counter = 0
+                sublist = []
 
-        samp_name = self.data_frame_header.values()
+        filecnt = 1
+        fig_pos = 0
         for figure in figurelist:
-            fig = plt.figure(num=1,
-                             dpi=300,
-                             figsize=(4,4),
-                             edgecolor='black',
-                             frameon=True,
-                             )
-            fig.suptitle('Count distribution',
-                         verticalalignment='top',
-                         horizontalalignment='center',
-                         fontsize=10,
-                         x=0.415
-                         )
-            position = 0
-            sample_count = 1
-            for sample in figure:
 
-                position+=1
-                if len(figure) == 1:
-                    fig.add_subplot(1, 1, position)#.set_title('- ' + str(samp_name[sample_count]) + ' -', fontsize=20)
-                else:
-                    fig.add_subplot(2, 2, position)#.set_title('- ' + str(samp_name[sample_count]) + ' -', fontsize=20)
-                    sample_count += 1
-                    # position += 1
+            n_bins = 100
+            # color = 'black'
+            rang = tuple([float(x) for x in self.args.hist_range.split(',')])
 
-                samp = [float(x) for x in sample]
-                self.__hist_plot(samp, 75, (100, 1000), 'black')
+            fig, axes = plt.subplots(nrows=2, ncols=2)
+            ax0, ax1, ax2, ax3 = axes.flatten()
 
-                if position == 4:
-                    fig.tight_layout()
-                    plt.show()
-                    position = 1
+            ax0.hist([float(x) for x in figure[0]], n_bins, normed=100, range=rang)
+            ax0.set_title(figure_labels[fig_pos][0])
+
+            if len(figure) > 1:
+                ax1.hist([float(x) for x in figure[1]], n_bins, normed=100, range=rang)
+                ax1.set_title(figure_labels[fig_pos][1])
+
+            if len(figure) > 2:
+                ax2.hist([float(x) for x in figure[2]], n_bins, normed=100, range=rang)
+                ax2.set_title(figure_labels[fig_pos][2])
+
+            if len(figure) > 3:
+                ax3.hist([float(x) for x in figure[3]], n_bins, normed=100, range=rang)
+                ax3.set_title(figure_labels[fig_pos][3])
+
+            fig.tight_layout()
+            # plt.show()
+            fig_pos += 1
+
+            path = os.path.join('.', self.args.out, self.args.prefix)
+
+            plt.savefig("{}_{}_{}.png".format(path,
+                                              str(filecnt),
+                                              'histogram_plots'),
+                        format='png',
+                        bbox_inches='tight')
+            filecnt += 1

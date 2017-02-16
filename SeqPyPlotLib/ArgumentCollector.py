@@ -106,6 +106,13 @@ class Args:
                             dest='tally',
                             help='Default: False. Tally DE genes.')
 
+        parser.add_argument('-hist_range',
+                            metavar='1.0,1000.0',
+                            default=(1.0, 1000.0),
+                            type=str,
+                            dest='hist_range',
+                            help='Default: 1.0. Lower x axis limit for histogram.')
+
         parser.add_argument('-report',
                             action='store_true',
                             default=False,
