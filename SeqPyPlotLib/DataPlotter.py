@@ -27,6 +27,7 @@ class MainDataPlotter(object):
         self.analyzer = analyzer
         self.gene_map = analyzer.gene_map
         self.data_frame_header = analyzer.data_frame_header
+        self.sing_comp_header = analyzer.sing_comp_header
 
         if self.args.out is not None:
             self.path = os.path.join(self.args.out, self.args.prefix)
@@ -59,7 +60,7 @@ class MainDataPlotter(object):
                              edgecolor='black',
                              frameon=False,
                              )
-            fig.suptitle(self.args.out,
+            fig.suptitle(self.args.prefix,
                          verticalalignment='top',
                          horizontalalignment='center',
                          fontsize=24,
@@ -110,8 +111,17 @@ class MainDataPlotter(object):
                 print("The condition labels have to be comma separated.")
                 sys.exit()
 
-            fig.legend(handles=[series1_line, series2_line, log_line],
-                       labels=(condition_labels + ["Log2: " + str(self.args.log)]),
+            if self.args.num == 1:
+                handles = [series1_line]
+                labels = condition_labels
+            elif self.args.num == 2:
+                handles = [series1_line, series2_line, log_line]
+                labels = (condition_labels + ["Log2: " + str(self.args.log)])
+            else:
+                print "reset -num argument"
+                sys.exit()
+            fig.legend(handles=handles,
+                       labels=labels,
                        loc='upper right')
 
             path = os.path.join(self.args.out,
@@ -140,10 +150,13 @@ class MainDataPlotter(object):
 
         found, series1_data, series1_mask, series2_data, series2_mask = self.data_collector(gene)
 
-        np.asarray(series1_mask, dtype=bool)
-        np.asarray(series2_mask, dtype=bool)
 
-        x_axis = np.arange(float(max(len(series1_data), len(series2_data))))
+        if series2_data is None:
+            np.asarray(series2_mask, dtype=bool)
+            x_axis = np.arange(float(len(series1_data)))
+        else:
+            np.asarray(series1_mask, dtype=bool)
+            x_axis = np.arange(float(max(len(series1_data), len(series2_data))))
 
         # ---------------
         def __calculate_mean__(series1, series2):
@@ -191,31 +204,28 @@ class MainDataPlotter(object):
             ax.yaxis.set_ticks_position('left')
             ax.spines['bottom'].set_position(('data', 0))
 
-            # if self.args.time[0] == 'None':
-            #     # print "FALSE"
-            #     labels = [x for x in self.analyzer.data_frame_header['Gene'] if
-            #               self.analyzer.data_frame_header['Gene'].index(x) % 2 != 0]
-            # else:
-            #     # print "TRUE"
-            #     labels = [i for i in self.args.time]
-
             labels = self.args.time
 
             plt.xticks([i for i in range(len(series1_data))], labels)
 
             # fill the plot with data points and graph them
-            self.__series1_plot(series1_data, series1_mask, x_axis, label='Series1')
-            self.__series2_plot(series2_data, series2_mask, x_axis, label='Series2')
+            self.__series1_plot(series1_data, series1_mask, x_axis, self.args.condition[0], self.args.num)
 
-            # error bars
-            # return mean, and mask
-            series_mean, mask = __calculate_mean__(series1_data, series2_data)
+            if self.args.num == 2:
+                self.__series2_plot(series2_data, series2_mask, x_axis, self.args.condition[1])
 
-            err, upper = self.__err_range_plot(series_mean, x_axis, label="Range around the mean = log2(range)=1 ")
+                # error bars
+                # return mean, and mask
+                series_mean, mask = __calculate_mean__(series1_data, series2_data)
+
+                err, upper = self.__err_range_plot(series_mean, x_axis, label="Range around the mean = log2(range)=1 ")
 
             try:
-                # y_maximum = float(max(max(series1_data), max(series2_data))) * 1.3
-                y_maximum = float(max(max(series1_data), max(series2_data), max(upper))) * 1.4
+                if self.args.num == 2:
+                    y_maximum = float(max(max(series1_data), max(series2_data), max(upper))) * 1.4
+                else:
+                    y_maximum = float(max(series1_data)) * 1.3
+
             except ValueError:
                 print("Hmm, {0} wasn't found in the plot-able data set.".format(gene))
                 y_maximum = 10
@@ -290,22 +300,42 @@ class MainDataPlotter(object):
         return found, series1, s1mask, series2, s2mask  # series masks are a True/False list for use in _calculate_mean
 
     @staticmethod
-    def __series1_plot(series1, s1mask, xs, label):
-        return plt.plot(xs[s1mask],
-                        series1[s1mask],
-                        'bo',
-                        color="blue",
-                        marker='o',
-                        linewidth=1.4,
-                        linestyle="-",
-                        dash_capstyle='round',
-                        dash_joinstyle='bevel',
-                        label=label,
-                        fillstyle='full',
-                        markeredgecolor='blue',
-                        markerfacecolor='white',
-                        markeredgewidth=.95,
-                        markersize=6)
+    def __series1_plot(series1, s1mask, xs, label, num):
+        if num == 1:
+            width = 1.8
+            return plt.plot(xs,
+                            series1,
+                            'bo',
+                            color="blue",
+                            marker='o',
+                            linewidth=width,
+                            linestyle="-",
+                            dash_capstyle='round',
+                            dash_joinstyle='bevel',
+                            label=label,
+                            fillstyle='full',
+                            markeredgecolor='blue',
+                            markerfacecolor='white',
+                            markeredgewidth=.95,
+                            markersize=6)
+
+        else:
+            width = 1.4
+            return plt.plot(xs[s1mask],
+                            series1[s1mask],
+                            'bo',
+                            color="blue",
+                            marker='o',
+                            linewidth=width,
+                            linestyle="-",
+                            dash_capstyle='round',
+                            dash_joinstyle='bevel',
+                            label=label,
+                            fillstyle='full',
+                            markeredgecolor='blue',
+                            markerfacecolor='white',
+                            markeredgewidth=.95,
+                            markersize=6)
 
     @staticmethod
     def __series2_plot(series2, s2mask, xs, label):
@@ -363,7 +393,13 @@ class MainDataPlotter(object):
 
     def de_bar(self, colour):
         plt.close()
-        dfh = self.data_frame_header
+        if self.args.num == 1:
+            # dfh = self.sing_comp_header
+            # dfh['Gene']  self.sing_comp_header
+            pass
+        else:
+            dfh = self.data_frame_header
+
         # assert len(self.de_count_by_stage) == len(self.args.time)
 
         y_values = np.asarray([int(v) for k, v in sorted(self.de_count_by_time.items())])
@@ -379,21 +415,21 @@ class MainDataPlotter(object):
         fig, ax = plt.subplots()
         ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
 
-        if self.args.time is None:
-            if self.args.num == 1:
-                xlabs = np.asarray([dfh["Gene"][x[:6]]+[''] for x in range(int(len(dfh["Gene"])))])
-                ax.set_xticklabels(xlabs)
-            elif self.args.num == 2:
-                ax.set_xticklabels([dfh["Gene"][x:6]+[''] for x in range(int(len(dfh["Gene"])))] + [''])
-            else:
-                print "Doesn't support more than 2 plots for now."
-                sys.exit()
-        else:
-            xlabs = ['']
-            for i in range(len(self.args.time)):
-                xlabs.append(self.args.time[i])
-                xlabs.append('')
+        if self.args.num == 1:
+            tmp = []
+            for key in sorted(self.de_count_by_time.keys()):
+                tmp.append('')
+                tmp.append(key)
+
+            tmp.append('')
+            xlabs = np.asarray([x for x in tmp])
             ax.set_xticklabels(xlabs)
+
+        elif self.args.num == 2:
+            ax.set_xticklabels([dfh["Gene"][x:6]+[''] for x in range(int(len(dfh["Gene"])))] + [''])
+        else:
+            print "Doesn't support more than 2 plots for now. Need at least 1."
+            sys.exit()
 
         try:
             ax.set_ylim([0, ymax])
@@ -456,8 +492,8 @@ class MainDataPlotter(object):
             temp_de_count = self.analyzer.de_gene_list_length
             # print temp_de_count
             line_plot_y_list.append(int(temp_de_count))
-            print "{} of {}.".format(current, iteration)
-
+            text = "{} of {}.".format(current, iteration)
+            print '{:^43}'.format(text)
             self.analyzer.de_gene_list_length = 0
             current += 1
 
@@ -590,6 +626,20 @@ class MainDataPlotter(object):
                          fontsize=12,
                          y=1.05
                          )
+            fig.suptitle("Counts",
+                         verticalalignment='top',
+                         horizontalalignment='center',
+                         fontsize=12,
+                         y=0
+                         )
+            fig.suptitle("No. of Genes",
+                         verticalalignment='top',
+                         horizontalalignment='center',
+                         fontsize=12,
+                         y=0.5,
+                         rotation='vertical'
+                         )
+
             expression_upper = mlines.Line2D([], [], color='white')
             fig.legend(handles=[expression_upper],
                        labels=(["Range: " + str(self.args.hist_range)]),

@@ -18,7 +18,6 @@ class DataContainer(object):
         self.ercc_map = dict()
         self.data_frame_header = dict()
         self.raw_counts = dict()
-        self.single_analysis_map = dict()
 
         if Optimize is True:
             print("Engaging optimization mode.")
@@ -35,7 +34,7 @@ class DataContainer(object):
                 print "Reading data from FOLDER as HTSeq counts and normalizing using edgeR Methodology..."
                 print "See: Loraine, A.E. et al., Analysis and Visualization of RNA-Seq Expression Data Using RStudio, Bioconductor, and Integrated Genome Browser.(2015)\n"
 
-                self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_htseq()
+                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_htseq()
 
             else:
                 print "Raw_data type selected: ", self.args.datatype
@@ -44,9 +43,9 @@ class DataContainer(object):
 
         elif self.args.plot_data is not None:
             if self.args.gene_list is not None:
-                self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_plot_data(self.args.plot_data)
+                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
             else:
-                self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_plot_data(self.args.plot_data)
+                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
         else:
             "Anomaly. Exiting."
             sys.exit()
@@ -232,11 +231,7 @@ class DataContainer(object):
                         value.insert(position[0], None)
 
             if self.args.num == 1:
-
-
-                for key, value in self.gene_map.items():
-                    rotate_value = self.rotate(value, 1)
-                    self.single_analysis_map[key] = value + rotate_value
+                pass
 
             elif self.args.num == 2:
                 # Reorder the data so that series1 comes before series2
@@ -260,7 +255,7 @@ class DataContainer(object):
             elif self.args.num > 2:
                 print "Data Container line 229 - does not support more than three series yet!"
 
-        return self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map
+        return self.gene_map, self.ercc_map, self.data_frame_header
 
     def parse_cuffnorm(self, infile):
         """This function expects output from Cuffnorm. If the ERCC option is set, it will also return any ERCCs.
@@ -322,7 +317,6 @@ class DataContainer(object):
         gene_map = dict()
         data_frame_header = dict()
         ercc_map = dict()
-        single_analysis_map = dict()
 
         if os.path.exists(datafile):
             with open(datafile, 'rb') as datafile:
@@ -335,15 +329,13 @@ class DataContainer(object):
                         header = False
                     else:
                         gene_map[row[0].capitalize()] = row[1:]
-            for key, value in gene_map.items():
-                reordered_value = self.rotate(value, 1)
-                single_analysis_map[key] = value + reordered_value
+
 
         else:
             print "Couldn't open file."
             sys.exit()
 
-        return gene_map, ercc_map, data_frame_header, single_analysis_map
+        return gene_map, ercc_map, data_frame_header
 
     def parse_edgeR(self, infile, filelist=None):
         pass

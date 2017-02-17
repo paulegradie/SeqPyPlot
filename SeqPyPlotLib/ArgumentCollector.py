@@ -10,10 +10,12 @@ class Args:
         if self.args.time is not None:
             self.args.time = self.time_parser()
         else:
-            self.args.time = range(len(se))
+            print 'Set -time argument'
+            sys.exit()
+
 
         if self.args.num == 1:
-            pass
+            self.args.condition = ["Gene"]
         elif self.args.num == 2:
             self.args.condition = self.condition_label_parser()
         else:
@@ -30,7 +32,7 @@ class Args:
         epilog = """\n
         If you are finding that your file names aren't printing in the correct order,\n
         you can rename your files with..\n
-\n
+        \n
             1_[filename]\n
             2_[filename]\n
 
@@ -43,7 +45,7 @@ class Args:
 
         """
 
-        print '\n' + '{:^68}'.format('***SeqPyPlot v0.2***'), '\nA tool for helping you analyze pilot data (data without replicates).\n'
+
         parser = argparse.ArgumentParser(description='Required: -raw_data or -plot_data',
                                          prog='SeqPyPlot v0.2',
                                          usage=usage,
@@ -89,7 +91,7 @@ class Args:
 
         parser.add_argument('-c',
                             metavar='S1,S2',
-                            default=('Series1,Series2'),
+                            default=None,
                             type=str,
                             dest='condition',
                             help='\tA comma separated list of conditions (max 2)')
@@ -215,7 +217,7 @@ class Args:
     def __label_parser(argument):
         # type: (character_string) -> list of strings
         try:
-            parsed_list = [x for x in argument.split(',')]
+            parsed_list = argument.split(',')
             return parsed_list
 
         except AttributeError:
@@ -233,7 +235,7 @@ class Args:
         with open((str(self.path) + ".log.txt"), "w+") as logfile:
 
             logfile.write(
-                "\nLogs for {0}:".format(str(self.args.out)))
+                "\nLogs for {0}:".format(str(self.args.prefix)))
 
             logfile.write(
                 "\nExpression thresholds is: \n-Upper expression limit: {}\n-Lower expression limit: {}\n-Minimum Difference: {}\n".format(

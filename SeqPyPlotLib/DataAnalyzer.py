@@ -27,6 +27,9 @@ class DataAnalyzer(object):
             self.data_frame_header = data_container.data_frame_header
             self.data_container = data_container
 
+        self.sing_comp_map = dict()
+        self.sing_comp_header = dict()
+
         self.de_gene_list_length = 0
 
         self.de_count_by_stage = dict()  # for bar graph
@@ -46,6 +49,20 @@ class DataAnalyzer(object):
         return returnable
 
 
+    @staticmethod
+    def make_comparisons(value_list):
+        """O(n^2) alogirithm for making all comparisons"""
+
+        first_half = []
+        second_half = []
+        while len(value_list) > 1:
+            for value in value_list[1:]:
+                first_half.append(value_list[0])
+                second_half.append(value)
+            value_list = value_list[1:]
+        return first_half + second_half
+
+
     def seqpyfilter(self, use_iterator=None):
 
         """Running this function drops all of the outputs in to the SELF properties."""
@@ -53,13 +70,16 @@ class DataAnalyzer(object):
         # args_log = self.args.log
         args = self.args
         original_map = dict()
-        # if args.time[0] == 'None':
-        #     # print "FALSE"
-        #     labels = [self.data_frame_header["Gene"][x] for x in range(int(len(self.data_frame_header["Gene"])/2))]
-        # else:
-        #     # print "TRUE"
-        #     labels = [i for i in args.time]
-        labels = self.args.time
+        if self.args.num > 1:
+            labels = self.args.time
+        else:
+            self.sing_comp_header = []
+            header = self.make_comparisons(self.args.time)
+            top = header[:len(header) / 2]  # split the data
+            bottom = header[len(header) / 2:]
+            for i in range(len(top)):
+                self.sing_comp_header += [str(top[i]) + '/' + str(bottom[i])]
+            labels = self.sing_comp_header
 
         if use_iterator is not None:
             args_log = use_iterator
@@ -74,11 +94,15 @@ class DataAnalyzer(object):
         # self.de_gene_list = []  # list; only de gene names
         # self.filtered_data = dict()  # dictoinary; all de genes with expression values
         # self.de_count_by_gene = dict()  # dictionary; keys = gene names, values number of time points de
+
         analysis_map = dict()
+
         if self.args.num == 1:
-            analysis_map = self.data_container.single_analysis_map
+            for key, value in self.gene_map.items():
+                analysis_map[key] = self.make_comparisons(value)
+
         elif self.args.num == 2:
-            analysis_map == self.gene_map
+            analysis_map = self.gene_map
         else:
             print "Can't support more than 2 series yet!"
             sys.exit()
