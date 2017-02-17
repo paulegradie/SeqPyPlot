@@ -8,6 +8,9 @@ from SeqPyPlotLib.DataAnalyzer import DataAnalyzer
 from SeqPyPlotLib.ArgumentCollector import Args
 
 if __name__ == '__main__':
+    if len(sys.argv) == 0:
+        print "Set options."
+        sys.exit()
 
     start = float(time.time())
     print '\n\n'
@@ -97,7 +100,7 @@ if __name__ == '__main__':
                 Analyzer.print_analyzer_results()
 
             Plot_Builder.plot_figures()
-        else:
+        else:  # IF plot data is provided without a genelist
             # perform the DE analysis using processed plot data
             FullContainer = DataContainer.DataContainer(args)
             Analyzer = DataAnalyzer(args, FullContainer)

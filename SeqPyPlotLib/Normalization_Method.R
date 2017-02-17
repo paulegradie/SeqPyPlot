@@ -67,3 +67,8 @@ data_matrix=as.data.frame(read.delim(args[1], sep="\t", row.names="Gene"))
 to_normalize_matrix = DGEList(data_matrix, remove.zeros=TRUE)
 normalized_matrix = calcNormFactors(to_normalize_matrix)
 write.table(as.matrix(normalized_matrix), file=args[2], sep = '\t', col.names=FALSE)
+
+output_path = paste(args[3], "sample.png")
+png(output_path, 500, 500)
+plotMDS(normalized_matrix)
+dev.off()

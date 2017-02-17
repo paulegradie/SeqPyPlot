@@ -44,7 +44,7 @@ class DataContainer(object):
 
         elif self.args.plot_data is not None:
             if self.args.gene_list is not None:
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
+                self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_plot_data(self.args.plot_data)
             else:
                 self.gene_map, self.ercc_map, self.data_frame_header, self.single_analysis_map = self.parse_plot_data(self.args.plot_data)
         else:
@@ -139,7 +139,11 @@ class DataContainer(object):
 
                         continue
 
-                    self.data_frame_header["Gene"] += ['E' + '.'.join([str(_file[0:2]), str(_file[5:8])])]
+                    if self.args.time is None:
+                        self.data_frame_header["Gene"] += [str(_file[0:6])]
+                    else:
+                        self.data_frame_header["Gene"] = self.args.time
+
                     print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot))
                     with open(file_string, 'r') as countfile:
                         # ht_reader = csv.reader(countfile, delimiter='\t')
@@ -182,6 +186,7 @@ class DataContainer(object):
         norm_path = ''
         try:
             norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
+            project_dir = os.path.join('.', self.args.out)
             print 'norm_path: ', norm_path
             subprocess.call('Rscript '
                             + os.path.join('.',
@@ -189,7 +194,9 @@ class DataContainer(object):
                                             'Normalization_Method.R ')
                             + matrix_path
                             + ' '
-                            + norm_path)
+                            + norm_path
+                            + ' '
+                            + project_dir)
 
             print "Data Normalized Successfully"
 
@@ -205,8 +212,6 @@ class DataContainer(object):
 
             You have to add the path of Rscript.exe in you system path in environment variables.""")
 
-        # normalized_data_path = os.path.join('.', self.args.out,  'normalized_count_data.txt')
-        # normalized_data_path = os.path.join('normalized_count_data.txt')
         if norm_path == '':
             print 'path unable to be constructed - Datacontainer line 178'
             sys.exit()

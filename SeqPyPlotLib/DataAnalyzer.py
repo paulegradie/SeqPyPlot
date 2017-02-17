@@ -53,12 +53,13 @@ class DataAnalyzer(object):
         # args_log = self.args.log
         args = self.args
         original_map = dict()
-        if args.time[0] == 'None':
-            # print "FALSE"
-            labels = [self.data_frame_header["Gene"][x] for x in range(int(len(self.data_frame_header["Gene"])/2))]
-        else:
-            # print "TRUE"
-            labels = [i for i in args.time]
+        # if args.time[0] == 'None':
+        #     # print "FALSE"
+        #     labels = [self.data_frame_header["Gene"][x] for x in range(int(len(self.data_frame_header["Gene"])/2))]
+        # else:
+        #     # print "TRUE"
+        #     labels = [i for i in args.time]
+        labels = self.args.time
 
         if use_iterator is not None:
             args_log = use_iterator

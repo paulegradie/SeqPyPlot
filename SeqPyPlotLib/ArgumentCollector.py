@@ -6,9 +6,14 @@ import os
 class Args:
     def __init__(self):
         self.args = self.arg_parser()
-        self.args.time = self.time_parser()
+
+        if self.args.time is not None:
+            self.args.time = self.time_parser()
+        else:
+            self.args.time = range(len(se))
+
         if self.args.num == 1:
-            self.args.condition = 'C1'
+            pass
         elif self.args.num == 2:
             self.args.condition = self.condition_label_parser()
         else:
@@ -21,16 +26,45 @@ class Args:
 
     def arg_parser(self):
         # type: () -> NameSpace()
-        parser = argparse.ArgumentParser(description='Required: -raw_data or -plot_data',
-                                         prog='SeqPyPlot v0.2')
+        usage = "python SeqPyPlot.py [options] [-raw_data (or) -plot_data] -num 2 -time d1,d2,d3"
+        epilog = """\n
+        If you are finding that your file names aren't printing in the correct order,\n
+        you can rename your files with..\n
+\n
+            1_[filename]\n
+            2_[filename]\n
 
-        # plotter args
+        ...to produce the correct order.\n
+
+        order = Chronilogicaly staggered:\n
+
+        option -num set to 1: d1, d2, d3, ...\n
+        option -num set to 2: d1-ctrl, d1-exp, d2-ctrl, d2-exp, ...
+
+        """
+
+        print '\n' + '{:^68}'.format('***SeqPyPlot v0.2***'), '\nA tool for helping you analyze pilot data (data without replicates).\n'
+        parser = argparse.ArgumentParser(description='Required: -raw_data or -plot_data',
+                                         prog='SeqPyPlot v0.2',
+                                         usage=usage,
+                                         epilog=epilog)
+        # general args\
+        parser.add_argument('--------------------General Options--------------------',
+                            action='store_true',
+                            default=False)
         parser.add_argument('-time',
                             metavar='d1,d2,d3',
                             default=None,
                             type=str,
                             dest='time',
                             help='A comma separated list of time points.')
+
+        parser.add_argument('-num',
+                            metavar='2',
+                            default=2,
+                            type=int,
+                            dest='num',
+                            help='Default: 2. Set number of plots.')
 
         parser.add_argument('-out',
                             metavar='Default_out',
@@ -61,6 +95,10 @@ class Args:
                             help='\tA comma separated list of conditions (max 2)')
 
         ## Filter args
+
+        parser.add_argument('--------------------Filter Options--------------------',
+                            action='store_true',
+                            default=False)
         parser.add_argument('-low',
                             metavar='0',
                             default=25,
@@ -92,12 +130,12 @@ class Args:
                             dest='log',
                             help='Default: 1.0. Minimum log2 change to accept.')
 
-        parser.add_argument('-num',
-                            metavar='2',
-                            default=2,
-                            type=int,
-                            dest='num',
-                            help='Default: 2. Set number of plots.')
+
+        #analysis options
+        parser.add_argument('--------------------Analysis Options--------------------',
+                            action='store_true',
+                            default=False)
+
 
         parser.add_argument('-r',
                             default=False,
@@ -118,8 +156,8 @@ class Args:
                             help='Default: False. Tally DE genes.')
 
         parser.add_argument('-hist_range',
-                            metavar='1.0,1000.0',
-                            default=(1.0, 1000.0),
+                            metavar='1,1000',
+                            default='1,1000',
                             type=str,
                             dest='hist_range',
                             help='Default: 1.0. Lower x axis limit for histogram.')
@@ -135,6 +173,10 @@ class Args:
                             default=False,
                             dest='ercc',
                             help='Default: False. Write ERCC data to an output file.')
+
+        parser.add_argument('--------------------Input Options--------------------',
+                            action='store_true',
+                            default=False)
 
         parser.add_argument('-raw_data',
                             type=str,
@@ -163,6 +205,9 @@ class Args:
                             metavar='None',
                             dest='de_results',
                             help='Optional. Your own flagged gene list.')
+
+
+
 
         return parser.parse_args()
 

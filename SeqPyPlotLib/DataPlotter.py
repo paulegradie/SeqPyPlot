@@ -191,13 +191,15 @@ class MainDataPlotter(object):
             ax.yaxis.set_ticks_position('left')
             ax.spines['bottom'].set_position(('data', 0))
 
-            if self.args.time[0] == 'None':
-                # print "FALSE"
-                labels = [x for x in self.analyzer.data_frame_header['Gene'] if
-                          self.analyzer.data_frame_header['Gene'].index(x) % 2 != 0]
-            else:
-                # print "TRUE"
-                labels = [i for i in self.args.time]
+            # if self.args.time[0] == 'None':
+            #     # print "FALSE"
+            #     labels = [x for x in self.analyzer.data_frame_header['Gene'] if
+            #               self.analyzer.data_frame_header['Gene'].index(x) % 2 != 0]
+            # else:
+            #     # print "TRUE"
+            #     labels = [i for i in self.args.time]
+
+            labels = self.args.time
 
             plt.xticks([i for i in range(len(series1_data))], labels)
 
@@ -367,6 +369,7 @@ class MainDataPlotter(object):
         y_values = np.asarray([int(v) for k, v in sorted(self.de_count_by_time.items())])
         x_axis = range(len(y_values))
         bar_width = float(0.6)  # the width of the bars
+        ymax = 10
         try:
             ymax = max(y_values) * 1.3
         except ValueError:
@@ -376,12 +379,22 @@ class MainDataPlotter(object):
         fig, ax = plt.subplots()
         ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
 
-        if self.args.time[0] == 'None':
-            ax.set_xticklabels([''] + [dfh["Gene"][x] for x in range(int(len(dfh["Gene"]) / 2))], rotation='vertical')
+        if self.args.time is None:
+            if self.args.num == 1:
+                xlabs = np.asarray([dfh["Gene"][x[:6]]+[''] for x in range(int(len(dfh["Gene"])))])
+                ax.set_xticklabels(xlabs)
+            elif self.args.num == 2:
+                ax.set_xticklabels([dfh["Gene"][x:6]+[''] for x in range(int(len(dfh["Gene"])))] + [''])
+            else:
+                print "Doesn't support more than 2 plots for now."
+                sys.exit()
         else:
-            # print "TRUE"
-            ax.set_xticklabels([''] + [i for i in self.args.time])
-        # ax.set_xticklabels([''] + [str(x) for x in range(len(y_values))])
+            xlabs = ['']
+            for i in range(len(self.args.time)):
+                xlabs.append(self.args.time[i])
+                xlabs.append('')
+            ax.set_xticklabels(xlabs)
+
         try:
             ax.set_ylim([0, ymax])
         except UnboundLocalError:
@@ -544,7 +557,14 @@ class MainDataPlotter(object):
         counter = 0
         sublist = []
         figure_labels = []
-        for name in self.data_frame_header.values()[0]:
+
+        names = []
+        if self.args.time is None:
+            names = [x for x in self.data_frame_header["Gene"]]
+        else:
+            names = self.args.time
+
+        for name in names:
             counter += 1
             sublist.append(name)
             if counter == 4:
