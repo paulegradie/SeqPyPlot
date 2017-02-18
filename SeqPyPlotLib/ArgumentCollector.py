@@ -96,6 +96,13 @@ class Args:
                             dest='condition',
                             help='\tA comma separated list of conditions (max 2)')
 
+        parser.add_argument('-unform_plot_data',
+                            action='store_true',
+                            default=False,
+                            dest='unformatted_plot_data',
+                            help='Default: False. Reorder plot data (1,1,2,2 -> 1,2,1,2.')
+
+
         ## Filter args
 
         parser.add_argument('--------------------Filter Options--------------------',

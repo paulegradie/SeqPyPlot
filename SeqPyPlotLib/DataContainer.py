@@ -138,10 +138,13 @@ class DataContainer(object):
 
                         continue
 
-                    if self.args.time is None:
+                    if self.args.num == 1:
+                        self.data_frame_header["Gene"] = self.args.time
+                    elif self.args.num == 2:
                         self.data_frame_header["Gene"] += [str(_file[0:6])]
                     else:
-                        self.data_frame_header["Gene"] = self.args.time
+                        print "DC line 146"
+                        sys.exit()
 
                     print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot))
                     with open(file_string, 'r') as countfile:
@@ -294,8 +297,12 @@ class DataContainer(object):
                         self.gene_map[gene[3]] = []
                         for column in enumerate(gene):
                             if int(column[0]) == count:
-                                self.gene_map[gene[3]] += [column[1]]
-                                if '0' == str(column[1]):
+                                #if value is less than 0.01, change it to zero...
+                                if column[1] <= 1.0:
+                                    self.gene_map[gene[3]] += [0]
+                                else:
+                                    self.gene_map[gene[3]] += [column[1]]
+                                if str(column[1]) <= 0.5:
                                     zero = True
                                 count += 4
 
@@ -328,9 +335,31 @@ class DataContainer(object):
                         data_frame_header[row[0]] = row[1:]
                         header = False
                     else:
-                        gene_map[row[0].capitalize()] = row[1:]
-
-
+                        temprow = row[1:]
+                        finalrow = []
+                        for i in temprow:
+                            if i == '':
+                               finalrow.append(None)
+                            elif i < 1.0:
+                                finalrow.append(0.0)
+                            else:
+                                finalrow.append(i)
+                        gene_map[row[0].capitalize()] = finalrow
+                if self.args.num == 1:
+                    pass
+                elif self.args.num == 2:
+                    if self.args.unformatted_plot_data:
+                        self.reorder(data_frame_header)
+                        # print self.data_frame_header
+                        self.reorder(gene_map)
+                        self.reorder(ercc_map)
+                        for key, value in gene_map.items():
+                            series1 = value[:len(value) / 2]  # split the data
+                            series2 = value[len(value) / 2:]
+                            gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
+                else:
+                    print "num == more than 2 - does not support. DataConta. line 347"
+                    sys.exit()
         else:
             print "Couldn't open file."
             sys.exit()

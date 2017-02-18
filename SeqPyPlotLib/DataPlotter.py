@@ -136,8 +136,8 @@ class MainDataPlotter(object):
                 plt.savefig("{}_{}_{}.png".format(path,
                                                   str(figure_list_count).replace(" ", ""),
                                                   str(figure).replace(" ", "")),
-                                format='svg',
-                                bbox_inches='tight')
+                            format='svg',
+                            bbox_inches='tight')
 
             # plt.show()
             plt.clf()
@@ -149,7 +149,6 @@ class MainDataPlotter(object):
     def __subplot(self, gene):
 
         found, series1_data, series1_mask, series2_data, series2_mask = self.data_collector(gene)
-
 
         if series2_data is None:
             np.asarray(series2_mask, dtype=bool)
@@ -402,7 +401,13 @@ class MainDataPlotter(object):
 
         # assert len(self.de_count_by_stage) == len(self.args.time)
 
-        y_values = np.asarray([int(v) for k, v in sorted(self.de_count_by_time.items())])
+        xlabel = []
+        y_values = []
+        for k, v in sorted(self.de_count_by_time.items()):
+            xlabel.append(k)
+            y_values.append(int(v))
+
+        # y_values = np.asarray([int(v) for k, v in sorted()])
         x_axis = range(len(y_values))
         bar_width = float(0.6)  # the width of the bars
         ymax = 10
@@ -426,7 +431,8 @@ class MainDataPlotter(object):
             ax.set_xticklabels(xlabs)
 
         elif self.args.num == 2:
-            ax.set_xticklabels([dfh["Gene"][x:6]+[''] for x in range(int(len(dfh["Gene"])))] + [''])
+            # ax.set_xticklabels([dfh["Gene"][x:6]+[''] for x in range(int(len(dfh["Gene"])))] + [''])
+            ax.set_xticklabels([''] + xlabel + [''])
         else:
             print "Doesn't support more than 2 plots for now. Need at least 1."
             sys.exit()
@@ -594,13 +600,7 @@ class MainDataPlotter(object):
         sublist = []
         figure_labels = []
 
-        names = []
-        if self.args.time is None:
-            names = [x for x in self.data_frame_header["Gene"]]
-        else:
-            names = self.args.time
-
-        for name in names:
+        for name in self.data_frame_header["Gene"]:
             counter += 1
             sublist.append(name)
             if counter == 4:
@@ -621,24 +621,25 @@ class MainDataPlotter(object):
 
             fig, axes = plt.subplots(nrows=2, ncols=2)
             fig.suptitle("Count Density Per Sample",
-                         verticalalignment='top',
-                         horizontalalignment='right',
-                         fontsize=12,
-                         y=1.05
-                         )
-            fig.suptitle("Counts",
-                         verticalalignment='top',
-                         horizontalalignment='center',
-                         fontsize=12,
-                         y=0
-                         )
-            fig.suptitle("No. of Genes",
-                         verticalalignment='top',
-                         horizontalalignment='center',
-                         fontsize=12,
-                         y=0.5,
-                         rotation='vertical'
-                         )
+                      verticalalignment='top',
+                      horizontalalignment='right',
+                      fontsize=12,
+                      y=1.05
+                      )
+            # fig.suptitle("Counts",
+            #              verticalalignment='top',
+            #              horizontalalignment='center',
+            #              fontsize=12,
+            #              x=0.5
+            #              )
+            # fig.suptitle("No. of Genes",
+            #              verticalalignment='top',
+            #              horizontalalignment='left',
+            #              fontsize=12,
+            #              y=0.55,
+            #              x=0,
+            #              rotation='vertical'
+            #              )
 
             expression_upper = mlines.Line2D([], [], color='white')
             fig.legend(handles=[expression_upper],
@@ -647,32 +648,31 @@ class MainDataPlotter(object):
 
             ax0, ax1, ax2, ax3 = axes.flatten()
 
-            ax0.hist([float(x) for x in figure[0]], n_bins, color=color, range=rang)
+            ax0.hist([float(x) for x in figure[0] if x is not None], n_bins, color=color, range=rang)
             ax0.set_title(figure_labels[fig_pos][0])
 
             if len(figure) > 1:
-                ax1.hist([float(x) for x in figure[1]], n_bins, color=color, range=rang)
+                ax1.hist([float(x) for x in figure[1] if x is not None], n_bins, color=color, range=rang)
                 ax1.set_title(figure_labels[fig_pos][1])
 
             if len(figure) > 2:
-                ax2.hist([float(x) for x in figure[2]], n_bins, color=color, range=rang)
+                ax2.hist([float(x) for x in figure[2] if x is not None], n_bins, color=color, range=rang)
                 ax2.set_title(figure_labels[fig_pos][2])
 
             if len(figure) > 3:
-                ax3.hist([float(x) for x in figure[3]], n_bins, color=color, range=rang)
+                ax3.hist([float(x) for x in figure[3] if x is not None], n_bins, color=color, range=rang)
                 ax3.set_title(figure_labels[fig_pos][3])
-
 
             lower = int(rang[0])
             upper = int(rang[1])
             difference = int(upper - lower)
             inc = int(difference // 6)
-            xlabels = [lower//100,
-                       lower + inc*1,
-                       lower + inc*2,
-                       lower + inc*3,
-                       lower + inc*4,
-                       lower + inc*5,
+            xlabels = [lower // 100,
+                       lower + inc * 1,
+                       lower + inc * 2,
+                       lower + inc * 3,
+                       lower + inc * 4,
+                       lower + inc * 5,
                        upper]
 
             for ax in axes.flatten():
@@ -681,10 +681,11 @@ class MainDataPlotter(object):
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
                 ax.set_xticklabels(xlabels)
+                ax.set_xlabel("Count", fontsize=8)
+                ax.set_ylabel("No. of Geens", fontsize=8)
 
             fig.tight_layout()
             # plt.show()
-            fig_pos += 1
 
             path = os.path.join('.', self.args.out, self.args.prefix)
 
@@ -694,3 +695,7 @@ class MainDataPlotter(object):
                         format='png',
                         bbox_inches='tight')
             filecnt += 1
+            fig_pos += 1
+            plt.close()
+            if fig_pos == len(figure_labels):
+                return
