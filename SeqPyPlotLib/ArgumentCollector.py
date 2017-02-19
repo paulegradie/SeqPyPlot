@@ -21,6 +21,8 @@ class Args:
         else:
             print 'Cant support more than two yet.'
 
+        self.args.dif_range = self.dif_parser()
+
         if not os.path.isdir(self.args.out):
             os.makedirs(self.args.out)
 
@@ -115,23 +117,23 @@ class Args:
                             dest='low',
                             help='Default: 2. Set the min expression value to accept.')
         parser.add_argument('-hi',
-                            metavar='5000000',
-                            default=5000000,
+                            metavar='200000',
+                            default=200000,
                             type=float,
                             dest='hi',
                             help='Default: 5mil. Set the max expression value to accept.')
-        parser.add_argument('-dif',
-                            metavar='60',
-                            default=60,
-                            type=float,
-                            dest='dif',
-                            help='Default: 60. Set minimum difference in expression.')
-        parser.add_argument('-dif_upper',
-                            metavar='60',
-                            default=100000,
-                            type=float,
-                            dest='dif_upper',
-                            help='Default: 100000. Set minimum difference in expression.')
+        parser.add_argument('-dif_range',
+                            metavar='60,10000',
+                            default='40,10000',
+                            type=str,
+                            dest='dif_range',
+                            help='Default: 40-10000. Set minimum difference in expression.')
+        parser.add_argument('-scat_range',
+                            metavar='0,10000',
+                            default='0,200000',
+                            type=str,
+                            dest='scatt_range',
+                            help='Default: 0,5000000. Set scatterplot value range.')
         parser.add_argument('-log2',
                             metavar='1.0',
                             default=1.0,
@@ -237,6 +239,10 @@ class Args:
     def condition_label_parser(self):
         return self.__label_parser(str(self.args.condition))
 
+    def dif_parser(self):
+        dif_list = self.__label_parser((str(self.args.dif_range)))
+        return [float(x) for x in dif_list]
+
     def make_logs(self):
 
         with open((str(self.path) + ".log.txt"), "w+") as logfile:
@@ -246,9 +252,14 @@ class Args:
 
             logfile.write(
                 "\nExpression thresholds is: \n-Upper expression limit: {}\n-Lower expression limit: {}\n-Minimum Difference: {}\n".format(
-                    self.args.hi, self.args.low, self.args.dif))
+                    self.args.hi, self.args.low, self.args.dif_range))
 
             logfile.write(
-                "\nLog2Fold threshold is: " + str(self.args.log) + "\n")
+                "\nLog2Fold threshold is: " + str(self.args.log) + "\\" + "\n")
 
-args = Args()
+            logfile.write(
+                "\nScript Paramters-----\n")
+            for i in range(len(sys.argv)):
+
+                logfile.write(sys.argv[i] + ' ')
+

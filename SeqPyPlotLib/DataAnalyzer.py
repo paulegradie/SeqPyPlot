@@ -37,8 +37,9 @@ class DataAnalyzer(object):
         self.de_count_by_gene = dict()
         self.de_gene_list_by_stage = dict()
         self.de_gene_list = []
-        # inherited
+        self.sing_time_series_data = dict()
 
+        # inherited
         if self.args.out is not None:
             self.path = os.path.join(self.args.out, self.args.prefix)
         else:
@@ -70,6 +71,7 @@ class DataAnalyzer(object):
         # args_log = self.args.log
         args = self.args
         original_map = dict()
+
         if self.args.num > 1:
             labels = self.args.time
         else:
@@ -77,8 +79,10 @@ class DataAnalyzer(object):
             header = self.make_comparisons(self.args.time)
             top = header[:len(header) / 2]  # split the data
             bottom = header[len(header) / 2:]
+
             for i in range(len(top)):
                 self.sing_comp_header += [str(top[i]) + '/' + str(bottom[i])]
+
             labels = self.sing_comp_header
 
         if use_iterator is not None:
@@ -100,6 +104,7 @@ class DataAnalyzer(object):
         if self.args.num == 1:
             for key, value in self.gene_map.items():
                 analysis_map[key] = self.make_comparisons(value)
+            self.sing_time_series_data = analysis_map
 
         elif self.args.num == 2:
             analysis_map = self.gene_map
@@ -108,8 +113,7 @@ class DataAnalyzer(object):
             sys.exit()
 
         for key, value in sorted(analysis_map.items()):
-            # print "Key, Value: ", key, value, "WEIRED"
-            # continue
+
             # Set preconditions
             keep = False
 
@@ -122,12 +126,11 @@ class DataAnalyzer(object):
                 if None in sub_list:
                     pass
                 else:
-                    # Condition 1: FPKM of one or both is zero.
-                    # print "SubList: ", sub_list
+                    # Condition 1: Either is zero.
                     if float(sub_list[0]) == 0 or float(sub_list[1]) == 0:
                         if float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
-                            if abs(float(sub_list[0]) - float(sub_list[1])) >= args.dif:
-                                if abs(float(sub_list[0]) - float(sub_list[1])) <= args.dif_upper:
+                            if abs(float(sub_list[0]) - float(sub_list[1])) >= args.dif_range[0]:
+                                if abs(float(sub_list[0]) - float(sub_list[1])) <= args.dif_range[1]:
                                     if max(float(sub_list[0]), float(sub_list[1])) <= args.hi:
                                         keep = True
 
@@ -152,8 +155,8 @@ class DataAnalyzer(object):
                     # Condition 2: Both are non-zero - DO THE LOG TEST
                     elif float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
                         if abs(np.log2(float(sub_list[1]) / float(sub_list[0]))) >= float(args_log):
-                            if abs(float(sub_list[0]) - float(sub_list[1])) >= float(args.dif):
-                                if abs(float(sub_list[0]) - float(sub_list[1])) <= float(args.dif_upper):
+                            if abs(float(sub_list[0]) - float(sub_list[1])) >= args.dif_range[0]:
+                                if abs(float(sub_list[0]) - float(sub_list[1])) <= args.dif_range[1]:
                                     if max(float(sub_list[0]), float(sub_list[1])) <= float(args.hi):
                                         keep = True
 
@@ -176,7 +179,6 @@ class DataAnalyzer(object):
                                                 self.de_count_by_gene[key] += 1
                     else:
                         pass
-                        # print "ERROR - anomoly detected."
 
             if keep is True:
                 # TODO consolidate these two variables to clean up

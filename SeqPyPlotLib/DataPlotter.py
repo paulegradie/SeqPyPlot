@@ -27,6 +27,8 @@ class MainDataPlotter(object):
         self.analyzer = analyzer
         self.gene_map = analyzer.gene_map
         self.data_frame_header = analyzer.data_frame_header
+
+        #num == 1
         self.sing_comp_header = analyzer.sing_comp_header
 
         if self.args.out is not None:
@@ -392,55 +394,39 @@ class MainDataPlotter(object):
 
     def de_bar(self, colour):
         plt.close()
-        if self.args.num == 1:
-            # dfh = self.sing_comp_header
-            # dfh['Gene']  self.sing_comp_header
-            pass
-        else:
-            dfh = self.data_frame_header
-
-        # assert len(self.de_count_by_stage) == len(self.args.time)
-
+        fig = plt.figure(1, figsize=(10, 10))
         xlabel = []
         y_values = []
-        for k, v in sorted(self.de_count_by_time.items()):
-            xlabel.append(k)
-            y_values.append(int(v))
-
-        # y_values = np.asarray([int(v) for k, v in sorted()])
-        x_axis = range(len(y_values))
-        bar_width = float(0.6)  # the width of the bars
+        bar_width = 0.5  # the width of the bars
         ymax = 10
+
+        ax = plt.subplot()
+
+        if self.args.num == 1:
+            for k, v in sorted(self.de_count_by_time.items()):
+                y_values.append(int(v))
+                xlabel.append(k)
+            x_axis = xrange(len(y_values))
+            ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
+            ax.set_xticks(x_axis)
+            ax.set_xticklabels(xlabel, rotation=45)
+
+        elif self.args.num == 2:
+            for k, v in sorted(self.de_count_by_time.items()):
+                y_values.append(int(v))
+                xlabel.append(k)
+            x_axis = range(len(y_values))
+            ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
+            ax.set_xticklabels([''] + xlabel + [''], rotation='vertical')
+        else:
+            sys.exit()
         try:
             ymax = max(y_values) * 1.3
+            plt.ylim([0, ymax])
+
         except ValueError:
             print("Didn't find any DE genes.")
             print("These plots will be empty")
-
-        fig, ax = plt.subplots()
-        ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
-
-        if self.args.num == 1:
-            tmp = []
-            for key in sorted(self.de_count_by_time.keys()):
-                tmp.append('')
-                tmp.append(key)
-
-            tmp.append('')
-            xlabs = np.asarray([x for x in tmp])
-            ax.set_xticklabels(xlabs)
-
-        elif self.args.num == 2:
-            # ax.set_xticklabels([dfh["Gene"][x:6]+[''] for x in range(int(len(dfh["Gene"])))] + [''])
-            ax.set_xticklabels([''] + xlabel + [''])
-        else:
-            print "Doesn't support more than 2 plots for now. Need at least 1."
-            sys.exit()
-
-        try:
-            ax.set_ylim([0, ymax])
-        except UnboundLocalError:
-            pass
 
         # add some text for labels, title and axes ticks
         ax.set_ylabel('No. of Flagged Genes')
@@ -453,14 +439,17 @@ class MainDataPlotter(object):
         ax.spines['bottom'].set_visible(True)
         ax.spines['left'].set_visible(True)
 
-        plt.tick_params(
-            axis='both',  # changes apply to the x-axis
-            which='both',  # both major and minor ticks are affected
-            bottom='on',  # ticks along the bottom edge are off
-            top='off',  # ticks along the top edge are off
-            left='on',
-            right='off',
-            labelbottom='on')  # labels along the bottom edge are off
+        if len(xlabel) > 6:
+            ax.tick_params(axis='both', which='major', labelsize=8)
+        else:
+            plt.tick_params(
+                axis='both',  # changes apply to the x-axis
+                which='both',  # both major and minor ticks are affected
+                bottom='on',  # ticks along the bottom edge are off
+                top='off',  # ticks along the top edge are off
+                left='on',
+                right='off',
+                labelbottom='on')  # labels along the bottom edge are off
 
         log_line = mlines.Line2D([], [], color='yellow')
         expression_upper = mlines.Line2D([], [], color='orange')
@@ -471,11 +460,9 @@ class MainDataPlotter(object):
         else:
             hi = self.args.hi
 
-        # range =
-
         fig.legend(handles=[expression_upper, expression_lower, log_line, difference],
-                   labels=(["Log2: " + str(self.args.log), "Range: " + str(self.args.low) + "-" + str(self.args.hi),
-                            "Diff: " + str(self.args.dif)]),
+                   labels=(["Log2: " + str(self.args.log), "Range: " + str(self.args.low) + "-" + str(hi),
+                            "Diff: " + str(self.args.dif_range)]),
                    loc='upper right')
 
         plt.savefig(self.path + "{}_DE_Gene_by_time.png".format(self.args.prefix), format='png', bbox_inches='tight')
@@ -522,7 +509,7 @@ class MainDataPlotter(object):
                      verticalalignment='top',
                      horizontalalignment='center',
                      fontsize=12,
-                     x=0.415
+                     x=0.315
                      )
 
         expression_upper = mlines.Line2D([], [], color='white')
@@ -532,7 +519,7 @@ class MainDataPlotter(object):
         fig.legend(handles=[expression_upper, expression_lower, expression_dif],
                    labels=(["Upper: " + str(self.args.hi),
                             "Lower: " + str(self.args.low),
-                            "Dif: " + str(self.args.dif)]),
+                            "Dif: " + str(self.args.dif_range)]),
                    loc='upper right')
 
         plt.plot(cutoffs,
@@ -626,20 +613,6 @@ class MainDataPlotter(object):
                       fontsize=12,
                       y=1.05
                       )
-            # fig.suptitle("Counts",
-            #              verticalalignment='top',
-            #              horizontalalignment='center',
-            #              fontsize=12,
-            #              x=0.5
-            #              )
-            # fig.suptitle("No. of Genes",
-            #              verticalalignment='top',
-            #              horizontalalignment='left',
-            #              fontsize=12,
-            #              y=0.55,
-            #              x=0,
-            #              rotation='vertical'
-            #              )
 
             expression_upper = mlines.Line2D([], [], color='white')
             fig.legend(handles=[expression_upper],
@@ -699,3 +672,159 @@ class MainDataPlotter(object):
             plt.close()
             if fig_pos == len(figure_labels):
                 return
+
+    def make_scatterplots(self):
+
+        if self.args.num == 1:
+            gene_map = self.analyzer.sing_time_series_data
+
+        elif self.args.num == 2:
+            gene_map = self.gene_map
+        else:
+            sys.exit()
+
+        scatter_dict = dict()
+        width = len(gene_map.items()[0][1])
+        spacer = width // 2
+
+        sublist = []
+        counter = 0
+
+        plot_labels = []
+        figure_labels = []
+
+        if self.args.num == 1:
+            for name in self.sing_comp_header:
+                counter += 1
+                sublist.append(name)
+                if counter == 4:
+                    figure_labels.append(sublist)
+                    counter = 0
+                    sublist = []
+
+            if len(sublist) != 0:
+                figure_labels.append(sublist)
+
+            for i in self.sing_comp_header:
+                sublist = i.split('/')
+                plot_labels.append(sublist)
+
+            times = self.sing_comp_header
+
+        if self.args.num == 2:
+
+            for name in self.args.time:
+                counter += 1
+                sublist.append(name)
+                if counter == 4:
+                    figure_labels.append(sublist)
+                    counter = 0
+                    sublist = []
+            if len(sublist) != 0:
+                figure_labels.append(sublist)
+
+            sublist = []
+            name = self.data_frame_header["Gene"]
+
+            for i in range(spacer):
+                sublist.append(name[i])
+                sublist.append(name[i+spacer])
+                plot_labels.append(sublist)
+                sublist = []
+            times = self.args.time
+
+        # make scatter dictionary
+        setup1 = True
+        while setup1:
+            for gene in gene_map.values():
+                for i in range(spacer):
+                    scatter_dict[times[i]] = [[], []]
+                setup1 = False
+                break
+
+        scatrang = tuple([float(x) for x in self.args.scatt_range.split(',')])
+
+        for gene in gene_map.values():
+            for i in range(spacer):
+                if float(gene[i]) >= min(scatrang) and float(gene[i]) <= max(scatrang):
+                        scatter_dict[times[i]][0] += [float(gene[i])]
+                        scatter_dict[times[i]][1] += [float(gene[i + spacer])]
+                else:
+                    pass
+
+        filecnt = 1
+        fig_pos = 0
+
+        namecount = 0
+        for figure in figure_labels:
+            fig, axes = plt.subplots(nrows=2, ncols=2)
+            fig = plt.figure(num=1,
+                             dpi=1200,
+                             figsize=(70, 70),
+                             edgecolor='black',
+                             frameon=False,
+                             )
+
+            fig.suptitle("Sample Scatter Plots",
+                         verticalalignment='top',
+                         horizontalalignment='right',
+                         fontsize=14,
+                         y=1.05,
+                         x=0.4
+
+                         )
+
+            expression_upper = mlines.Line2D([], [], color='white')
+            fig.legend(handles=[expression_upper],
+                       labels=(["ScatRange: " + str(self.args.scatt_range)]),
+                       loc='upper right')
+
+            i = 0
+            for ax in axes.flatten():
+                x = scatter_dict[figure[i]][0]
+                y = scatter_dict[figure[i]][1]
+
+                # N = len(x)
+                colors = []
+                for z in range(len(x)):
+                    num1 = round(float(x[z]) - float(y[z]), ndigits=1)
+                    num2 = abs(num1)
+                    if num2 <= 17:
+                        colors.append(1)
+                    else:
+                        lognumb = np.log2(num2)
+                        colors.append(round(lognumb, ndigits=1))
+
+                # colors = np.sort(np.random.rand(N))
+                ax.scatter(x, y,
+                           c=colors,
+                           alpha=0.5)
+
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.get_xaxis().tick_bottom()
+                ax.get_yaxis().tick_left()
+                ax.set_xlim(scatrang)
+                ax.set_ylim(scatrang)
+                ax.set_xlabel(plot_labels[namecount][0] + '  Counts', fontsize=12)
+                ax.set_ylabel(plot_labels[namecount][1] + '  Counts', fontsize=12)
+                ax.set_title(figure[i])
+                ax.tick_params(axis='both', which='major', labelsize=8)
+                i += 1
+                namecount += 1
+                if i == len(figure):
+                    break
+
+            fig.tight_layout()
+            path = os.path.join('.', self.args.out, self.args.prefix)
+
+            plt.savefig("{}_{}_{}.png".format(path,
+                                              'scatter_plots',
+                                              str(filecnt)),
+                        format='png',
+                        bbox_inches='tight')
+
+            filecnt += 1
+            fig_pos += 1
+
+            plt.close()
