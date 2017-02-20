@@ -49,7 +49,7 @@ class DataContainer(object):
         else:
             "Anomaly. Exiting."
             sys.exit()
-        print "Data Container initialized Successfully...."
+        print "Data Container initialized Successfully....\n"
 
     def __getitem__(self, key):
         return self.data_frame_header[key]

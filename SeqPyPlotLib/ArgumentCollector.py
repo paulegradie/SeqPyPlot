@@ -129,8 +129,8 @@ class Args:
                             dest='dif_range',
                             help='Default: 40-10000. Set minimum difference in expression.')
         parser.add_argument('-scat_range',
-                            metavar='0,10000',
-                            default='0,200000',
+                            metavar='0,20000',
+                            default='0,20000',
                             type=str,
                             dest='scatt_range',
                             help='Default: 0,5000000. Set scatterplot value range.')
@@ -147,7 +147,41 @@ class Args:
                             action='store_true',
                             default=False)
 
+        parser.add_argument('-tally',
+                            action='store_true',
+                            default=False,
+                            dest='tally',
+                            help='Default: False. Tally DE genes.')
 
+        parser.add_argument('-scatter',
+                            action='store_true',
+                            default=False,
+                            dest='scatter',
+                            help='Default: False. Construct scatter plots.')
+
+        parser.add_argument('-bar',
+                            action='store_true',
+                            default=False,
+                            dest='bar',
+                            help='Default: False. Construct bar plots.')
+
+        parser.add_argument('-histo',
+                            action='store_true',
+                            default=False,
+                            dest='histo',
+                            help='Default: False. Construct histogram plots.')
+
+        parser.add_argument('-all',
+                            action='store_true',
+                            default=False,
+                            dest='all',
+                            help='Default: False. Make plots and tally flagged genes.')
+
+        parser.add_argument('-plots',
+                            action='store_false',
+                            default=True,
+                            dest='plots',
+                            help='Default: False. Make all plots.')
         parser.add_argument('-r',
                             default=False,
                             action='store_true',
@@ -160,11 +194,7 @@ class Args:
                             dest='svg',
                             help='Default: False. Use to svg plots.')
 
-        parser.add_argument('-tally',
-                            action='store_true',
-                            default=False,
-                            dest='tally',
-                            help='Default: False. Tally DE genes.')
+
 
         parser.add_argument('-hist_range',
                             metavar='1,1000',
@@ -172,6 +202,17 @@ class Args:
                             type=str,
                             dest='hist_range',
                             help='Default: 1.0. Lower x axis limit for histogram.')
+        parser.add_argument('-num_housekeeping',
+                            metavar='3',
+                            default=3,
+                            type=int,
+                            dest='num_housekeeping',
+                            help='Default: 3. Min number of Housekeeping to detect.')
+        parser.add_argument('-find_housekeeping',
+                            action='store_true',
+                            default=False,
+                            dest='find_housekeeping',
+                            help='Default: False. Search for housekeeping genes.')
 
         parser.add_argument('-report',
                             action='store_true',
@@ -251,11 +292,11 @@ class Args:
                 "\nLogs for {0}:".format(str(self.args.prefix)))
 
             logfile.write(
-                "\nExpression thresholds is: \n-Upper expression limit: {}\n-Lower expression limit: {}\n-Minimum Difference: {}\n".format(
+                "\nExpression thresholds: \n-Upper expression limit: {}\n-Lower expression limit: {}\n-Difference Range: {}\n".format(
                     self.args.hi, self.args.low, self.args.dif_range))
 
             logfile.write(
-                "\nLog2Fold threshold is: " + str(self.args.log) + "\\" + "\n")
+                "\nLog2Fold threshold is: " + str(self.args.log) + "\n")
 
             logfile.write(
                 "\nScript Paramters-----\n")

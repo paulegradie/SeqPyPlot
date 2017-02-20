@@ -39,6 +39,8 @@ class DataAnalyzer(object):
         self.de_gene_list = []
         self.sing_time_series_data = dict()
 
+        self.foldchange_map = dict()
+        self.housekeeping_dict = dict()
         # inherited
         if self.args.out is not None:
             self.path = os.path.join(self.args.out, self.args.prefix)
@@ -71,19 +73,71 @@ class DataAnalyzer(object):
         # args_log = self.args.log
         args = self.args
         original_map = dict()
+        analysis_map = dict()
 
-        if self.args.num > 1:
-            labels = self.args.time
-        else:
+        #in order to analyze housekeeping genes, data must be fed in as single series to avoid ambiguiety
+        if self.args.num == 1:
             self.sing_comp_header = []
             header = self.make_comparisons(self.args.time)
             top = header[:len(header) / 2]  # split the data
             bottom = header[len(header) / 2:]
+            self.housekeeping_dict = dict()
 
             for i in range(len(top)):
                 self.sing_comp_header += [str(top[i]) + '/' + str(bottom[i])]
 
             labels = self.sing_comp_header
+
+            for key, value in self.gene_map.items():
+                analysis_map[key] = self.make_comparisons(value)
+            self.sing_time_series_data = analysis_map
+
+            if use_iterator is None and self.args.find_housekeeping:
+                print "Searching for Housekeeping Genes...\n"
+                std_dev_marker = 0.0
+                floor = 5500
+
+                while len(self.housekeeping_dict) < self.args.num_housekeeping:
+                    std_dev_marker += 10.0
+                    for key, value in self.gene_map.items():
+                        vals = np.asarray([float(x) if x != 0 else 0 for x in value])
+                        if np.mean(vals) >= floor:
+                            std_dev = np.std(vals)
+                            if std_dev <= std_dev_marker:
+                                if key not in self.housekeeping_dict.keys():
+                                    self.housekeeping_dict[key] = value + [round(std_dev, ndigits=3)] + [floor]
+                                    print "Gene Found: ", key, '\t--Mean:\t', np.mean(vals), '\t--stdDev:\t', round(std_dev, ndigits=3), "\tFloor:\t", floor
+                                else:
+                                    pass
+                        else:
+                            pass
+                    if std_dev_marker >= 50.0:
+                        std_dev_marker = 0.0
+                        floor -= 250
+                    if floor < 500:
+                        print "Fewer than {} acceptable Housekeeping Genes Found...\n".format(self.args.num_housekeeping)
+                        break
+
+                if len(self.housekeeping_dict) > 0:
+                    with open(self.path + '_Housekeeping_Genes.txt', 'wb+') as housekeeping:
+                        self.housekeeping_dict["Gene"] = self.args.time + ["Std_Dev"] + ["Floor"]
+                        hkwriter = csv.writer(housekeeping, delimiter='\t')
+                        hkwriter.writerow(['Gene'] + self.housekeeping_dict['Gene'])
+                        for key, value in sorted(self.housekeeping_dict.items(), key=lambda k: k[1][-1]):
+                            if key == 'Gene':
+                                pass
+                            else:
+                                hkwriter.writerow([key] + value)
+
+        elif self.args.num == 2:
+            labels = self.args.time
+            analysis_map = self.gene_map
+
+        else:
+            print "Doesn't supppor num > 2  -- DA, line 107"
+            sys.exit()
+
+
 
         if use_iterator is not None:
             args_log = use_iterator
@@ -99,21 +153,12 @@ class DataAnalyzer(object):
         # self.filtered_data = dict()  # dictoinary; all de genes with expression values
         # self.de_count_by_gene = dict()  # dictionary; keys = gene names, values number of time points de
 
-        analysis_map = dict()
 
-        if self.args.num == 1:
-            for key, value in self.gene_map.items():
-                analysis_map[key] = self.make_comparisons(value)
-            self.sing_time_series_data = analysis_map
-
-        elif self.args.num == 2:
-            analysis_map = self.gene_map
-        else:
-            print "Can't support more than 2 series yet!"
-            sys.exit()
+        self.foldchange_map["Gene"] = labels
 
         for key, value in sorted(analysis_map.items()):
-
+            if key not in self.foldchange_map.keys():
+                self.foldchange_map[key] = [0] * (len(value) / 2)
             # Set preconditions
             keep = False
 
@@ -136,6 +181,13 @@ class DataAnalyzer(object):
 
                                         if use_iterator is None:  # avoid value inflation during tally routine
                                          # assign results to various maps
+                                            if float(sub_list[0]) > float(sub_list[1]):
+                                                self.foldchange_map[key][v] = "Turned OFF"
+                                            elif float(sub_list[0]) < float(sub_list[1]):
+                                                self.foldchange_map[key][v] = "Turned ON"
+                                            else:
+                                                self.foldchange_map[key][v] = "No Change"
+
                                             if labels[v] not in self.de_gene_list_by_stage.keys():
                                                 self.de_count_by_stage[labels[v]] = 1
                                             else:
@@ -151,7 +203,6 @@ class DataAnalyzer(object):
                                             else:
                                                 self.de_count_by_gene[key] += 1
 
-
                     # Condition 2: Both are non-zero - DO THE LOG TEST
                     elif float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
                         if abs(np.log2(float(sub_list[1]) / float(sub_list[0]))) >= float(args_log):
@@ -163,6 +214,8 @@ class DataAnalyzer(object):
                                         if use_iterator is None:  # avoid value inflation during tally routine
 
                                             # assign results to various maps
+                                            self.foldchange_map[key][v] = round(np.log2(float(sub_list[1]) / float(sub_list[0])), ndigits=3)
+
                                             if labels[v] not in self.de_gene_list_by_stage.keys():
                                                 self.de_count_by_stage[labels[v]] = 1
                                             else:
@@ -199,12 +252,6 @@ class DataAnalyzer(object):
                self.de_count_by_stage, \
                self.filtered_data
 
-    # TODO write function to analyze control time series DE genes
-    # def analyze_time_series(self, gene_map):
-    #     series_1 = dict()
-    #     for key, value in gene_map.items():
-    #         control_data
-
     def print_analyzer_results(self):
         self.args = self.args
 
@@ -235,7 +282,20 @@ class DataAnalyzer(object):
             if len(self.de_gene_list_by_stage) != 0:
                 de_list_writer = csv.writer(genecount, delimiter='\t')
                 de_list_writer.writerow(["Stage"] + ["DE_gene_list"])
-                for key, value in self.de_gene_list_by_stage.items():
+                for key, value in sorted(self.de_gene_list_by_stage.items()):
                     de_list_writer.writerow([key] + value)
             else:
-                print "No DE Genes to write for gene_list by stage."
+                print "No flagged genes to write for gene_list by stage."
+
+        with open(self.path + '_logFoldChange_matrix.txt', 'wb+') as logmatrix:
+            if len(self.foldchange_map) != 0:
+                foldwriter = csv.writer(logmatrix, delimiter='\t')
+                foldwriter.writerow(['Gene'] + self.foldchange_map['Gene'])
+                for key, value in sorted(self.foldchange_map.items()):
+                    if key == 'Gene':
+                        pass
+                    else:
+                        foldwriter.writerow([key] + value)
+            else:
+                print "No flagged genes."
+

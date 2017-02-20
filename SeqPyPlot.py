@@ -57,14 +57,18 @@ if args.raw_data is not None:
 
     if args.tally:
         Plot_Builder = MainDataPlotter(args, Analyzer, None)  # object used for generating plots
-        print "Building Scatter Plots...\n"
-        Plot_Builder.make_scatterplots()
-        print "Building Bar Plots...\n"
-        Plot_Builder.de_bar('black')
-        print "Performing Tallys...\n"
-        Plot_Builder.plot_tally()
-        print "Plotting Histograms...\n"
-        Plot_Builder.plot_histograms()
+        if args.scatter or args.all or args.plots:
+            print "Building Scatter Plots...\n"
+            Plot_Builder.make_scatterplots()
+        if args.bar or args.all or args.plots:
+            print "Building Bar Plots...\n"
+            Plot_Builder.de_bar('black')
+        if args.tally or args.all:
+            print "Performing Tallys...\n"
+            Plot_Builder.plot_tally()
+        if args.histo or args.all or args.plots:
+            print "Plotting Histograms...\n"
+            Plot_Builder.plot_histograms()
         Analyzer.print_analyzer_results()
 
     print(
@@ -100,17 +104,20 @@ elif args.plot_data is not None:
             DataPrinter.write_de_results()
             DataPrinter.write_filtered_data()
 
-        if args.tally or args.all:
+        if args.scatter or args.all or args.plots:
             print "Building Scatter Plots...\n"
             Plot_Builder.make_scatterplots()
-
+        if args.bar or args.all or args.plots:
             print "Building Bar Plots...\n"
             Plot_Builder.de_bar('black')
+        if args.tally or args.all:
             print "Performing Tallys...\n"
             Plot_Builder.plot_tally()
+        if args.histo or args.all or args.plots:
             print "Plotting Histograms...\n"
             Plot_Builder.plot_histograms()
-            Analyzer.print_analyzer_results()
+
+        Analyzer.print_analyzer_results()
 
     else:  # IF plot data is provided without a genelist
         # perform the DE analysis using processed plot data
@@ -123,20 +130,20 @@ elif args.plot_data is not None:
         DataPrinter.write_de_results()
         DataPrinter.write_filtered_data()
 
-        # print "Plotting Histograms...\n"
-        # Plot_Builder.plot_histograms()
-
         Analyzer.print_analyzer_results()
 
-        if args.tally:
+        if args.scatter or args.all or args.plots:
             print "Building Scatter Plots...\n"
-
             Plot_Builder.make_scatterplots()
-
+        if args.bar or args.all or args.plots:
             print "Building Bar Plots...\n"
             Plot_Builder.de_bar('black')
+        if args.tally or args.all:
             print "Performing Tallys...\n"
-            # Plot_Builder.plot_tally()
+            Plot_Builder.plot_tally()
+        if args.histo or args.all or args.plots:
+            print "Plotting Histograms...\n"
+            Plot_Builder.plot_histograms()
 
         print "Finished."
         sys.exit()

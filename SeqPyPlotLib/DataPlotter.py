@@ -781,8 +781,12 @@ class MainDataPlotter(object):
 
             i = 0
             for ax in axes.flatten():
-                x = scatter_dict[figure[i]][0]
-                y = scatter_dict[figure[i]][1]
+                try:
+                    x = scatter_dict[figure[i]][0]
+                    y = scatter_dict[figure[i]][1]
+                except ValueError:
+                    print "Double check the -time argument. Does it match?"
+                    sys.exit()
 
                 # N = len(x)
                 colors = []
