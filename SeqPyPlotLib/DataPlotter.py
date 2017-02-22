@@ -28,7 +28,7 @@ class MainDataPlotter(object):
         self.gene_map = analyzer.gene_map
         self.data_frame_header = analyzer.data_frame_header
 
-        #num == 1
+        # num == 1
         self.sing_comp_header = analyzer.sing_comp_header
 
         if self.args.out is not None:
@@ -608,11 +608,11 @@ class MainDataPlotter(object):
 
             fig, axes = plt.subplots(nrows=2, ncols=2)
             fig.suptitle("Count Density Per Sample",
-                      verticalalignment='top',
-                      horizontalalignment='right',
-                      fontsize=12,
-                      y=1.05
-                      )
+                         verticalalignment='top',
+                         horizontalalignment='right',
+                         fontsize=12,
+                         y=1.05
+                         )
 
             expression_upper = mlines.Line2D([], [], color='white')
             fig.legend(handles=[expression_upper],
@@ -673,15 +673,27 @@ class MainDataPlotter(object):
             if fig_pos == len(figure_labels):
                 return
 
-    def make_scatterplots(self):
+    def make_scatter_plots(self, flagged=False):
 
-        if self.args.num == 1:
-            gene_map = self.analyzer.sing_time_series_data
+        if flagged is False:
+            if self.args.num == 1:
+                gene_map = self.analyzer.sing_time_series_data
 
-        elif self.args.num == 2:
-            gene_map = self.gene_map
+            elif self.args.num == 2:
+                gene_map = self.analyzer.unflagged_genes
+            else:
+                sys.exit()
+            plot_name = 'Scatter_Plots_unfiltered_genes'
+
         else:
-            sys.exit()
+            if self.args.num == 1:
+                gene_map = self.analyzer.sing_time_series_data
+
+            elif self.args.num == 2:
+                gene_map = self.analyzer.filtered_data
+            else:
+                sys.exit()
+            plot_name = 'Scatter_Plots_filtered_genes'
 
         scatter_dict = dict()
         width = len(gene_map.items()[0][1])
@@ -728,7 +740,7 @@ class MainDataPlotter(object):
 
             for i in range(spacer):
                 sublist.append(name[i])
-                sublist.append(name[i+spacer])
+                sublist.append(name[i + spacer])
                 plot_labels.append(sublist)
                 sublist = []
             times = self.args.time
@@ -747,8 +759,8 @@ class MainDataPlotter(object):
         for gene in gene_map.values():
             for i in range(spacer):
                 if float(gene[i]) >= min(scatrang) and float(gene[i]) <= max(scatrang):
-                        scatter_dict[times[i]][0] += [float(gene[i])]
-                        scatter_dict[times[i]][1] += [float(gene[i + spacer])]
+                    scatter_dict[times[i]][0] += [float(gene[i])]
+                    scatter_dict[times[i]][1] += [float(gene[i + spacer])]
                 else:
                     pass
 
@@ -757,6 +769,7 @@ class MainDataPlotter(object):
 
         namecount = 0
         for figure in figure_labels:
+
             fig, axes = plt.subplots(nrows=2, ncols=2)
             fig = plt.figure(num=1,
                              dpi=1200,
@@ -764,14 +777,17 @@ class MainDataPlotter(object):
                              edgecolor='black',
                              frameon=False,
                              )
+            if flagged:
+                suptitle = "Sample Scatter Plots - Flagged Genes"
+            else:
+                suptitle = "Sample Scatter Plots - Unflagged Genes"
 
-            fig.suptitle("Sample Scatter Plots",
+            fig.suptitle(suptitle,
                          verticalalignment='top',
                          horizontalalignment='right',
                          fontsize=14,
                          y=1.05,
                          x=0.4
-
                          )
 
             expression_upper = mlines.Line2D([], [], color='white')
@@ -822,8 +838,9 @@ class MainDataPlotter(object):
             fig.tight_layout()
             path = os.path.join('.', self.args.out, self.args.prefix)
 
+
             plt.savefig("{}_{}_{}.png".format(path,
-                                              'scatter_plots',
+                                              plot_name,
                                               str(filecnt)),
                         format='png',
                         bbox_inches='tight')
@@ -832,3 +849,142 @@ class MainDataPlotter(object):
             fig_pos += 1
 
             plt.close()
+
+    def bland_altman_plot(self):
+
+        gene_map = self.analyzer.unflagged_genes
+
+        ba_dict = dict()
+        width = len(gene_map.items()[0][1])
+        spacer = width // 2
+
+        sublist = []
+        counter = 0
+
+        plot_labels = []
+        figure_labels = []
+
+        for name in self.args.time:
+            counter += 1
+            sublist.append(name)
+            if counter == 4:
+                figure_labels.append(sublist)
+                counter = 0
+                sublist = []
+        if len(sublist) != 0:
+            figure_labels.append(sublist)
+
+        sublist = []
+        name = self.data_frame_header["Gene"]
+
+        for i in range(spacer):
+            sublist.append(name[i])
+            sublist.append(name[i + spacer])
+            plot_labels.append(sublist)
+            sublist = []
+        times = self.args.time
+
+        # make BA dictionary
+        setup1 = True
+        while setup1:
+            for gene in gene_map.values():
+                for i in range(spacer):
+                    ba_dict[times[i]] = [[], []]
+                setup1 = False
+                break
+
+        barang = tuple([float(x) for x in self.args.ba_range.split(',')])
+
+        for gene in gene_map.values():
+            for i in range(spacer):
+                if float(gene[i]) >= min(barang) and float(gene[i]) <= max(barang):
+                    ba_dict[times[i]][0] += [float(gene[i])]
+                    ba_dict[times[i]][1] += [float(gene[i + spacer])]
+
+        filecnt = 1
+        fig_pos = 0
+
+        namecount = 0
+        for figure in figure_labels:
+
+            fig, axes = plt.subplots(nrows=2, ncols=2)
+            fig = plt.figure(num=1,
+                             dpi=1200,
+                             figsize=(70, 70),
+                             edgecolor='black',
+                             frameon=False,
+                             )
+
+            fig.suptitle("Bland-Altman Plots - Unflagged Genes",
+                         verticalalignment='top',
+                         horizontalalignment='center',
+                         fontsize=14,
+                         y=1.05,
+                         x=0.5
+                         )
+
+            i = 0
+            for ax in axes.flatten():
+                try:
+                    x = ba_dict[figure[i]][0]
+                    y = ba_dict[figure[i]][1]
+                except ValueError:
+                    print "Double check the -time argument. Does it match?"
+                    sys.exit()
+
+                self.BA_plot(x, y, ax)
+
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.get_xaxis().tick_bottom()
+                ax.get_yaxis().tick_left()
+                ax.set_xlim(barang)
+                ax.set_ylim([-2000, 2000])
+                ax.set_xlabel(plot_labels[namecount][0] + '  average', fontsize=8)
+                ax.set_ylabel(plot_labels[namecount][1] + '  difference', fontsize=8)
+                ax.set_title(figure[i])
+                ax.tick_params(axis='both', which='major', labelsize=8)
+                i += 1
+                namecount += 1
+                if i == len(figure):
+                    break
+
+            fig.tight_layout()
+            path = os.path.join('.', self.args.out, self.args.prefix)
+
+            plt.savefig("{}_{}_{}.png".format(path,
+                                              'Bland_Altman_plots',
+                                              str(filecnt)),
+                        format='png',
+                        bbox_inches='tight')
+
+            filecnt += 1
+            fig_pos += 1
+
+            plt.close()
+
+    @staticmethod
+    def BA_plot(data1, data2, ax, *args, **kwargs):
+        colors = []
+        for z in range(len(data1)):
+            num1 = round(float(data1[z]) - float(data2[z]), ndigits=1)
+            num2 = abs(num1)
+            if num2 <= 17:
+                colors.append(1)
+            else:
+                lognumb = np.log2(num2)
+                colors.append(round(lognumb, ndigits=1))
+
+        data1 = np.asarray(data1)
+        data2 = np.asarray(data2)
+        mean = np.mean([data1, data2], axis=0)
+        diff = data1 - data2  # Difference between data1 and data2
+        md = np.mean(diff)  # Mean of the difference
+        sd = np.std(diff, axis=0)  # Standard deviation of the difference
+
+        ax.scatter(mean, diff, c=colors, alpha=0.5, *args, **kwargs)
+        ax.axhline(md, color='gray', linestyle='--')
+        ax.axhline(md + 1.96 * sd, color='gray', linestyle='--')
+        ax.axhline(md - 1.96 * sd, color='gray', linestyle='--')
+        # ax.xlim()
+        return ax

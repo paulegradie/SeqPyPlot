@@ -128,12 +128,7 @@ class Args:
                             type=str,
                             dest='dif_range',
                             help='Default: 40-10000. Set minimum difference in expression.')
-        parser.add_argument('-scat_range',
-                            metavar='0,20000',
-                            default='0,20000',
-                            type=str,
-                            dest='scatt_range',
-                            help='Default: 0,5000000. Set scatterplot value range.')
+
         parser.add_argument('-log2',
                             metavar='1.0',
                             default=1.0,
@@ -158,18 +153,35 @@ class Args:
                             default=False,
                             dest='scatter',
                             help='Default: False. Construct scatter plots.')
+        parser.add_argument('-scat_range',
+                            metavar='0,20000',
+                            default='0,20000',
+                            type=str,
+                            dest='scatt_range',
+                            help='Default: 0,5000000. Set scatter plot value range.')
+        parser.add_argument('-ba_range',
+                            metavar='1,25000',
+                            default='1,25000',
+                            type=str,
+                            dest='ba_range',
+                            help='Default: 1,25000. Range for BA plots.')
+        parser.add_argument('-histo',
+                            action='store_true',
+                            default=False,
+                            dest='histo',
+                            help='Default: False. Construct histogram plots.')
+        parser.add_argument('-hist_range',
+                            metavar='1,1000',
+                            default='1,1000',
+                            type=str,
+                            dest='hist_range',
+                            help='Default: 1.0. Lower x axis limit for histogram.')
 
         parser.add_argument('-bar',
                             action='store_true',
                             default=False,
                             dest='bar',
                             help='Default: False. Construct bar plots.')
-
-        parser.add_argument('-histo',
-                            action='store_true',
-                            default=False,
-                            dest='histo',
-                            help='Default: False. Construct histogram plots.')
 
         parser.add_argument('-all',
                             action='store_true',
@@ -195,13 +207,6 @@ class Args:
                             help='Default: False. Use to svg plots.')
 
 
-
-        parser.add_argument('-hist_range',
-                            metavar='1,1000',
-                            default='1,1000',
-                            type=str,
-                            dest='hist_range',
-                            help='Default: 1.0. Lower x axis limit for histogram.')
         parser.add_argument('-num_housekeeping',
                             metavar='3',
                             default=3,

@@ -34,6 +34,7 @@ class DataAnalyzer(object):
 
         self.de_count_by_stage = dict()  # for bar graph
         self.filtered_data = dict()
+        self.unflagged_genes = dict()
         self.de_count_by_gene = dict()
         self.de_gene_list_by_stage = dict()
         self.de_gene_list = []
@@ -134,7 +135,7 @@ class DataAnalyzer(object):
             analysis_map = self.gene_map
 
         else:
-            print "Doesn't supppor num > 2  -- DA, line 107"
+            print "Doesn't suppport num > 2  -- DA, line 107"
             sys.exit()
 
 
@@ -237,6 +238,8 @@ class DataAnalyzer(object):
                 # TODO consolidate these two variables to clean up
                 self.de_gene_list.append(key)
                 self.filtered_data[key] = value
+            else:
+                self.unflagged_genes[key] = value
 
         self.de_gene_list_length = int(len(self.de_gene_list))
 
@@ -250,7 +253,8 @@ class DataAnalyzer(object):
                self.de_gene_list_length, \
                self.de_count_by_gene, \
                self.de_count_by_stage, \
-               self.filtered_data
+               self.filtered_data, \
+               self.unflagged_genes
 
     def print_analyzer_results(self):
         self.args = self.args
