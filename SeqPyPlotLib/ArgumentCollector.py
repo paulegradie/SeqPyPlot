@@ -93,7 +93,7 @@ class Args:
 
         parser.add_argument('-c',
                             metavar='S1,S2',
-                            default=None,
+                            default='S1,S2',
                             type=str,
                             dest='condition',
                             help='\tA comma separated list of conditions (max 2)')
@@ -111,7 +111,7 @@ class Args:
                             action='store_true',
                             default=False)
         parser.add_argument('-low',
-                            metavar='0',
+                            metavar='25',
                             default=25,
                             type=float,
                             dest='low',
@@ -123,8 +123,8 @@ class Args:
                             dest='hi',
                             help='Default: 5mil. Set the max expression value to accept.')
         parser.add_argument('-dif_range',
-                            metavar='60,10000',
-                            default='40,10000',
+                            metavar='60,1000',
+                            default='4,1000',
                             type=str,
                             dest='dif_range',
                             help='Default: 40-10000. Set minimum difference in expression.')

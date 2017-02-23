@@ -175,9 +175,9 @@ class DataAnalyzer(object):
                     # Condition 1: Either is zero.
                     if float(sub_list[0]) == 0 or float(sub_list[1]) == 0:
                         if float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
-                            if abs(float(sub_list[0]) - float(sub_list[1])) >= args.dif_range[0]:
-                                if abs(float(sub_list[0]) - float(sub_list[1])) <= args.dif_range[1]:
-                                    if max(float(sub_list[0]), float(sub_list[1])) <= args.hi:
+                            if abs(float(sub_list[0]) - float(sub_list[1])) >= float(args.dif_range[0]):
+                                if abs(float(sub_list[0]) - float(sub_list[1])) <= float(args.dif_range[1]):
+                                    if max(float(sub_list[0]), float(sub_list[1])) <= float(args.hi):
                                         keep = True
 
                                         if use_iterator is None:  # avoid value inflation during tally routine
@@ -207,8 +207,8 @@ class DataAnalyzer(object):
                     # Condition 2: Both are non-zero - DO THE LOG TEST
                     elif float(sub_list[0]) >= float(args.low) or float(sub_list[1]) >= float(args.low):
                         if abs(np.log2(float(sub_list[1]) / float(sub_list[0]))) >= float(args_log):
-                            if abs(float(sub_list[0]) - float(sub_list[1])) >= args.dif_range[0]:
-                                if abs(float(sub_list[0]) - float(sub_list[1])) <= args.dif_range[1]:
+                            if abs(float(sub_list[0]) - float(sub_list[1])) >= float(args.dif_range[0]):
+                                if abs(float(sub_list[0]) - float(sub_list[1])) <= float(args.dif_range[1]):
                                     if max(float(sub_list[0]), float(sub_list[1])) <= float(args.hi):
                                         keep = True
 

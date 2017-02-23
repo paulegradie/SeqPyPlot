@@ -60,7 +60,7 @@ if args.raw_data is not None:
         if args.scatter or args.all or args.plots:
             print "Building Scatter Plots for unflagged data...\n"
             Plot_Builder.make_scatter_plots()
-            print "Building Scatter Plots for filtered data...\n"
+            print "Building Scatter Plots for flagged data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
         if args.all or args.plots and args.num == 2:
             print "Building Bland-Altman Plots...\n"
@@ -74,6 +74,10 @@ if args.raw_data is not None:
         if args.histo or args.all or args.plots:
             print "Plotting Histograms...\n"
             Plot_Builder.plot_histograms()
+            print "Building Scatter Plots for log2fold data...\n"
+            Plot_Builder.collective_log_plot()
+            Plot_Builder.single_log_plots()
+
         Analyzer.print_analyzer_results()
 
     print(
@@ -112,8 +116,9 @@ elif args.plot_data is not None:
         if args.scatter or args.all or args.plots:
             print "Building Scatter Plots for unflagged data...\n"
             Plot_Builder.make_scatter_plots()
-            print "Building Scatter Plots for filtered data...\n"
+            print "Building Scatter Plots for flagged data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
+
         if args.all or args.plots and args.num == 2:
             print "Building Bland-Altman Plots...\n"
             Plot_Builder.bland_altman_plot()
@@ -126,6 +131,9 @@ elif args.plot_data is not None:
         if args.histo or args.all or args.plots:
             print "Plotting Histograms...\n"
             Plot_Builder.plot_histograms()
+            print "Building Scatter Plots for log2fold data...\n"
+            Plot_Builder.collective_log_plot()
+            Plot_Builder.single_log_plots()
 
         Analyzer.print_analyzer_results()
 
@@ -147,6 +155,7 @@ elif args.plot_data is not None:
             Plot_Builder.make_scatter_plots()
             print "Building Scatter Plots for filtered data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
+
         if args.all or args.plots and args.num == 2:
             print "Building Bland-Altman Plots...\n"
             Plot_Builder.bland_altman_plot()
@@ -159,6 +168,9 @@ elif args.plot_data is not None:
         if args.histo or args.all or args.plots:
             print "Plotting Histograms...\n"
             Plot_Builder.plot_histograms()
+            print "Building Scatter Plots for collecticue log2fold data...\n"
+            Plot_Builder.collective_log_plot()
+            Plot_Builder.single_log_plots()
 
         print "Finished."
         sys.exit()
@@ -168,5 +180,4 @@ else:
 
 end = float(time.time())
 print("Total Run Time: {}".format((end - start) / 60.0))
-# args.make_logs()
 

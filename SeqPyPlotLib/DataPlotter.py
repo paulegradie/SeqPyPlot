@@ -2,6 +2,9 @@ from __future__ import division
 # Test
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
+
 
 import numpy as np
 import os
@@ -129,7 +132,7 @@ class MainDataPlotter(object):
             path = os.path.join(self.args.out,
                                 self.args.prefix)
 
-            plt.savefig("{}{}_{}.png".format(path,
+            plt.savefig("{}_{}_{}.png".format(path,
                                              str(figure_list_count).replace(" ", ""),
                                              str([str(fig.replace(" ", "")) for fig in figure])),
                         format='png', bbox_inches='tight')
@@ -188,7 +191,7 @@ class MainDataPlotter(object):
                             labelsize=14)
 
             # xlim is the length of the label list
-            plt.xlim(-0.5, (len(series1_data)))
+            plt.xlim(-0.85, (len(series1_data))-0.15)
 
             # Plot Details
             ax = plt.gca()
@@ -232,7 +235,13 @@ class MainDataPlotter(object):
                 y_maximum = 10
 
             # Extend subplot frame for high fpkm values
-            plt.ylim(0, y_maximum)
+            if y_maximum < self.args.low:
+                plt.ylim(0, self.args.low + 10)
+            else:
+                plt.ylim(0, y_maximum)
+
+            plt.axhline(self.args.low, color='gray', linestyle='--', label="-low")
+            # plt.legend()
             plt.tight_layout()
 
             # adjust subplot location
@@ -359,7 +368,7 @@ class MainDataPlotter(object):
 
     def __err_range_plot(self, series_mean, xs, label):
 
-        upper, lower = self._calc_error(series_mean)
+        upper, lower, tempx = self._calc_error(series_mean)
 
         # xs is x_axis
         return plt.errorbar(xs,
@@ -372,25 +381,29 @@ class MainDataPlotter(object):
                             label=label), upper
 
     def _calc_error(self, series_mean):
-
         var = self.args.log
-
+        # var = 1.0
         upper_list = []
         lower_list = []
-
+        low_plot = []
         for i in series_mean:
             b = (2.0 * i) / ((2.0 ** var) + 1)
-            a = (2.0 ** var) * b
+            dif = i - b
+            a = i + dif
+            # a = i + (i - b)
 
-            upper_list.append(a - i)
-            lower_list.append(i - b)
+            #matplotlib requires the DIFFERENCE between the error value and the point
+            upper_list.append(dif)
+            lower_list.append(dif)
+            low_plot.append(b)
         upper = np.asarray([float(c) for c in upper_list])
         lower = np.asarray([float(d) for d in lower_list])
+        low_plot = np.asarray([float(e) for e in low_plot])
 
-        if min(upper) < 0 or min(lower) < 0:
+        if min(upper) < 0 or min(lower) < 0 or min(low_plot) < 0:
             print("Error bars out of range - but still continuing.")
 
-        return upper, lower
+        return upper, lower, low_plot
 
     def de_bar(self, colour):
         plt.close()
@@ -683,7 +696,7 @@ class MainDataPlotter(object):
                 gene_map = self.analyzer.unflagged_genes
             else:
                 sys.exit()
-            plot_name = 'Scatter_Plots_unfiltered_genes'
+            plot_name = 'Scatter_Plots_unflagged_genes'
 
         else:
             if self.args.num == 1:
@@ -693,7 +706,7 @@ class MainDataPlotter(object):
                 gene_map = self.analyzer.filtered_data
             else:
                 sys.exit()
-            plot_name = 'Scatter_Plots_filtered_genes'
+            plot_name = 'Scatter_Plots_flagged_genes'
 
         scatter_dict = dict()
         width = len(gene_map.items()[0][1])
@@ -755,17 +768,38 @@ class MainDataPlotter(object):
                 break
 
         scatrang = tuple([float(x) for x in self.args.scatt_range.split(',')])
+        if flagged:
+            for plot in enumerate(times):
 
-        for gene in gene_map.values():
-            for i in range(spacer):
-                if float(gene[i]) >= min(scatrang) and float(gene[i]) <= max(scatrang):
-                    scatter_dict[times[i]][0] += [float(gene[i])]
-                    scatter_dict[times[i]][1] += [float(gene[i + spacer])]
-                else:
-                    pass
+                timeidx = plot[0]
+                timekey = plot[1]
+
+                for gene in self.analyzer.de_gene_list_by_stage[timekey]:
+                    scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
+                    scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx+spacer])
+        else:
+            for plot in enumerate(times):
+
+                timeidx = plot[0]
+                timekey = plot[1]
+
+
+                for gene in self.analyzer.gene_map.keys():
+
+                    if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
+                        scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
+                        scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
 
         filecnt = 1
         fig_pos = 0
+
+        # bounds
+        y_range = range(int(scatrang[1]))
+        # print y_range
+        up, temp, lowerbound = self._calc_error(y_range)
+        upperbound = []
+        for i in range(len(y_range)):
+            upperbound.append(y_range[i]+up[i])
 
         namecount = 0
         for figure in figure_labels:
@@ -786,8 +820,8 @@ class MainDataPlotter(object):
                          verticalalignment='top',
                          horizontalalignment='right',
                          fontsize=14,
-                         y=1.05,
-                         x=0.4
+                         y=1.05
+                         # x=0.4
                          )
 
             expression_upper = mlines.Line2D([], [], color='white')
@@ -800,14 +834,18 @@ class MainDataPlotter(object):
                 try:
                     x = scatter_dict[figure[i]][0]
                     y = scatter_dict[figure[i]][1]
+                    z = [np.mean([float(x[index]), float(y[index])]) for index in range(len(x))]
                 except ValueError:
                     print "Double check the -time argument. Does it match?"
                     sys.exit()
 
-                # N = len(x)
+                pallet = sns.color_palette("RdBu", n_colors=len(x))
+                sns.set_palette(pallet)
+
                 colors = []
-                for z in range(len(x)):
-                    num1 = round(float(x[z]) - float(y[z]), ndigits=1)
+
+                for col in range(len(x)):
+                    num1 = round(float(x[col]) - float(y[col]), ndigits=1)
                     num2 = abs(num1)
                     if num2 <= 17:
                         colors.append(1)
@@ -815,10 +853,35 @@ class MainDataPlotter(object):
                         lognumb = np.log2(num2)
                         colors.append(round(lognumb, ndigits=1))
 
-                # colors = np.sort(np.random.rand(N))
-                ax.scatter(x, y,
+
+                ax.scatter(z, x,
+                           s=8,
+                           c=colors,
+                           alpha=0.5
+                           )
+                ax.scatter(z, y,
+                           s=8,
                            c=colors,
                            alpha=0.5)
+
+                ax.plot(y_range,
+                        lowerbound,
+                        color='black',
+                        linestyle='--')
+
+                ax.plot(y_range,
+                        upperbound,
+                        color='black',
+                        linestyle='--')
+
+                ax.plot(range(int(scatrang[1])),
+                        range(int(scatrang[1])))
+
+                ax.axvline(self.args.low, color='gray', linestyle='--')
+                ax.axvline(self.args.hi, color='gray', linestyle='--')
+                ax.axvline(self.args.low, color='gray', linestyle='--')
+                ax.axvline(self.args.hi, color='gray', linestyle='--')
+
 
                 ax.spines['top'].set_visible(False)
                 ax.spines['right'].set_visible(False)
@@ -895,11 +958,16 @@ class MainDataPlotter(object):
 
         barang = tuple([float(x) for x in self.args.ba_range.split(',')])
 
-        for gene in gene_map.values():
-            for i in range(spacer):
-                if float(gene[i]) >= min(barang) and float(gene[i]) <= max(barang):
-                    ba_dict[times[i]][0] += [float(gene[i])]
-                    ba_dict[times[i]][1] += [float(gene[i + spacer])]
+        for plot in enumerate(times):
+
+            timeidx = plot[0]
+            timekey = plot[1]
+
+            for gene in self.analyzer.gene_map.keys():
+
+                if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
+                    ba_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
+                    ba_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
 
         filecnt = 1
         fig_pos = 0
@@ -919,8 +987,7 @@ class MainDataPlotter(object):
                          verticalalignment='top',
                          horizontalalignment='center',
                          fontsize=14,
-                         y=1.05,
-                         x=0.5
+                         y=1.05
                          )
 
             i = 0
@@ -963,28 +1030,201 @@ class MainDataPlotter(object):
 
             plt.close()
 
-    @staticmethod
-    def BA_plot(data1, data2, ax, *args, **kwargs):
-        colors = []
-        for z in range(len(data1)):
-            num1 = round(float(data1[z]) - float(data2[z]), ndigits=1)
-            num2 = abs(num1)
-            if num2 <= 17:
-                colors.append(1)
-            else:
-                lognumb = np.log2(num2)
-                colors.append(round(lognumb, ndigits=1))
+    def BA_plot(self, data1, data2, ax):
+        """ Generate a Bland-Altman plot.
+        Arguments:
+            :type s1: numpy.array
+            :param s1: An array of sample1 data.
+            :type s2: numpy.array
+            :param s2: An array of sample2 data.
+            :param ax:
+            :type ax: matplotlib.axes.AxesSubplot
+        Returns:
+            :returns: If avaiable returns a matplotlib.figure.Figure else adds plot
+                to current axis.
+            :rtype: matplotlib.figure.Figure
+        """
 
-        data1 = np.asarray(data1)
-        data2 = np.asarray(data2)
-        mean = np.mean([data1, data2], axis=0)
-        diff = data1 - data2  # Difference between data1 and data2
-        md = np.mean(diff)  # Mean of the difference
-        sd = np.std(diff, axis=0)  # Standard deviation of the difference
+        # Make sure s1 and s2 are numpy arrays
+        s1 = np.asarray(data1).astype(np.double)
+        s2 = np.asarray(data2).astype(np.double)
 
-        ax.scatter(mean, diff, c=colors, alpha=0.5, *args, **kwargs)
-        ax.axhline(md, color='gray', linestyle='--')
-        ax.axhline(md + 1.96 * sd, color='gray', linestyle='--')
-        ax.axhline(md - 1.96 * sd, color='gray', linestyle='--')
-        # ax.xlim()
+        # Calculate mean and difference
+        mean = (s1 + s2) / 2
+        diff = s1 - s2
+
+        ax.scatter(mean, diff)
+        ax.axhline(0, color='r', ls='--', lw=2)
+        ax.set_xlabel('Mean')
+        ax.set_ylabel('Difference')
+
         return ax
+
+    def collective_log_plot(self):
+
+        # sort data from decreasing to increaseing
+        # Get range len(log_list)
+        # plot all of the log list against the range. Boom
+        logs = []
+        for l in self.analyzer.foldchange_map.values():
+            for o in l:
+                if isinstance(o, int) or isinstance(o, float):
+                    if abs(float(o)) < self.args.log:
+                        pass
+                    else:
+                        logs += (l)
+        loglist = []
+        for val in logs:
+            if val != 0.0:
+                loglist.append(val)
+
+        n_bins = 100
+        color = 'black'
+
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        # fig.suptitle("Log2Fold Change Spread",
+        #              verticalalignment='top',
+        #              horizontalalignment='center',
+        #              fontsize=12,
+        #              y=1.05
+        #              )
+        # ax.axvline(self.args.log)
+        # ax.axvline(self.args.log*-1.0)
+        ax.hist(loglist, n_bins, color=color)
+        ax.set_title("General Log2Fold Change Range")
+
+
+        # lower = int(min(loglist))+5
+        # upper = int(max(loglist))+5
+        # difference = int(upper - lower)
+        # inc = int(difference // 6)
+        # xlabels = [lower // 100,
+        #            lower + inc * 1,
+        #            lower + inc * 2,
+        #            lower + inc * 3,
+        #            lower + inc * 4,
+        #            lower + inc * 5,
+        #            upper]
+        ax.set_xlim(min(loglist), max(loglist))
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.get_xaxis().tick_bottom()
+        ax.get_yaxis().tick_left()
+        # ax.set_xticklabels(xlabels)
+        ax.set_xlabel("Log2Fold Value", fontsize=8)
+        ax.set_ylabel("No. of Genes", fontsize=8)
+
+        fig.tight_layout()
+        # plt.show()
+
+        path = os.path.join('.', self.args.out, self.args.prefix)
+
+        plt.savefig("{}_{}.png".format(path,
+                                          'log2_histogram'),
+                    format='png',
+                    bbox_inches='tight')
+
+        plt.close()
+
+    def single_log_plots(self):
+
+        data_list = self.analyzer.foldchange_map
+        histogram_list = dict()
+        setup = True
+        for time in enumerate(self.args.time):
+            timeidx = time[0]
+            timekey = time[1]
+
+            for gene in data_list.values():
+                if setup is True:
+                    histogram_list[timekey] = []
+                    setup = False
+                else:
+                    if isinstance(gene[timeidx], int) or isinstance(gene[timeidx], float):
+                        if abs(float(gene[timeidx])) < self.args.log:
+                            pass
+                        else:
+                            histogram_list[timekey].append(gene[timeidx])
+            setup = True
+
+        counter = 0
+        sublist = []
+        figure_labels = []
+        for name in self.args.time:
+            counter += 1
+            sublist.append(name)
+            if counter == 4:
+                figure_labels.append(sublist)
+                counter = 0
+                sublist = []
+        if len(sublist) != 0:
+            figure_labels.append(sublist)
+
+        filecnt = 1
+        fig_pos = 0
+
+        for figure in figure_labels:
+
+            n_bins = 100
+            color = 'black'
+
+            fig, axes = plt.subplots(nrows=2, ncols=2)
+            ax0, ax1, ax2, ax3 = axes.flatten()
+
+            ax0.hist(sorted(histogram_list[figure[0]]),
+                     n_bins,
+                     color=color,
+                     range=(min(histogram_list[figure[0]]),
+                            max(histogram_list[figure[0]])))
+
+            ax0.set_title(figure_labels[fig_pos][0])
+
+            if len(figure) > 1:
+                ax1.hist(sorted(histogram_list[figure[1]]),
+                         n_bins,
+                         color=color,
+                         range=(min(histogram_list[figure[1]]),
+                                max(histogram_list[figure[1]])))
+                ax1.set_title(figure_labels[fig_pos][1])
+
+            if len(figure) > 2:
+                ax2.hist(sorted(histogram_list[figure[2]]),
+                         n_bins,
+                         color=color,
+                         range=(min(histogram_list[figure[2]]),
+                                max(histogram_list[figure[2]])))
+                ax2.set_title(figure_labels[fig_pos][2])
+
+            if len(figure) > 3:
+                ax3.hist(sorted(histogram_list[figure[3]]),
+                         n_bins,
+                         color=color,
+                         range=(min(histogram_list[figure[3]]),
+                                max(histogram_list[figure[3]])))
+                ax3.set_title(figure_labels[fig_pos][3])
+
+            for ax in axes.flatten():
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.get_xaxis().tick_bottom()
+                ax.get_yaxis().tick_left()
+                ax.set_xlabel("Log2Fold", fontsize=8)
+                ax.set_ylabel("No. of Geens", fontsize=8)
+
+            fig.tight_layout()
+            path = os.path.join('.', self.args.out, self.args.prefix)
+            plt.savefig("{}_{}_{}.png".format(path,
+                                              str(filecnt),
+                                              'sample_log2fold_histograms'),
+                        format='png',
+                        bbox_inches='tight')
+            filecnt += 1
+            fig_pos += 1
+            plt.close()
+            if fig_pos == len(figure_labels):
+                return
+
+
+if __name__ == '__main__':
+    pass
