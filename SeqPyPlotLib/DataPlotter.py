@@ -2,9 +2,9 @@ from __future__ import division
 # Test
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import seaborn as sns
-sns.set()
-
+sns.set_palette('Blues', n_colors=256)
 
 import numpy as np
 import os
@@ -39,12 +39,6 @@ class MainDataPlotter(object):
         else:
             self.path = os.path.join('.', self.args.prefix)
 
-    def __check_for_de(self, gene):
-        if gene in self.de_genes:
-            return True
-        else:
-            return False
-
     def plot_figures(self):
 
         # Figure list is a 2D nested list.
@@ -55,12 +49,12 @@ class MainDataPlotter(object):
         for figure in self.figure_list:
 
             if len(figure) == 1:
-                fig_size = (7, 7)
+                fig_size = (10, 10)
             else:
                 fig_size = (10, 10)
 
             fig = plt.figure(num=1,
-                             dpi=300,
+                             dpi=600,
                              figsize=fig_size,
                              edgecolor='black',
                              frameon=False,
@@ -97,6 +91,7 @@ class MainDataPlotter(object):
                                          markersize=6)
 
             log_line = mlines.Line2D([], [], color='white')
+            fold_line = mlines.Line2D([], [], color='white')
 
             gene_count = 1
             for gene in figure:
@@ -120,8 +115,8 @@ class MainDataPlotter(object):
                 handles = [series1_line]
                 labels = condition_labels
             elif self.args.num == 2:
-                handles = [series1_line, series2_line, log_line]
-                labels = (condition_labels + ["Log2: " + str(self.args.log)])
+                handles = [series1_line, series2_line, log_line, fold_line]
+                labels = (condition_labels + ["Log2: " + str(self.args.log)] + ["Foldx: " + str(round(2.0**self.args.log, ndigits=1))])
             else:
                 print "reset -num argument"
                 sys.exit()
@@ -198,7 +193,7 @@ class MainDataPlotter(object):
 
             is_de = self.__check_for_de(gene)
             if is_de:
-                ax.set_axis_bgcolor('yellow')
+                ax.set_axis_bgcolor('#FFFC97')
             else:
                 pass
 
@@ -309,6 +304,51 @@ class MainDataPlotter(object):
 
         return found, series1, s1mask, series2, s2mask  # series masks are a True/False list for use in _calculate_mean
 
+    def __check_for_de(self, gene):
+        if gene in self.de_genes:
+            return True
+        else:
+            return False
+
+    def _calc_error(self, series_mean):
+        var = self.args.log
+        # var = 1.0
+        upper_list = []
+        lower_list = []
+        low_plot = []
+        for i in series_mean:
+            b = (2.0 * i) / ((2.0 ** var) + 1)
+            dif = i - b
+            a = i + dif
+            # a = i + (i - b)
+
+            #matplotlib requires the DIFFERENCE between the error value and the point
+            upper_list.append(dif)
+            lower_list.append(dif)
+            low_plot.append(b)
+        upper = np.asarray([float(c) for c in upper_list])
+        lower = np.asarray([float(d) for d in lower_list])
+        low_plot = np.asarray([float(e) for e in low_plot])
+
+        if min(upper) < 0 or min(lower) < 0 or min(low_plot) < 0:
+            print("Error bars out of range - but still continuing.")
+
+        return upper, lower, low_plot
+
+    def __err_range_plot(self, series_mean, xs, label):
+
+        upper, lower, tempx = self._calc_error(series_mean)
+
+        # xs is x_axis
+        return plt.errorbar(xs,
+                            series_mean,
+                            linestyle='None',
+                            mfc='black',
+                            yerr=[upper, lower],
+                            ecolor='black',
+                            elinewidth='1',
+                            label=label), upper
+
     @staticmethod
     def __series1_plot(series1, s1mask, xs, label, num):
         if num == 1:
@@ -366,48 +406,9 @@ class MainDataPlotter(object):
                         markeredgewidth=.95,
                         markersize=6)
 
-    def __err_range_plot(self, series_mean, xs, label):
-
-        upper, lower, tempx = self._calc_error(series_mean)
-
-        # xs is x_axis
-        return plt.errorbar(xs,
-                            series_mean,
-                            linestyle='None',
-                            mfc='black',
-                            yerr=[upper, lower],
-                            ecolor='black',
-                            elinewidth='1',
-                            label=label), upper
-
-    def _calc_error(self, series_mean):
-        var = self.args.log
-        # var = 1.0
-        upper_list = []
-        lower_list = []
-        low_plot = []
-        for i in series_mean:
-            b = (2.0 * i) / ((2.0 ** var) + 1)
-            dif = i - b
-            a = i + dif
-            # a = i + (i - b)
-
-            #matplotlib requires the DIFFERENCE between the error value and the point
-            upper_list.append(dif)
-            lower_list.append(dif)
-            low_plot.append(b)
-        upper = np.asarray([float(c) for c in upper_list])
-        lower = np.asarray([float(d) for d in lower_list])
-        low_plot = np.asarray([float(e) for e in low_plot])
-
-        if min(upper) < 0 or min(lower) < 0 or min(low_plot) < 0:
-            print("Error bars out of range - but still continuing.")
-
-        return upper, lower, low_plot
-
     def de_bar(self, colour):
         plt.close()
-        fig = plt.figure(1, figsize=(10, 10))
+        fig = plt.figure(1, figsize=(7, 7))
         xlabel = []
         y_values = []
         bar_width = 0.5  # the width of the bars
@@ -512,7 +513,7 @@ class MainDataPlotter(object):
         # create a figure for the current figure
         fig = plt.figure(num=1,
                          figsize=(7, 7),
-                         dpi=300,
+                         dpi=600,
                          edgecolor='black',
                          frameon=False,
                          )
@@ -812,21 +813,26 @@ class MainDataPlotter(object):
                              frameon=False,
                              )
             if flagged:
-                suptitle = "Sample Scatter Plots - Flagged Genes"
+                suptitle = "Flagged Genes"
             else:
-                suptitle = "Sample Scatter Plots - Unflagged Genes"
+                suptitle = "Unflagged Genes"
 
             fig.suptitle(suptitle,
                          verticalalignment='top',
                          horizontalalignment='right',
                          fontsize=14,
-                         y=1.05
+                         y=1.09
                          # x=0.4
                          )
 
-            expression_upper = mlines.Line2D([], [], color='white')
-            fig.legend(handles=[expression_upper],
-                       labels=(["ScatRange: " + str(self.args.scatt_range)]),
+            L1 = mlines.Line2D([], [], color='white')
+            L2 = mlines.Line2D([], [], color='white')
+            L3 = mlines.Line2D([], [], color='white')
+
+            fig.legend(handles=[L1,L2, L3],
+                       labels=(["ScatRange: " + str(self.args.scatt_range),
+                                "DiffRange: {}, {} ".format(str(self.args.dif_range[0]), str(self.args.dif_range[1])),
+                                "Log2: " + str(self.args.log)]),
                        loc='upper right')
 
             i = 0
@@ -839,29 +845,25 @@ class MainDataPlotter(object):
                     print "Double check the -time argument. Does it match?"
                     sys.exit()
 
-                pallet = sns.color_palette("RdBu", n_colors=len(x))
-                sns.set_palette(pallet)
-
-                colors = []
-
-                for col in range(len(x)):
-                    num1 = round(float(x[col]) - float(y[col]), ndigits=1)
-                    num2 = abs(num1)
-                    if num2 <= 17:
-                        colors.append(1)
-                    else:
-                        lognumb = np.log2(num2)
-                        colors.append(round(lognumb, ndigits=1))
+                # colors = []
+                # for col in range(len(x)):
+                #     num1 = round(float(x[col]) - float(y[col]), ndigits=1)
+                #     num2 = abs(num1)
+                #     if num2 <= 17:
+                #         colors.append(1)
+                #     else:
+                #         lognumb = np.log2(num2)
+                #         colors.append(round(lognumb, ndigits=1))
 
 
                 ax.scatter(z, x,
                            s=8,
-                           c=colors,
+
                            alpha=0.5
                            )
                 ax.scatter(z, y,
                            s=8,
-                           c=colors,
+                           # c=colors,
                            alpha=0.5)
 
                 ax.plot(y_range,
@@ -889,9 +891,9 @@ class MainDataPlotter(object):
                 ax.get_yaxis().tick_left()
                 ax.set_xlim(scatrang)
                 ax.set_ylim(scatrang)
-                ax.set_xlabel(plot_labels[namecount][0] + '  Counts', fontsize=12)
-                ax.set_ylabel(plot_labels[namecount][1] + '  Counts', fontsize=12)
-                ax.set_title(figure[i])
+                ax.set_xlabel('Mean', fontsize=10)
+                ax.set_ylabel('Count', fontsize=10)
+                ax.set_title(figure[i], fontsize=12)
                 ax.tick_params(axis='both', which='major', labelsize=8)
                 i += 1
                 namecount += 1
@@ -1006,9 +1008,9 @@ class MainDataPlotter(object):
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
                 ax.set_xlim(barang)
-                ax.set_ylim([-2000, 2000])
-                ax.set_xlabel(plot_labels[namecount][0] + '  average', fontsize=8)
-                ax.set_ylabel(plot_labels[namecount][1] + '  difference', fontsize=8)
+                ax.set_ylim([0, 4000])
+                # ax.set_xlabel(plot_labels[namecount][0] + '  average', fontsize=8)
+                # ax.set_ylabel(plot_labels[namecount][1] + '  difference', fontsize=8)
                 ax.set_title(figure[i])
                 ax.tick_params(axis='both', which='major', labelsize=8)
                 i += 1
@@ -1048,10 +1050,16 @@ class MainDataPlotter(object):
         # Make sure s1 and s2 are numpy arrays
         s1 = np.asarray(data1).astype(np.double)
         s2 = np.asarray(data2).astype(np.double)
+        mean = []
+        diff = []
+
+        for counter in range(len(data1)):
+            mean.append((float(data1[counter]) + float(data2[counter]))/2.0)
+            diff.append(abs(float(data1[counter]) - float(data2[counter])))
 
         # Calculate mean and difference
-        mean = (s1 + s2) / 2
-        diff = s1 - s2
+        # mean = (s1 + s2) / 2
+        # diff = abs(s1 - s2)
 
         ax.scatter(mean, diff)
         ax.axhline(0, color='r', ls='--', lw=2)
@@ -1075,51 +1083,32 @@ class MainDataPlotter(object):
                         logs += (l)
         loglist = []
         for val in logs:
-            if val != 0.0:
-                loglist.append(val)
+            if isinstance(val, str):
+                pass
+            else:
+                if val != 0.0:
+                    loglist.append(float(val))
 
         n_bins = 100
         color = 'black'
 
         fig, ax = plt.subplots(nrows=1, ncols=1)
-        # fig.suptitle("Log2Fold Change Spread",
-        #              verticalalignment='top',
-        #              horizontalalignment='center',
-        #              fontsize=12,
-        #              y=1.05
-        #              )
-        # ax.axvline(self.args.log)
-        # ax.axvline(self.args.log*-1.0)
+
         ax.hist(loglist, n_bins, color=color)
         ax.set_title("General Log2Fold Change Range")
 
-
-        # lower = int(min(loglist))+5
-        # upper = int(max(loglist))+5
-        # difference = int(upper - lower)
-        # inc = int(difference // 6)
-        # xlabels = [lower // 100,
-        #            lower + inc * 1,
-        #            lower + inc * 2,
-        #            lower + inc * 3,
-        #            lower + inc * 4,
-        #            lower + inc * 5,
-        #            upper]
         ax.set_xlim(min(loglist), max(loglist))
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.get_xaxis().tick_bottom()
         ax.get_yaxis().tick_left()
-        # ax.set_xticklabels(xlabels)
         ax.set_xlabel("Log2Fold Value", fontsize=8)
         ax.set_ylabel("No. of Genes", fontsize=8)
+        ax.set_xlim([-6, 6])
 
         fig.tight_layout()
-        # plt.show()
-
         path = os.path.join('.', self.args.out, self.args.prefix)
-
         plt.savefig("{}_{}.png".format(path,
                                           'log2_histogram'),
                     format='png',
@@ -1211,7 +1200,7 @@ class MainDataPlotter(object):
                 ax.get_yaxis().tick_left()
                 ax.set_xlabel("Log2Fold", fontsize=8)
                 ax.set_ylabel("No. of Geens", fontsize=8)
-
+                ax.set_xlim([-6,6])
             fig.tight_layout()
             path = os.path.join('.', self.args.out, self.args.prefix)
             plt.savefig("{}_{}_{}.png".format(path,

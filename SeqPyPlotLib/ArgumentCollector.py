@@ -123,18 +123,18 @@ class Args:
                             dest='hi',
                             help='Default: 5mil. Set the max expression value to accept.')
         parser.add_argument('-dif_range',
-                            metavar='60,1000',
-                            default='4,1000',
+                            metavar='25,10000',
+                            default='25,10000',
                             type=str,
                             dest='dif_range',
                             help='Default: 40-10000. Set minimum difference in expression.')
 
         parser.add_argument('-log2',
-                            metavar='1.0',
-                            default=1.0,
+                            metavar='0.7',
+                            default=0.7,
                             type=float,
                             dest='log',
-                            help='Default: 1.0. Minimum log2 change to accept.')
+                            help='Default: 0.7. Minimum log2fold change to accept.')
 
 
         #analysis options
@@ -154,14 +154,14 @@ class Args:
                             dest='scatter',
                             help='Default: False. Construct scatter plots.')
         parser.add_argument('-scat_range',
-                            metavar='0,20000',
-                            default='0,20000',
+                            metavar='0,1200',
+                            default='0,1200',
                             type=str,
                             dest='scatt_range',
                             help='Default: 0,5000000. Set scatter plot value range.')
         parser.add_argument('-ba_range',
-                            metavar='1,25000',
-                            default='1,25000',
+                            metavar='0,10000',
+                            default='0,10000',
                             type=str,
                             dest='ba_range',
                             help='Default: 1,25000. Range for BA plots.')

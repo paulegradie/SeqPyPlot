@@ -28,11 +28,11 @@ if args.raw_data == args.plot_data is None:
     os.system('python SeqPyPlot.py -h')
     sys.exit()
 
-elif args.raw_data is not None and args.plot_data is not None:
+elif args.raw_data is None and args.plot_data is None:
     print ("ERROR...")
     print "\nLoad either raw_data or pre-formatted plot_data. Don't load both!\n"
     sys.exit()
-elif args.raw_data is not None and args.gene_list is not None:
+elif args.raw_data is None and args.gene_list is None:
     print("ERROR...")
     print "\nRun the program on raw_data, then rerun supplying the _plotter_data.txt file.\n"
     sys.exit()
@@ -58,7 +58,7 @@ if args.raw_data is not None:
     if args.tally:
         Plot_Builder = MainDataPlotter(args, Analyzer, None)  # object used for generating plots
         if args.scatter or args.all or args.plots:
-            print "Building Scatter Plots for unflagged data...\n"
+            print "Building Scatter Plots for un-flagged data...\n"
             Plot_Builder.make_scatter_plots()
             print "Building Scatter Plots for flagged data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
@@ -114,7 +114,7 @@ elif args.plot_data is not None:
             DataPrinter.write_filtered_data()
 
         if args.scatter or args.all or args.plots:
-            print "Building Scatter Plots for unflagged data...\n"
+            print "Building Scatter Plots for un-flagged data...\n"
             Plot_Builder.make_scatter_plots()
             print "Building Scatter Plots for flagged data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
@@ -151,9 +151,9 @@ elif args.plot_data is not None:
         Analyzer.print_analyzer_results()
 
         if args.scatter or args.all or args.plots:
-            print "Building Scatter Plots for unflagged data...\n"
+            print "Building Scatter Plots for un-flagged data...\n"
             Plot_Builder.make_scatter_plots()
-            print "Building Scatter Plots for filtered data...\n"
+            print "Building Scatter Plots for flagged data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
 
         if args.all or args.plots and args.num == 2:

@@ -190,7 +190,10 @@ class DataAnalyzer(object):
                                                 self.foldchange_map[key][v] = "No Change"
 
                                             if labels[v] not in self.de_gene_list_by_stage.keys():
-                                                self.de_count_by_stage[labels[v]] = 1
+                                                try:
+                                                    self.de_count_by_stage[labels[v]] = 1
+                                                except IndexError:
+                                                    print "\nCheck -time argument.\n"
                                             else:
                                                 self.de_count_by_stage[labels[v]] += 1
 
@@ -216,11 +219,13 @@ class DataAnalyzer(object):
 
                                             # assign results to various maps
                                             self.foldchange_map[key][v] = round(np.log2(float(sub_list[1]) / float(sub_list[0])), ndigits=3)
-
-                                            if labels[v] not in self.de_gene_list_by_stage.keys():
-                                                self.de_count_by_stage[labels[v]] = 1
-                                            else:
-                                                self.de_count_by_stage[labels[v]] += 1
+                                            try:
+                                                if labels[v] not in self.de_gene_list_by_stage.keys():
+                                                    self.de_count_by_stage[labels[v]] = 1
+                                                else:
+                                                    self.de_count_by_stage[labels[v]] += 1
+                                            except IndexError:
+                                                print "\nCheck -time argument.\n"
 
                                             if labels[v] not in self.de_gene_list_by_stage.keys():
                                                 self.de_gene_list_by_stage[labels[v]] = [key]

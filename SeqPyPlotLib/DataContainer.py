@@ -167,7 +167,7 @@ class DataContainer(object):
             sys.exit()
 
         matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
-        print 'matrix path: ', matrix_path
+        # print 'matrix path: ', matrix_path
 
         with open(matrix_path, 'wb+') as matrix:
             matrix_writer = csv.writer(matrix, delimiter='\t')
@@ -189,7 +189,7 @@ class DataContainer(object):
         try:
             norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
             project_dir = os.path.join('.', self.args.out)
-            print 'norm_path: ', norm_path
+            # print 'norm_path: ', norm_path
             subprocess.call('Rscript '
                             + os.path.join('.',
                                             'SeqPyPlotLib',
@@ -361,7 +361,7 @@ class DataContainer(object):
                     print "num == more than 2 - does not support. DataConta. line 347"
                     sys.exit()
         else:
-            print "Couldn't open file."
+            print "Couldn't open *_plotter_file.txt"
             sys.exit()
 
         return gene_map, ercc_map, data_frame_header
