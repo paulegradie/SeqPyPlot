@@ -23,21 +23,10 @@ args = argz.args
 
 
 # if files aren't provided properly
-if args.raw_data == args.plot_data is None:
+if args.raw_data is None and args.plot_data is None:
     print("\nProvide either a (raw_data file) or (plot_data file)\n")
     os.system('python SeqPyPlot.py -h')
     sys.exit()
-
-elif args.raw_data is None and args.plot_data is None:
-    print ("ERROR...")
-    print "\nLoad either raw_data or pre-formatted plot_data. Don't load both!\n"
-    sys.exit()
-elif args.raw_data is None and args.gene_list is None:
-    print("ERROR...")
-    print "\nRun the program on raw_data, then rerun supplying the _plotter_data.txt file.\n"
-    sys.exit()
-else:
-    pass
 
 # if only raw data is supplied
 
@@ -134,7 +123,9 @@ elif args.plot_data is not None:
             print "Building Scatter Plots for log2fold data...\n"
             Plot_Builder.collective_log_plot()
             Plot_Builder.single_log_plots()
-
+        print "Building Bland-Gradie Plots...\n"
+        Plot_Builder.bland_gradie_plot()
+        Plot_Builder.bland_gradie_plot(flagged=True)
         Analyzer.print_analyzer_results()
 
     else:  # IF plot data is provided without a genelist
@@ -171,7 +162,9 @@ elif args.plot_data is not None:
             print "Building Scatter Plots for collecticue log2fold data...\n"
             Plot_Builder.collective_log_plot()
             Plot_Builder.single_log_plots()
-
+        print "Building Bland-Gradie Plots...\n"
+        Plot_Builder.bland_gradie_plot()
+        Plot_Builder.bland_gradie_plot(flagged=True)
         print "Finished."
         sys.exit()
 else:

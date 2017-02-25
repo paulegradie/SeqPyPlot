@@ -116,7 +116,7 @@ class MainDataPlotter(object):
                 labels = condition_labels
             elif self.args.num == 2:
                 handles = [series1_line, series2_line, log_line, fold_line]
-                labels = (condition_labels + ["Log2: " + str(self.args.log)] + ["Foldx: " + str(round(2.0**self.args.log, ndigits=1))])
+                labels = (condition_labels + ["Log2: " + str(self.args.log)] + ["Fold: " + str(round(2.0**self.args.log, ndigits=1))])
             else:
                 print "reset -num argument"
                 sys.exit()
@@ -1057,10 +1057,6 @@ class MainDataPlotter(object):
             mean.append((float(data1[counter]) + float(data2[counter]))/2.0)
             diff.append(abs(float(data1[counter]) - float(data2[counter])))
 
-        # Calculate mean and difference
-        # mean = (s1 + s2) / 2
-        # diff = abs(s1 - s2)
-
         ax.scatter(mean, diff)
         ax.axhline(0, color='r', ls='--', lw=2)
         ax.set_xlabel('Mean')
@@ -1214,6 +1210,189 @@ class MainDataPlotter(object):
             if fig_pos == len(figure_labels):
                 return
 
+    def bland_gradie_plot(self, flagged=False):
+        if flagged:
+            suptitle = "Bland-Gradie Plots - Flagged Genes"
+            gene_map = self.analyzer.filtered_data
+        else:
+            suptitle = "Bland-Gradie Plots - All Genes"
+            gene_map = self.gene_map
+
+        bg_dict = dict()
+        width = len(gene_map.items()[0][1])
+        spacer = width // 2
+
+        sublist = []
+        counter = 0
+
+        plot_labels = []
+        figure_labels = []
+
+        for name in self.args.time:
+            counter += 1
+            sublist.append(name)
+            if counter == 4:
+                figure_labels.append(sublist)
+                counter = 0
+                sublist = []
+        if len(sublist) != 0:
+            figure_labels.append(sublist)
+
+        sublist = []
+        name = self.data_frame_header["Gene"]
+
+        for i in range(spacer):
+            sublist.append(name[i])
+            sublist.append(name[i + spacer])
+            plot_labels.append(sublist)
+            sublist = []
+        times = self.args.time
+
+        # make BA dictionary
+        setup1 = True
+        while setup1:
+            for gene in gene_map.values():
+                for i in range(spacer):
+                    bg_dict[times[i]] = [[], []]
+                setup1 = False
+                break
+
+        bgrang = tuple([float(x) for x in self.args.ba_range.split(',')])
+
+        for plot in enumerate(times):
+
+            timeidx = plot[0]
+            timekey = plot[1]
+
+            if flagged:
+                for gene in self.gene_map.keys():
+                    if gene in self.analyzer.de_gene_list_by_stage[timekey]:
+                        bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
+                        bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+            else:
+                for gene in self.gene_map.keys():
+                    if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
+                        bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
+                        bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+
+        filecnt = 1
+        fig_pos = 0
+
+        namecount = 0
+        for figure in figure_labels:
+
+            fig, axes = plt.subplots(nrows=2, ncols=2)
+            fig = plt.figure(num=1,
+                             dpi=1200,
+                             figsize=(70, 70),
+                             edgecolor='black',
+                             frameon=False,
+                             )
+
+            fig.suptitle(suptitle,
+                         verticalalignment='top',
+                         horizontalalignment='center',
+                         fontsize=14,
+                         y=1.05
+                         )
+
+            i = 0
+            for ax in axes.flatten():
+                try:
+                    x = bg_dict[figure[i]][0]
+                    y = bg_dict[figure[i]][1]
+                except ValueError:
+                    print "Double check the -time argument. Does it match?"
+                    sys.exit()
+
+                self.BG_plot(x, y, ax)
+
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.get_xaxis().tick_bottom()
+                ax.get_yaxis().tick_left()
+                ax.set_ylim(bgrang)
+                ax.set_xlim([-3, 3])
+                ax.set_title(figure[i])
+
+                ax.tick_params(axis='both', which='major', labelsize=8)
+                i += 1
+                namecount += 1
+                if i == len(figure):
+                    break
+
+            fig.tight_layout()
+            path = os.path.join('.', self.args.out, self.args.prefix)
+
+            if flagged:
+                plt.savefig("{}_{}_{}.png".format(path,
+                                                  'Bland_Gradie_plots_flagged_genes',
+                                                  str(filecnt)),
+                            format='png',
+                            bbox_inches='tight')
+            else:
+                plt.savefig("{}_{}_{}.png".format(path,
+                                                  'Bland_Gradie_plots_all_genes',
+                                                  str(filecnt)),
+                            format='png',
+                            bbox_inches='tight')
+
+
+            filecnt += 1
+            fig_pos += 1
+
+            plt.close()
+
+    def BG_plot(self, data1, data2, ax):
+        """ Generate a Bland-Altman plot.
+        Arguments:
+            :type s1: numpy.array
+            :param s1: An array of sample1 data.
+            :type s2: numpy.array
+            :param s2: An array of sample2 data.
+            :param ax:
+            :type ax: matplotlib.axes.AxesSubplot
+        Returns:
+            :returns: If avaiable returns a matplotlib.figure.Figure else adds plot
+                to current axis.
+            :rtype: matplotlib.figure.Figure
+        """
+
+        # Make sure s1 and s2 are numpy arrays
+        s1 = np.asarray(data1).astype(np.double)
+        s2 = np.asarray(data2).astype(np.double)
+        mean = []
+        log2fold = []
+
+
+        for counter in range(len(data1)):
+            if np.mean([float(data1[counter]), float(data2[counter])]) < self.args.low:
+                pass
+            else:
+
+                mean.append(np.mean([float(data1[counter]), float(data2[counter])]))
+                log2fold.append(np.log2(float(data1[counter]) / float(data2[counter])))
+        # print len(mean)
+        # print len(log2fold)
+        # meanlog = np.mean(np.asarray(log2fold))
+        sd = np.std(np.asarray(log2fold), axis=0)
+
+        # Calculate mean and difference
+        # mean = (s1 + s2) / 2
+        # diff = abs(s1 - s2)
+        assert len(mean) == len(log2fold)
+
+        ax.scatter(log2fold, mean)
+        ax.axvline(0, color='r', ls='--', lw=2)
+        ax.set_ylabel('Mean (size)')
+        ax.set_xlabel('L0g2Fold')
+
+        # ax.axhline(meanlog, color='gray', linestyle='--')
+        ax.axvline(0.0 + 1.96 * sd, color='gray', linestyle='--')
+        ax.axvline(0.0 - 1.96 * sd, color='gray', linestyle='--')
+
+
+        return ax
 
 if __name__ == '__main__':
     pass
