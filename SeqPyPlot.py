@@ -146,7 +146,6 @@ elif args.plot_data is not None:
             Plot_Builder.make_scatter_plots()
             print "Building Scatter Plots for flagged data...\n"
             Plot_Builder.make_scatter_plots(flagged=True)
-
         if args.all or args.plots and args.num == 2:
             print "Building Bland-Altman Plots...\n"
             Plot_Builder.bland_altman_plot()
@@ -162,9 +161,10 @@ elif args.plot_data is not None:
             print "Building Scatter Plots for collecticue log2fold data...\n"
             Plot_Builder.collective_log_plot()
             Plot_Builder.single_log_plots()
-        print "Building Bland-Gradie Plots...\n"
-        Plot_Builder.bland_gradie_plot()
-        Plot_Builder.bland_gradie_plot(flagged=True)
+        if args.blandg or args.all or args.plots:
+            print "Building Bland-Gradie Plots...\n"
+            Plot_Builder.bland_gradie_plot()
+            Plot_Builder.bland_gradie_plot(flagged=True)
         print "Finished."
         sys.exit()
 else:

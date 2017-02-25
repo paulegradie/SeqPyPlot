@@ -183,6 +183,12 @@ class Args:
                             dest='bar',
                             help='Default: False. Construct bar plots.')
 
+        parser.add_argument('-blandg',
+                            action='store_true',
+                            default=False,
+                            dest='blandg',
+                            help='Default: False. Construct bland-gradie plots.')
+
         parser.add_argument('-all',
                             action='store_true',
                             default=False,

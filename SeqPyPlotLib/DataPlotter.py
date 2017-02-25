@@ -407,6 +407,7 @@ class MainDataPlotter(object):
                         markersize=6)
 
     def de_bar(self, colour):
+
         plt.close()
         fig = plt.figure(1, figsize=(7, 7))
         xlabel = []
@@ -426,12 +427,15 @@ class MainDataPlotter(object):
             ax.set_xticklabels(xlabel, rotation=45)
 
         elif self.args.num == 2:
+
             for k, v in sorted(self.de_count_by_time.items()):
                 y_values.append(int(v))
                 xlabel.append(k)
+
             x_axis = range(len(y_values))
+            ax.set_xticks(x_axis)
             ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
-            ax.set_xticklabels([''] + xlabel + [''], rotation='vertical')
+            ax.set_xticklabels(xlabel, rotation='vertical')
         else:
             sys.exit()
         try:
@@ -476,11 +480,11 @@ class MainDataPlotter(object):
 
         fig.legend(handles=[expression_upper, expression_lower, log_line, difference],
                    labels=(["Log2: " + str(self.args.log), "Range: " + str(self.args.low) + "-" + str(hi),
-                            "Diff: " + str(self.args.dif_range)]),
+                            "Diff: {}, {}".format(str(int(self.args.dif_range[0])), str(int(self.args.dif_range[1])))]),
                    loc='upper right')
 
         plt.savefig(self.path + "{}_DE_Gene_by_time.png".format(self.args.prefix), format='png', bbox_inches='tight')
-
+        plt.close()
         return None
 
     def plot_tally(self):
@@ -1385,7 +1389,7 @@ class MainDataPlotter(object):
         ax.scatter(log2fold, mean)
         ax.axvline(0, color='r', ls='--', lw=2)
         ax.set_ylabel('Mean (size)')
-        ax.set_xlabel('L0g2Fold')
+        ax.set_xlabel('Log2Fold')
 
         # ax.axhline(meanlog, color='gray', linestyle='--')
         ax.axvline(0.0 + 1.96 * sd, color='gray', linestyle='--')
