@@ -1,7 +1,7 @@
 import argparse
 import sys
 import os
-
+import time
 
 class Args:
     def __init__(self):
@@ -53,7 +53,7 @@ class Args:
                                          usage=usage,
                                          epilog=epilog)
         # general args\
-        parser.add_argument('--------------------General Options--------------------',
+        parser.add_argument('--------------------Required Options--------------------',
                             action='store_true',
                             default=False)
         parser.add_argument('-time',
@@ -62,28 +62,30 @@ class Args:
                             type=str,
                             dest='time',
                             help='A comma separated list of time points.')
-
         parser.add_argument('-num',
                             metavar='2',
                             default=2,
                             type=int,
                             dest='num',
                             help='Default: 2. Set number of plots.')
-
         parser.add_argument('-out',
                             metavar='Default_out',
                             default='Default_out',
                             type=str,
                             dest='out',
                             help='Output Folder Name')
-
         parser.add_argument('-prefix',
                             type=str,
                             default='SeqPyPlot_default',
                             metavar='SeqPyPlot_',
                             dest='prefix',
                             help='Leading name of output file.')
-
+        parser.add_argument('-c',
+                            metavar='S1,S2',
+                            default='S1,S2',
+                            type=str,
+                            dest='condition',
+                            help='\tA comma separated list of conditions (max 2)')
         parser.add_argument('-data_type',
                             metavar='htseq',
                             default='htseq',
@@ -91,153 +93,7 @@ class Args:
                             dest='datatype',
                             help='Either cuffnorm, cuffdiff, deseq2, or edgeR.')
 
-        parser.add_argument('-c',
-                            metavar='S1,S2',
-                            default='S1,S2',
-                            type=str,
-                            dest='condition',
-                            help='\tA comma separated list of conditions (max 2)')
-
-        parser.add_argument('-unform_plot_data',
-                            action='store_true',
-                            default=False,
-                            dest='unformatted_plot_data',
-                            help='Default: False. Reorder plot data (1,1,2,2 -> 1,2,1,2.')
-
-
-        ## Filter args
-
-        parser.add_argument('--------------------Filter Options--------------------',
-                            action='store_true',
-                            default=False)
-        parser.add_argument('-low',
-                            metavar='25',
-                            default=25,
-                            type=float,
-                            dest='low',
-                            help='Default: 2. Set the min expression value to accept.')
-        parser.add_argument('-hi',
-                            metavar='200000',
-                            default=200000,
-                            type=float,
-                            dest='hi',
-                            help='Default: 5mil. Set the max expression value to accept.')
-        parser.add_argument('-dif_range',
-                            metavar='25,10000',
-                            default='25,10000',
-                            type=str,
-                            dest='dif_range',
-                            help='Default: 40-10000. Set minimum difference in expression.')
-
-        parser.add_argument('-log2',
-                            metavar='0.7',
-                            default=0.7,
-                            type=float,
-                            dest='log',
-                            help='Default: 0.7. Minimum log2fold change to accept.')
-
-
-        #analysis options
-        parser.add_argument('--------------------Analysis Options--------------------',
-                            action='store_true',
-                            default=False)
-
-        parser.add_argument('-tally',
-                            action='store_true',
-                            default=False,
-                            dest='tally',
-                            help='Default: False. Tally DE genes.')
-
-        parser.add_argument('-scatter',
-                            action='store_true',
-                            default=False,
-                            dest='scatter',
-                            help='Default: False. Construct scatter plots.')
-        parser.add_argument('-scat_range',
-                            metavar='0,1200',
-                            default='0,1200',
-                            type=str,
-                            dest='scatt_range',
-                            help='Default: 0,5000000. Set scatter plot value range.')
-        parser.add_argument('-ba_range',
-                            metavar='0,10000',
-                            default='0,10000',
-                            type=str,
-                            dest='ba_range',
-                            help='Default: 1,25000. Range for BA plots.')
-        parser.add_argument('-histo',
-                            action='store_true',
-                            default=False,
-                            dest='histo',
-                            help='Default: False. Construct histogram plots.')
-        parser.add_argument('-hist_range',
-                            metavar='1,1000',
-                            default='1,1000',
-                            type=str,
-                            dest='hist_range',
-                            help='Default: 1.0. Lower x axis limit for histogram.')
-
-        parser.add_argument('-bar',
-                            action='store_true',
-                            default=False,
-                            dest='bar',
-                            help='Default: False. Construct bar plots.')
-
-        parser.add_argument('-blandg',
-                            action='store_true',
-                            default=False,
-                            dest='blandg',
-                            help='Default: False. Construct bland-gradie plots.')
-
-        parser.add_argument('-all',
-                            action='store_true',
-                            default=False,
-                            dest='all',
-                            help='Default: False. Make plots and tally flagged genes.')
-
-        parser.add_argument('-plots',
-                            action='store_false',
-                            default=True,
-                            dest='plots',
-                            help='Default: False. Make all plots.')
-        parser.add_argument('-r',
-                            default=False,
-                            action='store_true',
-                            dest='remove',
-                            help='Default: False. Use to remove genes not always on.')
-
-        parser.add_argument('-svg',
-                            default=False,
-                            action='store_true',
-                            dest='svg',
-                            help='Default: False. Use to svg plots.')
-
-
-        parser.add_argument('-num_housekeeping',
-                            metavar='3',
-                            default=3,
-                            type=int,
-                            dest='num_housekeeping',
-                            help='Default: 3. Min number of Housekeeping to detect.')
-        parser.add_argument('-find_housekeeping',
-                            action='store_true',
-                            default=False,
-                            dest='find_housekeeping',
-                            help='Default: False. Search for housekeeping genes.')
-
-        parser.add_argument('-report',
-                            action='store_true',
-                            default=False,
-                            dest='report',
-                            help='Default: False. Write plot data and filter results.')
-
-        parser.add_argument('-ercc',
-                            action='store_true',
-                            default=False,
-                            dest='ercc',
-                            help='Default: False. Write ERCC data to an output file.')
-
-        parser.add_argument('--------------------Input Options--------------------',
+        parser.add_argument('--------------------Required Input Options--------------------',
                             action='store_true',
                             default=False)
 
@@ -247,14 +103,17 @@ class Args:
                             metavar='None',
                             dest='raw_data',
                             help='Input file or folder.')
-
         parser.add_argument('-plot_data',
                             type=str,
                             default=None,
                             metavar='None',
                             dest='plot_data',
                             help='Formatted input data to plot')
-
+        parser.add_argument('-unform_plot_data',
+                            action='store_true',
+                            default=False,
+                            dest='unformatted_plot_data',
+                            help='Default: False. Reorder plot data (1,1,2,2 -> 1,2,1,2.')
         parser.add_argument('-gene_list',
                             type=str,
                             default=None,
@@ -268,10 +127,143 @@ class Args:
                             metavar='None',
                             dest='de_results',
                             help='Optional. Your own flagged gene list.')
+        ## Filter args
 
-
-
-
+        parser.add_argument('--------------------Filter Options--------------------',
+                            action='store_true',
+                            default=False)
+        parser.add_argument('-low',
+                            metavar='25',
+                            default=25,
+                            type=float,
+                            dest='low',
+                            help='Default: 2. Set the min expression value to accept.')
+        parser.add_argument('-hi',
+                            metavar='1000000',
+                            default=1000000,
+                            type=float,
+                            dest='hi',
+                            help='Default: 5mil. Set the max expression value to accept.')
+        parser.add_argument('-dif_range',
+                            metavar='25,10000',
+                            default='25,1000000',
+                            type=str,
+                            dest='dif_range',
+                            help='Default: 25-1000000. Set min difference in expression.')
+        parser.add_argument('-log2',
+                            metavar='0.7',
+                            default=0.7,
+                            type=float,
+                            dest='log',
+                            help='Default: 0.7. Minimum log2fold change to accept.')
+        #analysis options
+        parser.add_argument('--------------------Analysis Options--------------------',
+                            action='store_true',
+                            default=False)
+        parser.add_argument('-find_housekeeping',
+                            action='store_true',
+                            default=False,
+                            dest='find_housekeeping',
+                            help='Default: False. Search for housekeeping genes.')
+        parser.add_argument('-num_housekeeping',
+                            metavar='3',
+                            default=3,
+                            type=int,
+                            dest='num_housekeeping',
+                            help='Default: 3. Min number of Housekeeping to detect.')
+        parser.add_argument('-report',
+                            action='store_true',
+                            default=False,
+                            dest='report',
+                            help='Default: False. Write plot data and filter results.')
+        parser.add_argument('-ercc',
+                            action='store_true',
+                            default=False,
+                            dest='ercc',
+                            help='Default: False. Write ERCC data to an output file.')
+        parser.add_argument('-r',
+                            default=False,
+                            action='store_true',
+                            dest='remove',
+                            help='Default: False. Use to remove genes not always on.')
+        #analysis options
+        parser.add_argument('--------------------Plot Options--------------------',
+                            action='store_true',
+                            default=False)
+        parser.add_argument('-plots',
+                            action='store_true',
+                            default=False,
+                            dest='plots',
+                            help='Default: False. Make all plots.')
+        parser.add_argument('-tally',
+                            action='store_true',
+                            default=False,
+                            dest='tally',
+                            help='Default: False. Tally DE genes.')
+        parser.add_argument('-bar',
+                            action='store_true',
+                            default=False,
+                            dest='bar',
+                            help='Default: False. Construct bar plots.')
+        parser.add_argument('-scatter',
+                            action='store_true',
+                            default=False,
+                            dest='scatter',
+                            help='Default: False. Construct scatter plots.')
+        parser.add_argument('-scat_range',
+                            metavar='0,1200',
+                            default='0,1200',
+                            type=str,
+                            dest='scatt_range',
+                            help='Default: 0,5000000. Set scatter plot value range.')
+        parser.add_argument('-bland_alt',
+                            action='store_true',
+                            default=False,
+                            dest='bland_alt',
+                            help='Default: False. Construct bland-altman plots.')
+        parser.add_argument('-barange',
+                            metavar='0,10000',
+                            default='0,10000',
+                            type=str,
+                            dest='ba_range',
+                            help='Default: 1,25000. Range for BA plots.')
+        parser.add_argument('-bland_grad',
+                            action='store_true',
+                            default=False,
+                            dest='bland_grad',
+                            help='Default: False. Construct bland-gradie plots.')
+        parser.add_argument('-bgrange',
+                            metavar='0,10000',
+                            default='0,10000',
+                            type=str,
+                            dest='bg_range',
+                            help='Default: 1,25000. Range for BG plots.')
+        parser.add_argument('-histo',
+                            action='store_true',
+                            default=False,
+                            dest='histo',
+                            help='Default: False. Construct histogram plots.')
+        parser.add_argument('-hist_range',
+                            metavar='1,1000',
+                            default='1,1000',
+                            type=str,
+                            dest='hist_range',
+                            help='Default: 1.0. Lower x axis limit for histogram.')
+        parser.add_argument('-log2histo',
+                            action='store_true',
+                            default=False,
+                            dest='log2histo',
+                            help='Default: False. Construct log2fold histogram plots.')
+        parser.add_argument('-all',
+                            action='store_true',
+                            default=False,
+                            dest='all',
+                            help='Default: False. Make plots and tally flagged genes.')
+        parser.add_argument('-svg',
+                            default=False,
+                            action='store_true',
+                            dest='svg',
+                            help='Default: False. Use to svg plots.')
         return parser.parse_args()
 
     @staticmethod
@@ -296,7 +288,6 @@ class Args:
         return [float(x) for x in dif_list]
 
     def make_logs(self):
-
         with open((str(self.path) + ".log.txt"), "w+") as logfile:
 
             logfile.write(
@@ -314,4 +305,5 @@ class Args:
             for i in range(len(sys.argv)):
 
                 logfile.write(sys.argv[i] + ' ')
+            logfile.write('\n\n' + time.ctime())
 

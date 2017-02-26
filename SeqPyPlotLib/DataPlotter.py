@@ -573,6 +573,7 @@ class MainDataPlotter(object):
         plt.savefig(self.path + "_DE_cutoff_by_log2fold.png",
                     format='png',
                     bbox_inches='tight')
+        plt.close()
 
     def plot_histograms(self):
 
@@ -714,6 +715,7 @@ class MainDataPlotter(object):
             plot_name = 'Scatter_Plots_flagged_genes'
 
         scatter_dict = dict()
+        # print gene_map.items()[0][1]
         width = len(gene_map.items()[0][1])
         spacer = width // 2
 
@@ -778,22 +780,26 @@ class MainDataPlotter(object):
 
                 timeidx = plot[0]
                 timekey = plot[1]
-
-                for gene in self.analyzer.de_gene_list_by_stage[timekey]:
-                    scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
-                    scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx+spacer])
+                try:
+                    for gene in self.analyzer.de_gene_list_by_stage[timekey]:
+                        scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
+                        scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx+spacer])
+                except KeyError:
+                    pass
         else:
             for plot in enumerate(times):
 
                 timeidx = plot[0]
                 timekey = plot[1]
 
+                try:
+                    for gene in self.analyzer.gene_map.keys():
 
-                for gene in self.analyzer.gene_map.keys():
-
-                    if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
-                        scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
-                        scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
+                        if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
+                            scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
+                            scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
+                except KeyError:
+                    pass
 
         filecnt = 1
         fig_pos = 0
@@ -918,10 +924,14 @@ class MainDataPlotter(object):
             fig_pos += 1
 
             plt.close()
+            del fig
 
     def bland_altman_plot(self):
 
         gene_map = self.analyzer.unflagged_genes
+        if len(gene_map) == 0:
+            print "No unflagged genes available!"
+            return
 
         ba_dict = dict()
         width = len(gene_map.items()[0][1])
@@ -956,24 +966,27 @@ class MainDataPlotter(object):
         # make BA dictionary
         setup1 = True
         while setup1:
-            for gene in gene_map.values():
+            for _ in gene_map.values():
                 for i in range(spacer):
                     ba_dict[times[i]] = [[], []]
                 setup1 = False
                 break
 
-        barang = tuple([float(x) for x in self.args.ba_range.split(',')])
+        barange = tuple([float(x) for x in self.args.ba_range.split(',')])
 
         for plot in enumerate(times):
 
             timeidx = plot[0]
             timekey = plot[1]
+            try:
 
-            for gene in self.analyzer.gene_map.keys():
+                for gene in self.analyzer.gene_map.keys():
 
-                if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
-                    ba_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
-                    ba_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
+                    if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
+                        ba_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
+                        ba_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
+            except KeyError:
+                pass
 
         filecnt = 1
         fig_pos = 0
@@ -1011,10 +1024,8 @@ class MainDataPlotter(object):
                 ax.spines['right'].set_visible(False)
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
-                ax.set_xlim(barang)
-                ax.set_ylim([0, 4000])
-                # ax.set_xlabel(plot_labels[namecount][0] + '  average', fontsize=8)
-                # ax.set_ylabel(plot_labels[namecount][1] + '  difference', fontsize=8)
+                ax.set_xlim(barange)
+                ax.set_ylim(barange)
                 ax.set_title(figure[i])
                 ax.tick_params(axis='both', which='major', labelsize=8)
                 i += 1
@@ -1035,6 +1046,7 @@ class MainDataPlotter(object):
             fig_pos += 1
 
             plt.close()
+            del fig
 
     def BA_plot(self, data1, data2, ax):
         """ Generate a Bland-Altman plot.
@@ -1115,6 +1127,7 @@ class MainDataPlotter(object):
                     bbox_inches='tight')
 
         plt.close()
+        del fig
 
     def single_log_plots(self):
 
@@ -1160,37 +1173,49 @@ class MainDataPlotter(object):
 
             fig, axes = plt.subplots(nrows=2, ncols=2)
             ax0, ax1, ax2, ax3 = axes.flatten()
-
-            ax0.hist(sorted(histogram_list[figure[0]]),
-                     n_bins,
-                     color=color,
-                     range=(min(histogram_list[figure[0]]),
-                            max(histogram_list[figure[0]])))
+            try:
+                ax0.hist(sorted(histogram_list[figure[0]]),
+                         n_bins,
+                         color=color,
+                         range=(min(histogram_list[figure[0]]),
+                                max(histogram_list[figure[0]])))
+            except ValueError:
+                pass
 
             ax0.set_title(figure_labels[fig_pos][0])
 
             if len(figure) > 1:
-                ax1.hist(sorted(histogram_list[figure[1]]),
-                         n_bins,
-                         color=color,
-                         range=(min(histogram_list[figure[1]]),
-                                max(histogram_list[figure[1]])))
+                try:
+                    ax1.hist(sorted(histogram_list[figure[1]]),
+                             n_bins,
+                             color=color,
+                             range=(min(histogram_list[figure[1]]),
+                                    max(histogram_list[figure[1]])))
+                except ValueError:
+                    pass
                 ax1.set_title(figure_labels[fig_pos][1])
 
             if len(figure) > 2:
-                ax2.hist(sorted(histogram_list[figure[2]]),
-                         n_bins,
-                         color=color,
-                         range=(min(histogram_list[figure[2]]),
-                                max(histogram_list[figure[2]])))
+                try:
+                    ax2.hist(sorted(histogram_list[figure[2]]),
+                             n_bins,
+                             color=color,
+                             range=(min(histogram_list[figure[2]]),
+                                    max(histogram_list[figure[2]])))
+                except ValueError:
+                    pass
                 ax2.set_title(figure_labels[fig_pos][2])
 
             if len(figure) > 3:
-                ax3.hist(sorted(histogram_list[figure[3]]),
-                         n_bins,
-                         color=color,
-                         range=(min(histogram_list[figure[3]]),
-                                max(histogram_list[figure[3]])))
+                try:
+                    ax3.hist(sorted(histogram_list[figure[3]]),
+                             n_bins,
+                             color=color,
+                             range=(min(histogram_list[figure[3]]),
+                                    max(histogram_list[figure[3]])))
+                except ValueError:
+                    pass
+
                 ax3.set_title(figure_labels[fig_pos][3])
 
             for ax in axes.flatten():
@@ -1255,13 +1280,13 @@ class MainDataPlotter(object):
         # make BA dictionary
         setup1 = True
         while setup1:
-            for gene in gene_map.values():
+            for _ in gene_map.values():
                 for i in range(spacer):
                     bg_dict[times[i]] = [[], []]
                 setup1 = False
                 break
 
-        bgrang = tuple([float(x) for x in self.args.ba_range.split(',')])
+        bgrange = tuple([float(x) for x in self.args.bg_range.split(',')])
 
         for plot in enumerate(times):
 
@@ -1269,15 +1294,21 @@ class MainDataPlotter(object):
             timekey = plot[1]
 
             if flagged:
-                for gene in self.gene_map.keys():
-                    if gene in self.analyzer.de_gene_list_by_stage[timekey]:
-                        bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
-                        bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+                try:
+                    for gene in self.gene_map.keys():
+                        if gene in self.analyzer.de_gene_list_by_stage[timekey]:
+                            bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
+                            bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+                except KeyError:
+                    pass
             else:
-                for gene in self.gene_map.keys():
-                    if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
-                        bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
-                        bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+                try:
+                    for gene in self.gene_map.keys():
+                        if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
+                            bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
+                            bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+                except KeyError:
+                    pass
 
         filecnt = 1
         fig_pos = 0
@@ -1315,7 +1346,7 @@ class MainDataPlotter(object):
                 ax.spines['right'].set_visible(False)
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
-                ax.set_ylim(bgrang)
+                ax.set_ylim(bgrange)
                 ax.set_xlim([-3, 3])
                 ax.set_title(figure[i])
 
@@ -1344,7 +1375,6 @@ class MainDataPlotter(object):
 
             filecnt += 1
             fig_pos += 1
-
             plt.close()
 
     def BG_plot(self, data1, data2, ax):
