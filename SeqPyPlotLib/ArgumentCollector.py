@@ -226,18 +226,18 @@ class Args:
                             default='20000',
                             type=str,
                             dest='ba_range',
-                            help='Default: 1,25000. Range for BA plots.')
+                            help='Default: 1,25000. Range for bland-altman plots.')
         parser.add_argument('-bland_log',
                             action='store_true',
                             default=False,
                             dest='bland_log',
                             help='Default: False. Construct bland-alt-log plots.')
         parser.add_argument('-blrange',
-                            metavar='0,10000',
-                            default='0,10000',
+                            metavar='0,20',
+                            default='0,20',
                             type=str,
                             dest='bl_range',
-                            help='Default: 1,25000. Range for BG plots.')
+                            help='Default: 0,20. Range for Bland-alt-log plots.')
         parser.add_argument('-histo',
                             action='store_true',
                             default=False,
@@ -254,11 +254,6 @@ class Args:
                             default=False,
                             dest='log2histo',
                             help='Default: False. Construct log2fold histogram plots.')
-        parser.add_argument('-all',
-                            action='store_true',
-                            default=False,
-                            dest='all',
-                            help='Default: False. Make plots and tally flagged genes.')
         parser.add_argument('-svg',
                             default=False,
                             action='store_true',
