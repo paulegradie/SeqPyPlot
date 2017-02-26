@@ -223,20 +223,20 @@ class Args:
                             help='Default: False. Construct bland-altman plots.')
         parser.add_argument('-barange',
                             metavar='0,10000',
-                            default='0,10000',
+                            default='20000',
                             type=str,
                             dest='ba_range',
                             help='Default: 1,25000. Range for BA plots.')
-        parser.add_argument('-bland_grad',
+        parser.add_argument('-bland_log',
                             action='store_true',
                             default=False,
-                            dest='bland_grad',
-                            help='Default: False. Construct bland-gradie plots.')
-        parser.add_argument('-bgrange',
+                            dest='bland_log',
+                            help='Default: False. Construct bland-alt-log plots.')
+        parser.add_argument('-blrange',
                             metavar='0,10000',
                             default='0,10000',
                             type=str,
-                            dest='bg_range',
+                            dest='bl_range',
                             help='Default: 1,25000. Range for BG plots.')
         parser.add_argument('-histo',
                             action='store_true',

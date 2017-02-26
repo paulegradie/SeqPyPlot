@@ -972,8 +972,8 @@ class MainDataPlotter(object):
                 setup1 = False
                 break
 
-        barange = tuple([float(x) for x in self.args.ba_range.split(',')])
-
+        # barange = tuple([float(x) for x in self.args.ba_range.split(',')])
+        barange = float(self.args.ba_range)
         for plot in enumerate(times):
 
             timeidx = plot[0]
@@ -1024,8 +1024,8 @@ class MainDataPlotter(object):
                 ax.spines['right'].set_visible(False)
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
-                ax.set_xlim(barange)
-                ax.set_ylim(barange)
+                ax.set_xlim(0, barange)
+                ax.set_ylim(barange*-1.0, barange)
                 ax.set_title(figure[i])
                 ax.tick_params(axis='both', which='major', labelsize=8)
                 i += 1
@@ -1068,15 +1068,20 @@ class MainDataPlotter(object):
         s2 = np.asarray(data2).astype(np.double)
         mean = []
         diff = []
+        md = np.mean(diff)
+        std = np.std(diff, axis=0)
 
         for counter in range(len(data1)):
             mean.append((float(data1[counter]) + float(data2[counter]))/2.0)
-            diff.append(abs(float(data1[counter]) - float(data2[counter])))
+            diff.append(float(data1[counter]) - float(data2[counter]))
 
         ax.scatter(mean, diff)
-        ax.axhline(0, color='r', ls='--', lw=2)
         ax.set_xlabel('Mean')
         ax.set_ylabel('Difference')
+
+        ax.axhline(md, color='r', ls='--', lw=2)
+        ax.axhline(md + 1.96 * std, color='gray', linestyle='--')
+        ax.axhline(md - 1.96 * std, color='gray', linestyle='--')
 
         return ax
 
@@ -1239,15 +1244,15 @@ class MainDataPlotter(object):
             if fig_pos == len(figure_labels):
                 return
 
-    def bland_gradie_plot(self, flagged=False):
+    def bland_alt_log2_plot(self, flagged=False):
         if flagged:
-            suptitle = "Bland-Gradie Plots - Flagged Genes"
+            suptitle = "Bland-Altman-Log2 Plots - Flagged Genes"
             gene_map = self.analyzer.filtered_data
         else:
-            suptitle = "Bland-Gradie Plots - All Genes"
+            suptitle = "Bland-Altman-Log2 Plots - All Genes"
             gene_map = self.gene_map
 
-        bg_dict = dict()
+        bl_dict = dict()
         width = len(gene_map.items()[0][1])
         spacer = width // 2
 
@@ -1282,11 +1287,11 @@ class MainDataPlotter(object):
         while setup1:
             for _ in gene_map.values():
                 for i in range(spacer):
-                    bg_dict[times[i]] = [[], []]
+                    bl_dict[times[i]] = [[], []]
                 setup1 = False
                 break
 
-        bgrange = tuple([float(x) for x in self.args.bg_range.split(',')])
+        blrange = tuple([float(x) for x in self.args.bl_range.split(',')])
 
         for plot in enumerate(times):
 
@@ -1297,16 +1302,16 @@ class MainDataPlotter(object):
                 try:
                     for gene in self.gene_map.keys():
                         if gene in self.analyzer.de_gene_list_by_stage[timekey]:
-                            bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
-                            bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+                            bl_dict[timekey][0].append(self.gene_map[gene][timeidx])
+                            bl_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
                 except KeyError:
                     pass
             else:
                 try:
                     for gene in self.gene_map.keys():
                         if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
-                            bg_dict[timekey][0].append(self.gene_map[gene][timeidx])
-                            bg_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
+                            bl_dict[timekey][0].append(self.gene_map[gene][timeidx])
+                            bl_dict[timekey][1].append(self.gene_map[gene][timeidx + spacer])
                 except KeyError:
                     pass
 
@@ -1334,19 +1339,19 @@ class MainDataPlotter(object):
             i = 0
             for ax in axes.flatten():
                 try:
-                    x = bg_dict[figure[i]][0]
-                    y = bg_dict[figure[i]][1]
+                    x = bl_dict[figure[i]][0]
+                    y = bl_dict[figure[i]][1]
                 except ValueError:
                     print "Double check the -time argument. Does it match?"
                     sys.exit()
 
-                self.BG_plot(x, y, ax)
+                self.BLOG_plot(x, y, ax)
 
                 ax.spines['top'].set_visible(False)
                 ax.spines['right'].set_visible(False)
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
-                ax.set_ylim(bgrange)
+                ax.set_ylim(blrange)
                 ax.set_xlim([-3, 3])
                 ax.set_title(figure[i])
 
@@ -1361,13 +1366,13 @@ class MainDataPlotter(object):
 
             if flagged:
                 plt.savefig("{}_{}_{}.png".format(path,
-                                                  'Bland_Gradie_plots_flagged_genes',
+                                                  'Bland_Alt_log2_plots_flagged_genes',
                                                   str(filecnt)),
                             format='png',
                             bbox_inches='tight')
             else:
                 plt.savefig("{}_{}_{}.png".format(path,
-                                                  'Bland_Gradie_plots_all_genes',
+                                                  'Bland_Alt_log2_plots_all_genes',
                                                   str(filecnt)),
                             format='png',
                             bbox_inches='tight')
@@ -1377,7 +1382,7 @@ class MainDataPlotter(object):
             fig_pos += 1
             plt.close()
 
-    def BG_plot(self, data1, data2, ax):
+    def BLOG_plot(self, data1, data2, ax):
         """ Generate a Bland-Altman plot.
         Arguments:
             :type s1: numpy.array
@@ -1404,11 +1409,9 @@ class MainDataPlotter(object):
                 pass
             else:
 
-                mean.append(np.mean([float(data1[counter]), float(data2[counter])]))
+                mean.append(np.log2(np.mean([float(data1[counter]), float(data2[counter])])))
                 log2fold.append(np.log2(float(data1[counter]) / float(data2[counter])))
-        # print len(mean)
-        # print len(log2fold)
-        # meanlog = np.mean(np.asarray(log2fold))
+
         sd = np.std(np.asarray(log2fold), axis=0)
 
         # Calculate mean and difference
@@ -1421,10 +1424,8 @@ class MainDataPlotter(object):
         ax.set_ylabel('Mean (size)')
         ax.set_xlabel('Log2Fold')
 
-        # ax.axhline(meanlog, color='gray', linestyle='--')
         ax.axvline(0.0 + 1.96 * sd, color='gray', linestyle='--')
         ax.axvline(0.0 - 1.96 * sd, color='gray', linestyle='--')
-
 
         return ax
 

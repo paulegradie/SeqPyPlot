@@ -49,7 +49,6 @@ else:
         DataPrinter.write_de_results()
         DataPrinter.write_filtered_data()
         Analyzer.print_analyzer_results()
-
         if args.ercc:
             DataPrinter.write_ercc_data()
 
@@ -80,12 +79,14 @@ else:
             Plot_Builder = MainDataPlotter(args, Analyzer, FigureList)  # object used for generating plots
             Plot_Builder.plot_figures()
 
-            if report:
-                DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+            DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+            if args.report:
                 DataPrinter.write_plot_data()
                 DataPrinter.write_de_results()
                 DataPrinter.write_filtered_data()
                 Analyzer.print_analyzer_results()
+            if args.ercc:
+                DataPrinter.write_ercc_data()
 
             if args.scatter or args.plots:
                 try:
@@ -111,15 +112,14 @@ else:
             if args.bland_alt or args.plots and args.num == 2:
                 print "Building Bland-Altman Plots...\n"
                 Plot_Builder.bland_altman_plot()
-            if args.bland_grad or args.plots:
-                print "Building Bland-Gradie Plots...\n"
-                Plot_Builder.bland_gradie_plot()
-                Plot_Builder.bland_gradie_plot(flagged=True)
+            if args.bland_log or args.plots:
+                print "Building Bland-Altmat Log2Fold Plots...\n"
+                Plot_Builder.bland_alt_log2_plot()
+                Plot_Builder.bland_alt_log2_plot(flagged=True)
             if args.tally:
                 print "Performing Tallys...\n"
                 Plot_Builder.plot_tally()
-            if args.ercc:
-                DataPrinter.write_ercc_data()
+
 
         else:  # IF plot data is provided without a genelist
             # perform the DE analysis using processed plot data
@@ -128,12 +128,14 @@ else:
             Analyzer.seqpyfilter()
             Plot_Builder = MainDataPlotter(args, Analyzer, None)
 
-            if report:
-                DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+            DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+            if args.report:
                 DataPrinter.write_plot_data()
                 DataPrinter.write_de_results()
                 DataPrinter.write_filtered_data()
                 Analyzer.print_analyzer_results()
+            if args.ercc:
+                DataPrinter.write_ercc_data()
 
             if args.scatter or args.plots:
                 try:
@@ -159,15 +161,13 @@ else:
             if args.bland_alt or args.plots and args.num == 2:
                 print "Building Bland-Altman Plots...\n"
                 Plot_Builder.bland_altman_plot()
-            if args.bland_grad or args.plots:
-                print "Building Bland-Gradie Plots...\n"
-                Plot_Builder.bland_gradie_plot()
-                Plot_Builder.bland_gradie_plot(flagged=True)
+            if args.bland_log or args.plots:
+                print "Building Bland-Altman Log2Fold Plots...\n"
+                Plot_Builder.bland_alt_log2_plot()
+                Plot_Builder.bland_alt_log2_plot(flagged=True)
             if args.tally:
                 print "Performing Tallys...\n"
                 Plot_Builder.plot_tally()
-            if args.ercc:
-                DataPrinter.write_ercc_data()
 
             print "Finished."
             sys.exit()
