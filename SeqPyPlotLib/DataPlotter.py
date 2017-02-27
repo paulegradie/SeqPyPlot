@@ -413,7 +413,6 @@ class MainDataPlotter(object):
         xlabel = []
         y_values = []
         bar_width = 0.5  # the width of the bars
-        ymax = 10
 
         ax = plt.subplot()
 
@@ -427,9 +426,8 @@ class MainDataPlotter(object):
             ax.set_xticklabels(xlabel, rotation=45)
 
         elif self.args.num == 2:
-
-            for k, v in sorted(self.de_count_by_time.items()):
-                y_values.append(int(v))
+            for k in self.args.time:
+                y_values.append(int(self.de_count_by_time[k]))
                 xlabel.append(k)
 
             x_axis = range(len(y_values))
