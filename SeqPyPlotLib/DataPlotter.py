@@ -1249,7 +1249,7 @@ class MainDataPlotter(object):
             suptitle = "Bland-Altman-Log2 Plots - Flagged Genes"
             gene_map = self.analyzer.filtered_data
         else:
-            suptitle = "Bland-Altman-Log2 Plots - All Genes"
+            suptitle = "Bland-Altman-Log2 Plots - Unflagged Genes"
             gene_map = self.gene_map
 
         bl_dict = dict()
@@ -1352,7 +1352,7 @@ class MainDataPlotter(object):
                 ax.get_xaxis().tick_bottom()
                 ax.get_yaxis().tick_left()
                 ax.set_ylim(blrange)
-                ax.set_xlim([-3, 3])
+                ax.set_xlim([-4, 4])
                 ax.set_title(figure[i])
 
                 ax.tick_params(axis='both', which='major', labelsize=8)
@@ -1372,7 +1372,7 @@ class MainDataPlotter(object):
                             bbox_inches='tight')
             else:
                 plt.savefig("{}_{}_{}.png".format(path,
-                                                  'Bland_Alt_log2_plots_all_genes',
+                                                  'Bland_Alt_log2_plots_unflagged_genes',
                                                   str(filecnt)),
                             format='png',
                             bbox_inches='tight')
@@ -1403,7 +1403,6 @@ class MainDataPlotter(object):
         mean = []
         log2fold = []
 
-
         for counter in range(len(data1)):
             if np.mean([float(data1[counter]), float(data2[counter])]) < self.args.low:
                 pass
@@ -1421,11 +1420,12 @@ class MainDataPlotter(object):
 
         ax.scatter(log2fold, mean)
         ax.axvline(0, color='r', ls='--', lw=2)
+        # ax.axvline(0.0 + 1.96 * sd, color='gray', linestyle='--')
+        # ax.axvline(0.0 - 1.96 * sd, color='gray', linestyle='--')
         ax.set_ylabel('Log2(Mean)')
         ax.set_xlabel('Log2(Fold)')
 
-        ax.axvline(0.0 + 1.96 * sd, color='gray', linestyle='--')
-        ax.axvline(0.0 - 1.96 * sd, color='gray', linestyle='--')
+
 
         return ax
 
