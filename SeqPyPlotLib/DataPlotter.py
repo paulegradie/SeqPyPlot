@@ -1421,8 +1421,8 @@ class MainDataPlotter(object):
 
         ax.scatter(log2fold, mean)
         ax.axvline(0, color='r', ls='--', lw=2)
-        ax.set_ylabel('Mean (size)')
-        ax.set_xlabel('Log2Fold')
+        ax.set_ylabel('Log2(Mean)')
+        ax.set_xlabel('Log2(Fold)')
 
         ax.axvline(0.0 + 1.96 * sd, color='gray', linestyle='--')
         ax.axvline(0.0 - 1.96 * sd, color='gray', linestyle='--')

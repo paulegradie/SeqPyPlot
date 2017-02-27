@@ -141,15 +141,13 @@ class DataContainer(object):
                     if self.args.num == 1:
                         self.data_frame_header["Gene"] = self.args.time
                     elif self.args.num == 2:
-                        self.data_frame_header["Gene"] += [str(_file[0:6])]
+                        self.data_frame_header["Gene"] += [str(_file[0:11])]
                     else:
                         print "DC line 146"
                         sys.exit()
 
                     print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot))
                     with open(file_string, 'r') as countfile:
-                        # ht_reader = csv.reader(countfile, delimiter='\t')
-                        # for row in ht_reader:
                         try:
                             for row in countfile.readlines():
                                 if row.split()[0].rstrip() not in self.raw_counts.keys():
