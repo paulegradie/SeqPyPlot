@@ -145,7 +145,7 @@ class Args:
                             dest='hi',
                             help='Default: 5mil. Set the max expression value to accept.')
         parser.add_argument('-dif_range',
-                            metavar='25,10000',
+                            metavar='25,1000000',
                             default='25,1000000',
                             type=str,
                             dest='dif_range',

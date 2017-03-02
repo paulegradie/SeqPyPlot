@@ -44,7 +44,7 @@ class MainDataPlotter(object):
         # Figure list is a 2D nested list.
         # Outerlist = Figure list.
         # Innerlist = gene lists for each figure.
-
+        de_set = set(self.de_genes)
         figure_list_count = 1
         for figure in self.figure_list:
 
@@ -61,9 +61,9 @@ class MainDataPlotter(object):
                              )
             fig.suptitle(self.args.prefix,
                          verticalalignment='top',
-                         horizontalalignment='center',
-                         fontsize=24,
-                         x=0.415
+                         horizontalalignment='right',
+                         fontsize=24
+                         # x=0.415
                          )
             series1_line = mlines.Line2D([], [], color="blue",
                                          marker='o',
@@ -92,6 +92,8 @@ class MainDataPlotter(object):
 
             log_line = mlines.Line2D([], [], color='white')
             fold_line = mlines.Line2D([], [], color='white')
+            dif_line = mlines.Line2D([], [], color='white')
+
 
             gene_count = 1
             for gene in figure:
@@ -101,7 +103,7 @@ class MainDataPlotter(object):
                 else:
                     fig.add_subplot(3, 2, gene_count).set_title('- ' + str(gene) + ' -', fontsize=20)
 
-                self.__subplot(gene)
+                self.__subplot(gene, de_set)
 
                 gene_count += 1
 
@@ -115,8 +117,11 @@ class MainDataPlotter(object):
                 handles = [series1_line]
                 labels = condition_labels
             elif self.args.num == 2:
-                handles = [series1_line, series2_line, log_line, fold_line]
-                labels = (condition_labels + ["Log2: " + str(self.args.log)] + ["Fold: " + str(round(2.0**self.args.log, ndigits=1))])
+                handles = [series1_line, series2_line, log_line, fold_line, dif_line]
+                labels = (condition_labels
+                          + ["Log2: " + str(self.args.log)]
+                          + ["Fold: " + str(round(2.0**self.args.log, ndigits=1))]
+                          + ["Diff: " + str(int(self.args.dif_range[0])) + ', ' + str(int(self.args.dif_range[1]))])
             else:
                 print "reset -num argument"
                 sys.exit()
@@ -146,7 +151,7 @@ class MainDataPlotter(object):
 
             figure_list_count += 1
 
-    def __subplot(self, gene):
+    def __subplot(self, gene, deset):
 
         found, series1_data, series1_mask, series2_data, series2_mask = self.data_collector(gene)
 
@@ -191,7 +196,7 @@ class MainDataPlotter(object):
             # Plot Details
             ax = plt.gca()
 
-            is_de = self.__check_for_de(gene)
+            is_de = self.__check_for_de(gene, deset)
             if is_de:
                 ax.set_axis_bgcolor('#FFFC97')
             else:
@@ -304,8 +309,8 @@ class MainDataPlotter(object):
 
         return found, series1, s1mask, series2, s2mask  # series masks are a True/False list for use in _calculate_mean
 
-    def __check_for_de(self, gene):
-        if gene in self.de_genes:
+    def __check_for_de(self, gene, de__set):
+        if str(gene) in de__set:
             return True
         else:
             return False
@@ -367,7 +372,7 @@ class MainDataPlotter(object):
                             markeredgecolor='blue',
                             markerfacecolor='white',
                             markeredgewidth=.95,
-                            markersize=6)
+                            markersize=4)
 
         else:
             width = 1.4
@@ -385,7 +390,7 @@ class MainDataPlotter(object):
                             markeredgecolor='blue',
                             markerfacecolor='white',
                             markeredgewidth=.95,
-                            markersize=6)
+                            markersize=4)
 
     @staticmethod
     def __series2_plot(series2, s2mask, xs, label):
@@ -404,7 +409,7 @@ class MainDataPlotter(object):
                         markeredgecolor='black',
                         markerfacecolor='red',
                         markeredgewidth=.95,
-                        markersize=6)
+                        markersize=4)
 
     def de_bar(self, colour):
 
@@ -467,10 +472,10 @@ class MainDataPlotter(object):
                 right='off',
                 labelbottom='on')  # labels along the bottom edge are off
 
-        log_line = mlines.Line2D([], [], color='yellow')
-        expression_upper = mlines.Line2D([], [], color='orange')
-        expression_lower = mlines.Line2D([], [], color='blue')
-        difference = mlines.Line2D([], [], color='black')
+        log_line = mlines.Line2D([], [], color='white')
+        expression_upper = mlines.Line2D([], [], color='white')
+        expression_lower = mlines.Line2D([], [], color='white')
+        difference = mlines.Line2D([], [], color='white')
         if self.args.hi > 99999:
             hi = 'inf'
         else:
@@ -535,7 +540,7 @@ class MainDataPlotter(object):
         fig.legend(handles=[expression_upper, expression_lower, expression_dif],
                    labels=(["Upper: " + str(self.args.hi),
                             "Lower: " + str(self.args.low),
-                            "Dif: " + str(self.args.dif_range)]),
+                            "Dif: " + str(self.args.dif_range[0]) + ', ' + str(self.args.dif_range[1])]),
                    loc='upper right')
 
         plt.plot(cutoffs,
@@ -781,7 +786,8 @@ class MainDataPlotter(object):
                 try:
                     for gene in self.analyzer.de_gene_list_by_stage[timekey]:
                         scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
-                        scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx+spacer])
+                        if self.args.num == 2:
+                            scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx+spacer])
                 except KeyError:
                     pass
         else:
@@ -795,7 +801,8 @@ class MainDataPlotter(object):
 
                         if gene not in self.analyzer.de_gene_list_by_stage[timekey]:
                             scatter_dict[timekey][0].append(self.analyzer.gene_map[gene][timeidx])
-                            scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
+                            if self.args.num == 2:
+                                scatter_dict[timekey][1].append(self.analyzer.gene_map[gene][timeidx + spacer])
                 except KeyError:
                     pass
 
@@ -852,17 +859,6 @@ class MainDataPlotter(object):
                 except ValueError:
                     print "Double check the -time argument. Does it match?"
                     sys.exit()
-
-                # colors = []
-                # for col in range(len(x)):
-                #     num1 = round(float(x[col]) - float(y[col]), ndigits=1)
-                #     num2 = abs(num1)
-                #     if num2 <= 17:
-                #         colors.append(1)
-                #     else:
-                #         lognumb = np.log2(num2)
-                #         colors.append(round(lognumb, ndigits=1))
-
 
                 ax.scatter(z, x,
                            s=8,

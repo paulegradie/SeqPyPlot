@@ -90,15 +90,15 @@ else:
 
             if args.scatter or args.plots:
                 try:
-                    print "Building Scatter Plots for un-flagged data...\n"
+                    print "Building Scatter Plots for un-flagged data..."
                     Plot_Builder.make_scatter_plots()
                 except IndexError:
-                    print "No unflagged genes found..."
+                    print "No unflagged genes found...\n"
                 try:
-                    print "Building Scatter Plots for flagged data...\n"
+                    print "Building Scatter Plots for flagged data..."
                     Plot_Builder.make_scatter_plots(flagged=True)
                 except IndexError:
-                    print "No flagged genes found..."
+                    print "No flagged genes found...\n"
             if args.bar or args.plots:
                 print "Building Bar Plots...\n"
                 Plot_Builder.de_bar('black')
@@ -112,7 +112,7 @@ else:
             if args.bland_alt or args.plots and args.num == 2:
                 print "Building Bland-Altman Plots...\n"
                 Plot_Builder.bland_altman_plot()
-            if args.bland_log or args.plots:
+            if args.bland_log or args.plots and args.num == 2:
                 print "Building Bland-Altmat Log2Fold Plots...\n"
                 Plot_Builder.bland_alt_log2_plot()
                 Plot_Builder.bland_alt_log2_plot(flagged=True)
@@ -139,15 +139,15 @@ else:
 
             if args.scatter or args.plots:
                 try:
-                    print "Building Scatter Plots for un-flagged data...\n"
+                    print "Building Scatter Plots for un-flagged data..."
                     Plot_Builder.make_scatter_plots()
                 except IndexError:
-                    print "No unflagged genes found..."
+                    print "No unflagged genes found...\n"
                 try:
-                    print "Building Scatter Plots for flagged data...\n"
+                    print "Building Scatter Plots for flagged data..."
                     Plot_Builder.make_scatter_plots(flagged=True)
                 except IndexError:
-                    print "No flagged genes found..."
+                    print "No flagged genes found...\n"
             if args.bar or args.plots:
                 print "Building Bar Plots...\n"
                 Plot_Builder.de_bar('black')
@@ -155,13 +155,13 @@ else:
                 print "Plotting Histograms...\n"
                 Plot_Builder.plot_histograms()
             if args.log2histo or args.plots:
-                print "Building Scatter Plots for collecticue log2fold data...\n"
+                print "Building Scatter Plots for collective log2fold data...\n"
                 Plot_Builder.collective_log_plot()
                 Plot_Builder.single_log_plots()
             if args.bland_alt or args.plots and args.num == 2:
                 print "Building Bland-Altman Plots...\n"
                 Plot_Builder.bland_altman_plot()
-            if args.bland_log or args.plots:
+            if args.bland_log or args.plots and args.num == 2:
                 print "Building Bland-Altman Log2Fold Plots...\n"
                 Plot_Builder.bland_alt_log2_plot()
                 Plot_Builder.bland_alt_log2_plot(flagged=True)
