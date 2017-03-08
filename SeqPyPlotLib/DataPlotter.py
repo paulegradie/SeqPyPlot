@@ -629,7 +629,7 @@ class MainDataPlotter(object):
             rang = tuple([float(x) for x in self.args.hist_range.split(',')])
 
             fig, axes = plt.subplots(nrows=2, ncols=2)
-            fig.suptitle("Count Density Per Sample",
+            fig.suptitle("Gene Density Per Count",
                          verticalalignment='top',
                          horizontalalignment='right',
                          fontsize=12,
