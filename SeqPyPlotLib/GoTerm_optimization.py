@@ -89,7 +89,7 @@ def main():
 
 
     #asign data file
-    data = 'OVE442_Analysis_plotter_data.txt'
+    data = 'C:\Users\Paul G\Google Drive\PycharmProjects_Main\Bioinformatics_for_PhD\Project files\SeqPyPlot\OVE442_recombined_TMM_E12-E15\OVE442_recombined_TMM_E12-E15_plotter_data.txt'
 
     # all of the optimization prarameters and file names tou use with temp_args
     parameters = Parameters()
@@ -102,7 +102,7 @@ def main():
     conversion_table = dict()
 
     print "\nPreparing gene conversion list..."
-    with open("gene_conversion_table.txt", 'rb') as gene_table:
+    with open("mus_gene_conversion_table.txt", 'rb') as gene_table:
         tablereader = csv.reader(gene_table, delimiter='\t')
         for row in tablereader:
             #conversiontable is symbol: entreziD
