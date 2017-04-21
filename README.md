@@ -78,23 +78,23 @@ Seaborn is used to styalize all of the plots. At the moment, the code breaks wit
 5. Submit a pull request :D
 
 ## History and background
-SeqPyPlot (rna-SEQ PYthon PLOT library) was written to provide a simple to use quick analysis tool for pilot RNA-seq data. Pilot study data is defined here as data that doesn't include replicates. A common need among developmental biologists right now is the abilty to intergotate pilot study data and access gene experssion quickly. Usually these data are not used for publishing, but rather to guide future experiments and provide a quick peak at approximate expression levels within the target tissue. 
+SeqPyPlot (rna-SEQ PYthon PLOT library) was written to provide a simple to use quick analysis tool for pilot RNA-seq data. Pilot study data is defined here as data that doesn't include replicates. A common need among developmental biologists right now is the ability to interogate pilot study data and access gene expression quickly. Usually these data are not used for publishing, but rather to guide future experiments and provide a quick peak at approximate expression levels within the target tissue. 
 
 Quoted from the edgeR manual (a popular tool written in R used for calculating differential expression of genes:
 
 `RNA-Seq and ChIP-Seq are still expensive technologies, so it sometimes happens that only one library can be created for each treatment condition. In these cases there are no replicate libraries from which to estimate biological variability. In this situation, the data analyst is faced with the following choices, none of which are ideal. We do not recommend any of these choices as a satisfactory alternative for biological replication. Rather, they are the best that can be done at the analysis stage [using no replicates].`
 
-The manual goes to suggest the following option (which is admittedly not their preferred suggesetion...)
+The manual goes to suggest the following option (which is admittedly not their preferred suggestion...)
 
 `1. Be satisfied with a descriptive analysis, that might include an MDS plot and an analysis
 of fold changes. Do not attempt a significance analysis. This may be the best advice.`
 
-The motivation behind SeqPyPlot is to provide a means to analyze time series data under the assumption of no biological variability (even though we know this isn't true). With unreplicated time series data, there is no way to reasonably estimate variance within the data, since any gene could potentially change over time. SeqPyPlot therefore ignores dispersion estimates and biological variability to give a quick and dirty assement of fold change. 
+The motivation behind SeqPyPlot is to provide a means to analyze time series data under the assumption of no biological variability (even though we know this isn't true). With unreplicated time series data, there is no way to reasonably estimate variance within the data, since any gene could potentially change over time. SeqPyPlot therefore ignores dispersion estimates and biological variability to give a quick and dirty assessment of fold change. 
 
-The advantage of useing SeqPyPlot is twofold. First, it provides a set of optimizable paramters that can be used to filter data included in the final output. Second, it provides a very useful plotting function for rapidly visualing gene expression. Using this program, you can create a list of flagged genes, and plot them within minutes.
+The advantage of using SeqPyPlot is twofold. First, it provides a set of optimizable parameters that can be used to filter data included in the final output. Second, it provides a very useful plotting function for rapidly visualizing gene expression. Using this program, you can create a list of flagged genes, and plot them within minutes.
 
 ## Credits
-The current and previous versions of SeqPyPlot were built by me (Paul G). I would LOVE to add more credits! Fork this respository and help make SeqPyPlot a more useful and user friendly tool!
+The current and previous versions of SeqPyPlot were built by me (Paul G). I would LOVE to add more credits! Fork this repository and help make SeqPyPlot a more useful and user friendly tool!
 
 ## License
 This software is currently open source, and I'm looking to write a short paper on the utility of this software to submit to an opensource journal. IF/when that happens, citations may be in order. Maybe. Probably not worth worrying about though!
