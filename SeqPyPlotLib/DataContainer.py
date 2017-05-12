@@ -221,7 +221,7 @@ class DataContainer(object):
 
             # add normalized data to the gene_map
             for row in normalized_reader:
-                self.gene_map[row[0]] = [int(x) for x in row[1:]]
+                self.gene_map[row[0]] = [round(float(x),4) for x in row[1:]]
 
             # If any data points are missing:::
             # reinsert missing data points with zeros
