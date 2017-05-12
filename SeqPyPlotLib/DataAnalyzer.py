@@ -4,6 +4,12 @@ import os
 
 class DataAnalyzer(object):
     def __init__(self, args, data_container, optimization_mode=False):
+        """
+        :param args:
+        :param data_container:
+        :param optimization_mode: Set usage to
+        """
+
         if optimization_mode is True:
             self.temp = args
             self.args = data_container.args
