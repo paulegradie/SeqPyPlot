@@ -162,12 +162,14 @@ I have a clumsy script right now that will take in some gene ontology terms and 
 2. Automatic dispersion estimation
 This is the final piece to the SeqPyPlot puzzle. The limitation with unreplicated RNAseq data is there is no way to perform stats tests to find differentially expressed genes. However, we can combine the filtering provided by SeqPyPlot with dispersion estimates across a subset of genes to get a rough dispersion estimation would could then be used to test for DE genes. This would require to parts. First, we have to filter genes across control and experimental samples. Next, since we are dealing with time series data, we'd need to filter genes that are flagged across time within the control sample. Any genes that aren't flagged in either scenario are likely stable genes that we could then use for dispersion estimates (using control and mutant, and time series samples as replicates). From here, we could implement a statistical test (perhaps from edgeR) to determine differentially expressed genes.
 
+3. GUI
+I have started to build a GUI for SeqPyPlot using the Python Tkinter module. Ideally SeqPyPlot should be accessible for people who don't use command line tools. The GUI would make this program very easy for anyone to run with or without command line experience. The GUI working draft is located in SeqPyPlotLib/dev
 
 ## Credits
 The current and previous versions of SeqPyPlot were built by me (Paul G). I would LOVE to add more credits! Fork this repository and help make SeqPyPlot a more useful and user friendly tool!
 
 ## License
-This software is currently open source, and I'm looking to write a short paper on the utility of this software to submit to an opensource journal. IF/when that happens, citations may be in order. Maybe. Probably not worth worrying about though!
+This software is currently open source, and I'm looking to write a short paper on the utility of this software to submit to an open source journal. IF/when that happens, citations may be in order. Maybe. Probably not worth worrying about though!
 
 
 
