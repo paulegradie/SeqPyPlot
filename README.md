@@ -96,10 +96,15 @@ The advantage of using SeqPyPlot is twofold. First, it provides a set of optimiz
 ## Plot Descriptions
 SeqPyPlot provides a range of plots for general descriptive analysis of your data. These plots are available using the 'plot options' shown above in the usage. In this section I'll provide plot examples and their suggested interpretation.
 
+#### MDS Plots
+After normalization, it is essential to verify that samples cluster appropriately. If you have two control samples that do not cluster together, then this indicates an inherent problem with sample composition and may invalidate your experiment.
+
+![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Tally_plot.png "Tally Plot")
+
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Possibly the most important paramter is the logfold change threshold, so by using the '-tally' option, we automatically count the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
 
-![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Filter.png "Tally Plot")
+![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Tally_plot.png "Tally Plot")
 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
@@ -114,7 +119,7 @@ The following plots are intended to aid the user in finding appropriate filter p
 
 #### Scatter Plots
 Scatter plots are useful for double checking that normalization was successful and that your fold change parameter is reasonable across samples.
-There are two plots - flagged and unflagged. The white line along the $f(x) = x$ vector indicates the center of the value distribution across all means, and all expressin values ar plotted against their relative mean. In other words, the mean is calculated for value pairs (control and experimental), and then each vlue is plotted against its mean. The dotted lines represents the log2fold change (from the user provided log2fold argument, default = 0.7) around the mean.
+There are two plots - flagged and un-flagged. The white line along the $f(x) = x$ vector indicates the center of the value distribution across all means, and all expressin values ar plotted against their relative mean. In other words, the mean is calculated for value pairs (control and experimental), and then each vlue is plotted against its mean. The dotted lines represents the log2fold change (from the user provided log2fold argument, default = 0.7) around the mean.
 
 ![Scatter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Scatter_flagged_plot.png "Unflagged Scatter Plot")
 
