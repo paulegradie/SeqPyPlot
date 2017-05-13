@@ -153,6 +153,15 @@ After parameter optimization, its useful to examine other characteristics of you
 #### Combined
 ![LogFold change histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Logfold_change_histogram_plot2.png "Logfold change histogram Plot")
 
+## TO DO !!!
+There are a few things left to do for anyone who is interested in geetting involved in this small project.
+
+1. Fully integrate GO-term optimization
+I have a clumsy script right now that will take in some gene ontology terms and and a grid of parameters and perform an exhaustive search across the parameter grid looking for those parameters that return one or more of your selected go-terms. Its VERY slow. But it works! Much of the mechanics are built in to the data container and data analyzer classes, however there are still bugs in this current version (due to to random changes made by in the moment necessity) and it needs to be integrated in to the full program architecture (its currently an add on). Or if another design might work better - for example right now its a separate script that runs the program over and over again - perhaps this is the best way to implement this tool. Either way, the script needs to be able to take command line arguments and then function properly.
+
+2. Automatic dispersion estimation
+This is the final piece to the SeqPyPlot puzzle. The limitation with unreplicated RNAseq data is there is no way to perform stats tests to find differentially expressed genes. However, we can combine the filtering provided by SeqPyPlot with dispersion estimates across a subset of genes to get a rough dispersion estimation would could then be used to test for DE genes. This would require to parts. First, we have to filter genes across control and experimental samples. Next, since we are dealing with time series data, we'd need to filter genes that are flagged across time within the control sample. Any genes that aren't flagged in either scenario are likely stable genes that we could then use for dispersion estimates (using control and mutant, and time series samples as replicates). From here, we could implement a statistical test (perhaps from edgeR) to determine differentially expressed genes.
+
 
 ## Credits
 The current and previous versions of SeqPyPlot were built by me (Paul G). I would LOVE to add more credits! Fork this repository and help make SeqPyPlot a more useful and user friendly tool!
