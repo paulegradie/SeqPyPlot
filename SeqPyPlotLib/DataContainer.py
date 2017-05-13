@@ -9,7 +9,13 @@ import numpy as np
 class DataContainer(object):
     """"Functions for parsing input files from various programs."""
 
+
     def __init__(self, args, Optimize=False):
+        """
+
+        :param args:
+        :param Optimize: Set to true when using the Go-term add on script
+        """
 
         self.args = args
         self.analyzed = self.analyzed()  # Function call to datermine if contain contains flitered data
@@ -53,18 +59,24 @@ class DataContainer(object):
         print "Data Container initialized Successfully....\n"
 
     def __getitem__(self, key):
+        """
+        Over ride magic method
+        """
         return self.data_frame_header[key]
 
+    # Depricated
     @staticmethod
     def rotate(l, n):
         return l[n:] + l[:n]
 
+    #Sanity Check
     def analyzed(self):
         if self.args.plot_data is None:
             return False
         else:
             return True
 
+    #Load in premade results from elsewhere
     def load_results(self):
         if self.args.filter_results is None:
             self.de_gene_list = []
@@ -81,12 +93,13 @@ class DataContainer(object):
             new_order = [y for y in range(len(value)) if y % 2 == 0] + [y for y in range(len(value)) if y % 2 != 0]
             dictionary[key] = [value[t] for t in new_order]
             key.capitalize()
-
         return dictionary
 
     @staticmethod
     def __average_flanking__(value):
-
+        """
+        :param value: a list with missing values to be filled in
+        """
         flanked_averaged = []
 
         for data in enumerate(value):
@@ -104,7 +117,9 @@ class DataContainer(object):
         return flanked_averaged
 
     def parse_htseq(self):
-
+        """
+        :return: data frame of normalized count values
+        """
         insert_zero_list = []
         missing_file = 0  # counter for recording empty files for later  fill with zeros
         missing_file_name = []
@@ -259,8 +274,10 @@ class DataContainer(object):
         return self.gene_map, self.ercc_map, self.data_frame_header
 
     def parse_cuffnorm(self, infile):
-        """This function expects output from Cuffnorm. If the ERCC option is set, it will also return any ERCCs.
-            Returns: dictionaries with Gene:[ExpressionData]"""
+        """
+        This function expects output from Cuffnorm. If the ERCC option is set, it will also return any ERCCs.
+            Returns: dictionaries with Gene:[ExpressionData]
+        """
         self.data_frame_header = dict()
         self.gene_map = dict()
         self.ercc_map = dict()
@@ -365,17 +382,20 @@ class DataContainer(object):
         return gene_map, ercc_map, data_frame_header
 
     def parse_edgeR(self, infile, filelist=None):
+        #Depricated
         pass
 
     def parse_deseq2(self, infile):
+        #Depricated
         pass
 
     def parse_cuffdiff(self, infile):
+        #Depricated
         pass
 
     def generic_parser(self, inputfile):
         """This Generic filter will simply split your input in to two files - a data file and ERCC file."""
-        # TODO copy over code to fill this out
+        # TODO Use as templated to read in FeatureCounts data
         pass
     #
     # def parse_featureCount(selfself, infile):
@@ -434,20 +454,26 @@ class DataContainer(object):
     #
     #     return gene_map, ercc_map, data_frame_header
 
-
-
-
 class MakeFigureList(object):
-    """Function to parse the input gene list."""
+    """
+    Function to parse the input gene list.
+    """
 
     def __init__(self, args):
-
+        """
+        :param args: Args object
+        """
         self.args = args
         self.gene_list = []  # The full gene list from the input file
         self.figure_list, self.gene_list = self.input_list_parser()  # nested list - gene_list broken in to gruops of 6
 
-    def input_list_parser(self):  # type: (input_file object) -> 2D nested list object
+    def input_list_parser(self):
 
+        """
+        # type: (input_file object)
+        :return: 2D nested list object
+
+        """
         # Handle file encodings when you open the input file
         for e in ["utf-8", "ascii", "ansi"]:
             try:
@@ -491,8 +517,10 @@ class MakeFigureList(object):
         else:
             return len(self.figure_list)
 
-
-class PrepareOutputDirectory:  # must instantiate after args are set
+class PrepareOutputDirectory:
+    """
+    Must instantiate after args are set
+    """
 
     def __init__(self):
         pass
@@ -525,6 +553,11 @@ class DataPrinter:
     """
     def __init__(self, args, container, analyzer):
 
+        """
+        :param args: Args object
+        :param container: Data Container Object
+        :param analyzer:  Data analyzer Object
+        """
         self.container = container
         self.analyzer = analyzer
         self.filtered_data = analyzer.filtered_data

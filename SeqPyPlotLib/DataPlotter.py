@@ -1,21 +1,32 @@
 from __future__ import division
-# Test
-import matplotlib.lines as mlines
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import seaborn as sns
-sns.set_palette('Blues', n_colors=256)
-
-import numpy as np
 import os
 import sys
 
+try:
+    import matplotlib.lines as mlines
+    import matplotlib.pyplot as plt
+    import numpy as np
+except ImportError:
+    print("Check Dependencies. You need numpy and MatPlotLib")
+    sys.exit()
+try:
+    import seaborn as sns
+    sns.set_palette('Blues', n_colors=256)
+except ImportError:
+    print("You should install Seaborn! For now these plots are gonna look awful!")
+    sys.exit()
 
 class MainDataPlotter(object):
-    # For  building a all of the figures
+    """
+        For  building a all of the figures
 
+    """
     def __init__(self, args, analyzer, figurelist):
-
+        """
+        :param args: Args Object
+        :param analyzer: Analyzer Object
+        :param figurelist: Figurelist var from DataContainer.MakeFigureList
+        """
         self.args = args
 
         if figurelist is not None:
@@ -40,10 +51,14 @@ class MainDataPlotter(object):
             self.path = os.path.join('.', self.args.prefix)
 
     def plot_figures(self):
+        """
+        Figure list is a 2D nested list.
+        Outerlist = Figure list.
+        Innerlist = gene lists for each figure.
 
-        # Figure list is a 2D nested list.
-        # Outerlist = Figure list.
-        # Innerlist = gene lists for each figure.
+        :return: Line plots
+        """
+
         de_set = set(self.de_genes)
         figure_list_count = 1
         for figure in self.figure_list:
@@ -144,6 +159,7 @@ class MainDataPlotter(object):
                             format='svg',
                             bbox_inches='tight')
 
+            # TODO add argument to show plot windows
             # plt.show()
             plt.clf()
             plt.cla()
@@ -152,7 +168,12 @@ class MainDataPlotter(object):
             figure_list_count += 1
 
     def __subplot(self, gene, deset):
-
+        """
+        HIDDEN - don't worry this is handled internally
+        :param gene:
+        :param deset:
+        :return:
+        """
         found, series1_data, series1_mask, series2_data, series2_mask = self.data_collector(gene)
 
         if series2_data is None:
@@ -253,7 +274,11 @@ class MainDataPlotter(object):
             print("Don't worry - this just means the gene is probably turned off.")
 
     def data_collector(self, gene_name):
-
+        """
+        Another interally used method (should be hidden...)
+        :param gene_name: titled gene name (str.Title())
+        :return: formatted list of expression data
+        """
         data_length = len(self.gene_map.values()[0])
         found = True
 
@@ -316,8 +341,13 @@ class MainDataPlotter(object):
             return False
 
     def _calc_error(self, series_mean):
+        """
+        **HIDDEN**
+        Use some linear algebra to calculate log2fold range around a given value based on user logfold parameter
+        :param series_mean:
+        :return:
+        """
         var = self.args.log
-        # var = 1.0
         upper_list = []
         lower_list = []
         low_plot = []
@@ -325,12 +355,12 @@ class MainDataPlotter(object):
             b = (2.0 * i) / ((2.0 ** var) + 1)
             dif = i - b
             a = i + dif
-            # a = i + (i - b)
 
             #matplotlib requires the DIFFERENCE between the error value and the point
             upper_list.append(dif)
             lower_list.append(dif)
             low_plot.append(b)
+
         upper = np.asarray([float(c) for c in upper_list])
         lower = np.asarray([float(d) for d in lower_list])
         low_plot = np.asarray([float(e) for e in low_plot])

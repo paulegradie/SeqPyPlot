@@ -5,9 +5,9 @@ import os
 class DataAnalyzer(object):
     def __init__(self, args, data_container, optimization_mode=False):
         """
-        :param args:
-        :param data_container:
-        :param optimization_mode: Set usage to
+        :param args: Args Object
+        :param data_container: Data cotnainer Object
+        :param optimization_mode: Set usage to true with Go-term Optimization Script
         """
 
         if optimization_mode is True:
@@ -45,9 +45,9 @@ class DataAnalyzer(object):
         self.de_gene_list_by_stage = dict()
         self.de_gene_list = []
         self.sing_time_series_data = dict()
-
         self.foldchange_map = dict()
         self.housekeeping_dict = dict()
+
         # inherited
         if self.args.out is not None:
             self.path = os.path.join(self.args.out, self.args.prefix)
@@ -72,10 +72,25 @@ class DataAnalyzer(object):
             value_list = value_list[1:]
         return first_half + second_half
 
-
     def seqpyfilter(self, use_iterator=None):
+        """
+        Running this function drops all of the outputs in to the SELF properties.
 
-        """Running this function drops all of the outputs in to the SELF properties."""
+        :param use_iterator: Only used when -tally argment is used
+        :return: self.de_gene_list, \
+               self.de_gene_list_by_stage, \
+               self.de_gene_list_length, \
+               self.de_count_by_gene, \
+               self.de_count_by_stage, \
+               self.filtered_data, \
+               self.unflagged_genes
+
+        # self.de_gene_list_length = None  # int; Total number of de genes found
+        # self.de_count_by_stage = None  # dictionary; keys = time points, values = number of de genes per time point
+        # self.de_gene_list = []  # list; only de gene names
+        # self.filtered_data = dict()  # dictoinary; all de genes with expression values
+        # self.de_count_by_gene = dict()  # dictionary; keys = gene names, values number of time points de
+        """
 
         # args_log = self.args.log
         args = self.args
@@ -144,8 +159,6 @@ class DataAnalyzer(object):
             print "Doesn't suppport num > 2  -- DA, line 107"
             sys.exit()
 
-
-
         if use_iterator is not None:
             args_log = use_iterator
             self.de_gene_list = []
@@ -153,13 +166,6 @@ class DataAnalyzer(object):
 
         else:
             args_log = args.log
-
-        # self.de_gene_list_length = None  # int; Total number of de genes found
-        # self.de_count_by_stage = None  # dictionary; keys = time points, values = number of de genes per time point
-        # self.de_gene_list = []  # list; only de gene names
-        # self.filtered_data = dict()  # dictoinary; all de genes with expression values
-        # self.de_count_by_gene = dict()  # dictionary; keys = gene names, values number of time points de
-
 
         self.foldchange_map["Gene"] = labels
 
@@ -172,7 +178,7 @@ class DataAnalyzer(object):
             series1 = value[:len(value) / 2]
             series2 = value[(len(value) / 2):]
 
-            # Main Filter
+            ###### Main Filter ######
             for v in range(len(value)/2):
                 sub_list = [series1[v], series2[v]]
                 if None in sub_list:
@@ -268,6 +274,10 @@ class DataAnalyzer(object):
                self.unflagged_genes
 
     def print_analyzer_results(self):
+        """
+        :return: Nothing - this will print out files.
+        """
+
         self.args = self.args
 
         # For log2fold parameter iterative testing
@@ -291,7 +301,7 @@ class DataAnalyzer(object):
             else:
                 print "No DE Genes to write for DE counts by stage."
 
-        # TODO Currently prints horizontal gene lists per stage. Use zip and collections (or Pandas) to print verticle
+        # TODO Currently prints horizontal gene lists per stage. Use zip and collections (or Pandas) to print vertical
         # All genes DE per  Stage
         with open(self.path + '_DE_gene_lists_by_stage.txt', 'wb+') as genecount:
             if len(self.de_gene_list_by_stage) != 0:

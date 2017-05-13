@@ -29,7 +29,11 @@ class Args:
         self.path = os.path.join(self.args.out, self.args.prefix)
 
     def arg_parser(self):
+        """
         # type: () -> NameSpace()
+        :return: Args Object
+        """
+
         usage = "python SeqPyPlot.py [options] [-raw_data (or) -plot_data] -num 2 -time d1,d2,d3"
         epilog = """\n
         If you are finding that your file names aren't printing in the correct order,\n
