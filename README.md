@@ -99,12 +99,12 @@ SeqPyPlot provides a range of plots for general descriptive analysis of your dat
 #### MDS Plots
 After normalization, it is essential to verify that samples cluster appropriately. If you have two control samples that do not cluster together, then this indicates an inherent problem with sample composition and may invalidate your experiment.
 
-![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Tally_plot.png "Tally Plot")
+![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/MDS_plot.png "MDS Plot")
 
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Possibly the most important paramter is the logfold change threshold, so by using the '-tally' option, we automatically count the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
 
-![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/MDS_plot.png "MDS Plot")
+![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Tally_plot.png "Tally Plot")
 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
