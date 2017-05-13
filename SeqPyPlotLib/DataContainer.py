@@ -188,7 +188,6 @@ class DataContainer(object):
         try:
             norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
             project_dir = os.path.join('.', self.args.out)
-            # print 'norm_path: ', norm_path
             subprocess.call('Rscript '
                             + os.path.join('.',
                                             'SeqPyPlotLib',
