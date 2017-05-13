@@ -142,10 +142,14 @@ These plots are provided in logfold and in untransformed versions.
 #### Gene Count histogram Plots
 RNA-seq commonly produces measurements for many loci with very low counts. It is generally important to filter out low count loci in order to not bias differential expression analysis by incorporating low count loci during normalization. With unreplicated data, it is imporrtant to filter out loci with little evidence. Gene count histograms will provide a measure of how many genes are found at a given count number, thus providing a metric for determining a lower cutoff threshold for the filter.
 
-![Gene Count Histogram Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+![Gene Count Histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Gene_count_histogram_plot.png "Gene Count Histo Plot")
 
 #### Logfold change histogram Plots
-![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+After parameter optimization, its useful to examine other characteristics of your RNA-seq data. Here we provide logfold change histograms showing flagged genes by their fold change. This can give you insight in to how many flagged genes were up-regulated vs down-regulated. Two plots are provided, per-sample plots and a combined fold change histogram plot.
+
+![LogFold change histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/logfold_histogram_plot.png "Logfold change histogram Plot")
+
+![LogFold change histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Logfold_change_histogram_plot2.png "Logfold change histogram Plot")
 
 
 ## Credits
