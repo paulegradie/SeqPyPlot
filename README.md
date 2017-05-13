@@ -1,3 +1,23 @@
+<style TYPE="text/css">
+code.has-jax {font: inherit; font-size: 100%; background: inherit; border: inherit;}
+</style>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'] // removed 'code' entry
+    }
+});
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
 
 #             ***SeqPyPlot v0.2***
 A tool for helping you analyze pilot data (data without replicates).
@@ -109,13 +129,14 @@ This plot provides feedback on your filter parameter selection. These paramters 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
 
+#### Filter illustration
+
 ![Bar Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bar_plot.png "Bar Plot")
 
-#### Filter Parameters
+### Plots for Adjusting Filter Parameters
 The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four parameters illustrated in the following image.
 
 ![Filter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Filter.png "Filter")
-
 
 #### Scatter Plots
 Scatter plots are useful for double checking that normalization was successful and that your fold change parameter is reasonable across samples.
