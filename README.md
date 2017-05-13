@@ -131,7 +131,7 @@ Bland altman plots are useful for determining size effects on data variance. If 
 These plots are provided in logfold and in untransformed versions.
 
 #### Untransformed
-![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_alt_log_unflagged.png "Bland Altman Plot")
+![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_altman_unflagged.png "Bland Altman Plot")
 
 #### Transformed
 ![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_alt_log_unflagged.png "Bland Altman Tranformed Plot")
