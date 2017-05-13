@@ -147,8 +147,10 @@ RNA-seq commonly produces measurements for many loci with very low counts. It is
 #### Logfold change histogram Plots
 After parameter optimization, its useful to examine other characteristics of your RNA-seq data. Here we provide logfold change histograms showing flagged genes by their fold change. This can give you insight in to how many flagged genes were up-regulated vs down-regulated. Two plots are provided, per-sample plots and a combined fold change histogram plot.
 
+#### Per Sample
 ![LogFold change histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/logfold_histogram_plot.png "Logfold change histogram Plot")
 
+#### Combined
 ![LogFold change histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Logfold_change_histogram_plot2.png "Logfold change histogram Plot")
 
 
