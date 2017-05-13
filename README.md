@@ -93,6 +93,40 @@ The motivation behind SeqPyPlot is to provide a means to analyze time series dat
 
 The advantage of using SeqPyPlot is twofold. First, it provides a set of optimizable parameters that can be used to filter data included in the final output. Second, it provides a very useful plotting function for rapidly visualizing gene expression. Using this program, you can create a list of flagged genes, and plot them within minutes.
 
+## Plot Descriptions
+SeqPyPlot provides a range of plots for general descriptive analysis of your data. These plots are available using the 'plot options' shown above in the usage. In this section I'll provide plot examples and their suggested interpretation.
+
+#### Tally Plots
+This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Possibly the most important paramter is the logfold change threshold, so by using the '-tally' option, we automatically count the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
+
+![Tally Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Tally Plot")
+
+#### Flagged Gene Bar Plots
+Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
+
+![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+
+#### Filter Parameters
+The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four paramters illustrated in the following image.
+
+![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+
+
+#### Scatter Plots
+Filter paramters
+
+![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+
+#### Bland_altman Plots
+![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+
+#### Gene Count histogram Plots
+![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+
+#### Logfold change histogram Plots
+![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+
+
 ## Credits
 The current and previous versions of SeqPyPlot were built by me (Paul G). I would LOVE to add more credits! Fork this repository and help make SeqPyPlot a more useful and user friendly tool!
 
