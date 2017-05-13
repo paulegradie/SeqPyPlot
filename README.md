@@ -104,7 +104,7 @@ After normalization, it is essential to verify that samples cluster appropriatel
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Possibly the most important paramter is the logfold change threshold, so by using the '-tally' option, we automatically count the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
 
-![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Tally_plot.png "Tally Plot")
+![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/MDS_plot.png "MDS Plot")
 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
@@ -127,11 +127,21 @@ There are two plots - flagged and un-flagged. The white line along the $f(x) = x
 
 #### Bland_altman Plots
 Bland altman plots are useful for determining size effects on data variance. If there is a size effect, one would expect greater differences between measurements as their mean increases. This can be helpful for determining if an upper limit cutoff is necessary.
+These plots are provided in logfold and in untransformed versions.
 
-![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_altman_flagged_plot.png "Bland Altman Plot")
+#### Untransformed
+![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_alt_log_unflagged.png "Bland Altman Plot")
+
+#### Transformed
+![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_alt_log_unflagged.png "Bland Altman Tranformed Plot")
+
+![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_altman_log_flagged_plot.png "Bland Altman Tranformed Plot")
+
 
 #### Gene Count histogram Plots
-![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+RNA-seq commonly produces measurements for many loci with very low counts. It is generally important to filter out low count loci in order to not bias differential expression analysis by incorporating low count loci during normalization. With unreplicated data, it is imporrtant to filter out loci with little evidence. Gene count histograms will provide a measure of how many genes are found at a given count number, thus providing a metric for determining a lower cutoff threshold for the filter.
+
+![Gene Count Histogram Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
 
 #### Logfold change histogram Plots
 ![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
