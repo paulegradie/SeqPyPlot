@@ -96,7 +96,7 @@ The advantage of using SeqPyPlot is twofold. First, it provides a set of optimiz
 ## Plot Descriptions
 SeqPyPlot provides a range of plots for general descriptive analysis of your data. These plots are available using the 'plot options' shown above in the usage. In this section I'll provide plot examples and their suggested interpretation.
 
-#### Exprsesion Plots
+#### Expression Plots
 The main plot time intended for SeqPyPlot users are the expression plots. These plots are new and somewhat controversial.
 When we normalize RNA-seq expression data, we can use one of two methods -
 
@@ -109,10 +109,10 @@ and within sample normalization (for comparing genes within a single sample).
 - FPKM (Paired end reads)
 - CPM, TPM, Quartile, etc (Generic non genelength correcting methods)
 
-Mixing these two forms is not well understood so when we want to look at global quantification of RNAseq across samples... what do we do? If you look through the literature, you will likely not fine expression plots using TMM normlaized values, however we know that due to common differences in library size, RPKM/FPKM/CPM, (etc) values are not directly comparable.
+Mixing these two forms is not well understood, so when we want to look at global quantification of RNA-seq across many samples... what do we do? If you look through the literature, you will likely not find expression plots using TMM normalized values, however we know that due to common differences in library size after library prep, RPKM/FPKM/CPM, (etc) values are not directly comparable.
 The best approach we have right now is to use a relative normalization method such as TMM and explicitly say that the values shown are not absolutely quantified.
 
-The expression plots output from SeqPyPlot use TMM normalized values and show relative difference between values across time/stages. SeqPyPlot provides a secondary measure of relative expression, akin to a scale bar, that is intended to help users interpret the relative differences ebtween expression values in log space. SeqPyPlot calculates the mean between two measurements at a given stage and then calcualtes the log fold change privided by the user and plots error bars centered on the mean with the range of the logfold difference (default 0.7).
+The expression plots output from SeqPyPlot use TMM normalized values and show relative difference between values across time/stages. SeqPyPlot provides a secondary measure of relative expression, akin to a scale bar, that is intended to help users interpret the relative differences between expression values in log space. SeqPyPlot calculates the mean between two measurements at a given stage and then calculates the log fold change provided by the user and plots error bars centered on the mean with the range of the logfold difference (default 0.7). The output also highlights (in yellow) any plot for a gene that is flagged at any time point.
 
 ![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Expression_plot.png "Expression Plot")
 
@@ -129,13 +129,12 @@ This plot provides feedback on your filter parameter selection. These paramters 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
 
-#### Filter illustration
-
 ![Bar Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bar_plot.png "Bar Plot")
 
 ### Plots for Adjusting Filter Parameters
 The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four parameters illustrated in the following image.
 
+#### --Filter illustration--
 ![Filter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Filter.png "Filter")
 
 #### Scatter Plots
