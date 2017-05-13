@@ -99,7 +99,7 @@ SeqPyPlot provides a range of plots for general descriptive analysis of your dat
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Possibly the most important paramter is the logfold change threshold, so by using the '-tally' option, we automatically count the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
 
-![Tally Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Tally Plot")
+![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Filter.png "Tally Plot")
 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
@@ -107,18 +107,23 @@ Bar plots are provided to give information on the number of genes flagged at eac
 ![Bar Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bar_plot.png "Bar Plot")
 
 #### Filter Parameters
-The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four paramters illustrated in the following image.
+The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four parameters illustrated in the following image.
 
-![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+![Filter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Filter.png "Filter")
 
 
 #### Scatter Plots
-Filter paramters
+Scatter plots are useful for double checking that normalization was successful and that your fold change parameter is reasonable across samples.
+There are two plots - flagged and unflagged. The white line along the $f(x) = x$ vector indicates the center of the value distribution across all means, and all expressin values ar plotted against their relative mean. In other words, the mean is calculated for value pairs (control and experimental), and then each vlue is plotted against its mean. The dotted lines represents the log2fold change (from the user provided log2fold argument, default = 0.7) around the mean.
 
-![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+![Scatter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Scatter_flagged_plot.png "Unflagged Scatter Plot")
+
+![Scatter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Scatter_unflagged_plot.png "Flaggged Scatter Plot")
 
 #### Bland_altman Plots
-![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+Bland altman plots are useful for determining size effects on data variance. If there is a size effect, one would expect greater differences between measurements as their mean increases. This can be helpful for determining if an upper limit cutoff is necessary.
+
+![Bland Altman Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bland_altman_flagged_plot.png "Bland Altman Plot")
 
 #### Gene Count histogram Plots
 ![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
