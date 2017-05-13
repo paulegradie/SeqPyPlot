@@ -100,11 +100,11 @@ SeqPyPlot provides a range of plots for general descriptive analysis of your dat
 The main plot time intended for SeqPyPlot users are the expression plots. These plots are new and somewhat controversial.
 When we normalize RNA-seq expression data, we can use one of two methods -
 
-1.Between sample normalization (used for testing for DE)
+1.Between-Sample normalization (used for testing for DE)
 - TMM (edgeR)
 - Geometic (DESeq2)
 
-and within sample normalization (for comparing genes within a single sample).
+2. Within-Sample normalization (for comparing genes within a single sample).
 - RPKM (single reads)
 - FPKM (Paired end reads)
 - CPM, TPM, Quartile, etc (Generic non genelength correcting methods)
