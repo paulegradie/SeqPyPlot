@@ -96,6 +96,26 @@ The advantage of using SeqPyPlot is twofold. First, it provides a set of optimiz
 ## Plot Descriptions
 SeqPyPlot provides a range of plots for general descriptive analysis of your data. These plots are available using the 'plot options' shown above in the usage. In this section I'll provide plot examples and their suggested interpretation.
 
+#### Exprsesion Plots
+The main plot time intended for SeqPyPlot users are the expression plots. These plots are new and somewhat controversial.
+When we normalize RNA-seq expression data, we can use one of two methods -
+
+1.Between sample normalization (used for testing for DE)
+- TMM (edgeR)
+- Geometic (DESeq2)
+
+and within sample normalization (for comparing genes within a single sample).
+- RPKM (single reads)
+- FPKM (Paired end reads)
+- CPM, TPM, Quartile, etc (Generic non genelength correcting methods)
+
+Mixing these two forms is not well understood so when we want to look at global quantification of RNAseq across samples... what do we do? If you look through the literature, you will likely not fine expression plots using TMM normlaized values, however we know that due to common differences in library size, RPKM/FPKM/CPM, (etc) values are not directly comparable.
+The best approach we have right now is to use a relative normalization method such as TMM and explicitly say that the values shown are not absolutely quantified.
+
+The expression plots output from SeqPyPlot use TMM normalized values and show relative difference between values across time/stages. SeqPyPlot provides a secondary measure of relative expression, akin to a scale bar, that is intended to help users interpret the relative differences ebtween expression values in log space. SeqPyPlot calculates the mean between two measurements at a given stage and then calcualtes the log fold change privided by the user and plots error bars centered on the mean with the range of the logfold difference (default 0.7).
+
+![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Expression_plot.png "Expression Plot")
+
 #### MDS Plots
 After normalization, it is essential to verify that samples cluster appropriately. If you have two control samples that do not cluster together, then this indicates an inherent problem with sample composition and may invalidate your experiment.
 
