@@ -104,7 +104,7 @@ This plot provides feedback on your filter parameter selection. These paramters 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given the current filter parameters.
 
-![Bar Plot](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Bar Plot")
+![Bar Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bar_plot.png "Bar Plot")
 
 #### Filter Parameters
 The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four paramters illustrated in the following image.
