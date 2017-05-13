@@ -154,7 +154,7 @@ After parameter optimization, its useful to examine other characteristics of you
 ![LogFold change histogram Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Logfold_change_histogram_plot2.png "Logfold change histogram Plot")
 
 ## TO DO !!!
-There are a few things left to do for anyone who is interested in geetting involved in this small project.
+There are a few things left to do for anyone who is interested in getting involved in this small project.
 
 1. Fully integrate GO-term optimization
 I have a clumsy script right now that will take in some gene ontology terms and and a grid of parameters and perform an exhaustive search across the parameter grid looking for those parameters that return one or more of your selected go-terms. Its VERY slow. But it works! Much of the mechanics are built in to the data container and data analyzer classes, however there are still bugs in this current version (due to to random changes made by in the moment necessity) and it needs to be integrated in to the full program architecture (its currently an add on). Or if another design might work better - for example right now its a separate script that runs the program over and over again - perhaps this is the best way to implement this tool. Either way, the script needs to be able to take command line arguments and then function properly.
