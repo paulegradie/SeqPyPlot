@@ -9,9 +9,11 @@ There are no special installation requirements for this project! It is written i
 
 #### --Matplotlib
 #### --Seaborn
-Most machines come preinstalled with matplotlib. Its the library used for creating all of the plots so grab it if you don't have it.
-Seaborn is used to styalize all of the plots. At the moment, the code breaks without it - however it would be smart of me to make the  implementation of seaborn option by adding a quick on import.
+#### --Numpy
 
+Most machines come preinstalled with matplotlib. Its the library used for creating all of the plots so grab it if you don't have it.
+Seaborn is used to stylize all of the plots. At the moment, the code breaks without it - however it would be smart of me to make the  implementation of seaborn option by adding a quick on import.
+Numpy is available on most macs, but windows users should download the anaconda distribution of python and install this on their local machine. Its comes with nearly every library you could ever need including Numpy.
 ## Usage
     
 #### usage: python SeqPyPlot.py [options] [-raw_data (or) -plot_data] -num 2 -time d1,d2,d3
