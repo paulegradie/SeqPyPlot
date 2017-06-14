@@ -3,7 +3,9 @@
 A tool for helping you analyze pilot data (data without replicates).
 
 ## Installation
-There are no special installation requirements for this project! It is written in pure python directly from the command line (or IDE of your  choice).
+There are no special installation requirements for this project! It is written in pure python directly from the command line (or IDE of your  choice). There are however a few dependencies. For Windows users, I strongly suggest installing the Anaconda python distribution. You can find these distributions here:
+
+https://www.continuum.io/downloads
 
 ## Dependencies
 
@@ -11,9 +13,8 @@ There are no special installation requirements for this project! It is written i
 #### --Seaborn
 #### --Numpy
 
-Most machines come preinstalled with matplotlib. Its the library used for creating all of the plots so grab it if you don't have it.
-Seaborn is used to stylize all of the plots. At the moment, the code breaks without it - however it would be smart of me to make the  implementation of seaborn option by adding a quick on import.
-Numpy is available on most macs, but windows users should download the anaconda distribution of python and install this on their local machine. Its comes with nearly every library you could ever need including Numpy.
+Matplotlib & Seaborn are the libraries used for creating all of the plots so grab it if you don't have it. Seaborn is used to stylize all of the plots. Numpy is used to perform some vector math during plot generation. These libraries are available via pip, however numpy could cause you some trouble. The easiest way to install all of these dependencies, as far as I'm aware, is to use one of the python distrutions such as Continuum's Anaconda distribution.
+
 ## Usage
     
 #### usage: python SeqPyPlot.py [options] [-raw_data (or) -plot_data] -num 2 -time d1,d2,d3
