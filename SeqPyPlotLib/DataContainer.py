@@ -5,6 +5,7 @@ import codecs
 import subprocess
 import sys
 import numpy as np
+import pandas as pd
 
 class DataContainer(object):
     """"Functions for parsing input files from various programs."""
@@ -58,16 +59,44 @@ class DataContainer(object):
             sys.exit()
         print "Data Container initialized Successfully....\n"
 
+    def _config_parser_(self, config_path):
+        """
+        Read the file paths in the order given in the config file.
+        These file paths should all point to the same directory.
+        Config should be:
+        relative/file/path/to/file \t name
+
+        """
+        with open(config_path, 'r') as conf 
+            return [path_name for path in line.split('\t') for line in config.readlines()]
+
+    def load_htseq_dataframe(self, config_path, number_of_conditions=2):
+        """Read the input files from the config file and load in to a pandas dataframe."""
+        
+        data_files = self._config_parser_(config_path)
+        
+        #check to ensure files exist
+        for file in data_files:
+            assert os.path.isfile(file), "One or more files is not correct in the config."
+
+        #check there are even number of files
+        if number_of_conditions == 2:
+            assert len(data_files) % 2 == 0, "Even number of input files required. Use empty file if necessary."
+            assert len(self.args.time) %2 == 0
+                
+
+
+
+
+
+
+
+
     def __getitem__(self, key):
         """
         Over ride magic method
         """
         return self.data_frame_header[key]
-
-    # Depricated
-    @staticmethod
-    def rotate(l, n):
-        return l[n:] + l[:n]
 
     #Sanity Check
     def analyzed(self):
@@ -86,7 +115,7 @@ class DataContainer(object):
                 self.de_gene_list = [result.rstrip() for result in de_results.readlines()]
                 # print self.de_gene_list
                 return self.de_gene_list
-
+    
     @staticmethod
     def reorder(dictionary):
         for key, value in sorted(dictionary.items()):
@@ -120,20 +149,33 @@ class DataContainer(object):
         """
         :return: data frame of normalized count values
         """
+
+        expression_data_frame = pd.DataFrame()
+
+        #for each file, fill genes with 0 if they aren't present. If the file is empty, fill the col with "N/A"
+
+
+
+
+
+
         insert_zero_list = []
         missing_file = 0  # counter for recording empty files for later  fill with zeros
         missing_file_name = []
         self.data_frame_header = dict()
 
-        if os.path.isdir(self.args.raw_data):
+        # if os.path.isdir(self.args.raw_data):
 
-            for datafolder in os.walk(os.path.join('.', self.args.raw_data)):
-                if self.args.num == 2:
-                    if len(datafolder[2]) % 2 != 0:
-                        print "Gotta have even number of input files for num = 2, You can use an empty file."
-                        sys.exit()
-                else:
-                    print("Still working on support for single time series data...")
+        #     for datafolder in os.walk(os.path.join('.', self.args.raw_data)):
+                
+        #         #check for even number of input files
+        #         if self.args.num == 2:
+        #             if len(datafolder[2]) % 2 != 0:
+        #                 print "Need an even number of input files for num = 2. You may use an empty file."
+        #                 sys.exit()
+        #         else:
+        #             print("Still working on support for single time series data...")
+
                 current_file_count = 1
                 tot = len(datafolder[2])
                 self.data_frame_header["Gene"] = []
@@ -163,6 +205,8 @@ class DataContainer(object):
                         sys.exit()
 
                     print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot))
+                    
+                    
                     with open(file_string, 'r') as countfile:
                         try:
                             for row in countfile.readlines():
@@ -180,98 +224,98 @@ class DataContainer(object):
             print("Alternatively, you may need to reset the -data_type parameter. Use -h for usage.")
             sys.exit()
 
-        matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
-        # print 'matrix path: ', matrix_path
+        # matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
+        # # print 'matrix path: ', matrix_path
 
-        with open(matrix_path, 'wb+') as matrix:
-            matrix_writer = csv.writer(matrix, delimiter='\t')
-            for key, value in self.data_frame_header.items():
-                matrix_writer.writerow([key] + value)
-            for key, value in self.raw_counts.items():
-                if '_' in key:
-                    pass
-                else:
-                    matrix_writer.writerow([key] + value)
-        # Run Rscript to normalize the data via EdgeR
-                # The following normalization method was modified from\n""")
-                # Loraine, A.E., Blakley, I.C., Jagadeesan, S. Harper, J., Miller, G., and Firon, N. (2015).
-                # Analysis and Visualization of RNA-Seq Expression Data Using
-                # RStudio, Bioconductor, and Integrated Genome Browser. pp. 481–501.
+        # with open(matrix_path, 'wb+') as matrix:
+        #     matrix_writer = csv.writer(matrix, delimiter='\t')
+        #     for key, value in self.data_frame_header.items():
+        #         matrix_writer.writerow([key] + value)
+        #     for key, value in self.raw_counts.items():
+        #         if '_' in key:
+        #             pass
+        #         else:
+        #             matrix_writer.writerow([key] + value)
+        # # Run Rscript to normalize the data via EdgeR
+        #         # The following normalization method was modified from\n""")
+        #         # Loraine, A.E., Blakley, I.C., Jagadeesan, S. Harper, J., Miller, G., and Firon, N. (2015).
+        #         # Analysis and Visualization of RNA-Seq Expression Data Using
+        #         # RStudio, Bioconductor, and Integrated Genome Browser. pp. 481–501.
 
-        print "Attempting data normalization by edgeR...\n"
-        norm_path = ''
-        try:
-            norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
-            project_dir = os.path.join('.', self.args.out)
-            subprocess.call('Rscript '
-                            + os.path.join('.',
-                                            'SeqPyPlotLib',
-                                            'Normalization_Method.R ')
-                            + matrix_path
-                            + ' '
-                            + norm_path
-                            + ' '
-                            + project_dir)
+        # print "Attempting data normalization by edgeR...\n"
+        # norm_path = ''
+        # try:
+        #     norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
+        #     project_dir = os.path.join('.', self.args.out)
+        #     subprocess.call('Rscript '
+        #                     + os.path.join('.',
+        #                                     'SeqPyPlotLib',
+        #                                     'Normalization_Method.R ')
+        #                     + matrix_path
+        #                     + ' '
+        #                     + norm_path
+        #                     + ' '
+        #                     + project_dir)
 
-            print "Data Normalized Successfully"
+        #     print "Data Normalized Successfully"
 
-        except WindowsError:
-            print(""" You need R installed and in your path to use this option.
+        # except WindowsError:
+        #     print(""" You need R installed and in your path to use this option.
 
-            Do you have Rscript added in your system path?
+        #     Do you have Rscript added in your system path?
 
-            Google 'Windows Environment Variables' for help.
+        #     Google 'Windows Environment Variables' for help.
 
-            In windows for example its location is
-            C:\Program Files\R\R-3.2.1\bin
+        #     In windows for example its location is
+        #     C:\Program Files\R\R-3.2.1\bin
 
-            You have to add the path of Rscript.exe in you system path in environment variables.""")
+        #     You have to add the path of Rscript.exe in you system path in environment variables.""")
 
-        if norm_path == '':
-            print 'path unable to be constructed - Datacontainer line 178'
-            sys.exit()
-        with open(norm_path, 'r') as normalized:
-            normalized_reader = csv.reader(normalized, delimiter='\t')
+        # if norm_path == '':
+        #     print 'path unable to be constructed - Datacontainer line 178'
+        #     sys.exit()
+        # with open(norm_path, 'r') as normalized:
+        #     normalized_reader = csv.reader(normalized, delimiter='\t')
 
-            # add normalized data to the gene_map
-            for row in normalized_reader:
-                self.gene_map[row[0]] = [round(float(x),4) for x in row[1:]]
+        #     # add normalized data to the gene_map
+        #     for row in normalized_reader:
+        #         self.gene_map[row[0]] = [round(float(x),4) for x in row[1:]]
 
-            # If any data points are missing:::
-            # reinsert missing data points with zeros
-            if len(insert_zero_list) > 0:  # If any data is missing...
-                insertion_list = zip(insert_zero_list, missing_file_name)
-                for position in insertion_list:
-                    self.data_frame_header["Gene"].insert(position[0], position[1])
-                    for key, value in self.gene_map.items():
-                        value.insert(position[0], None)
+        #     # If any data points are missing:::
+        #     # reinsert missing data points with zeros
+        #     if len(insert_zero_list) > 0:  # If any data is missing...
+        #         insertion_list = zip(insert_zero_list, missing_file_name)
+        #         for position in insertion_list:
+        #             self.data_frame_header["Gene"].insert(position[0], position[1])
+        #             for key, value in self.gene_map.items():
+        #                 value.insert(position[0], None)
 
-            if self.args.num == 1:
-                pass
+        #     if self.args.num == 1:
+        #         pass
 
-            elif self.args.num == 2:
-                # Reorder the data so that series1 comes before series2
-                self.reorder(self.data_frame_header)
-                self.reorder(self.gene_map)
-                self.reorder(self.ercc_map)
+        #     elif self.args.num == 2:
+        #         # Reorder the data so that series1 comes before series2
+        #         self.reorder(self.data_frame_header)
+        #         self.reorder(self.gene_map)
+        #         self.reorder(self.ercc_map)
 
-                # produce flaking averages for each series if any stage is missing.
-                if len(insert_zero_list) > 0:  # If any data is missing...average flanking data
-                    for key, value in self.gene_map.items():
-                        series1 = value[:len(value) / 2]  # split the data
-                        series2 = value[len(value) / 2:]
-                        self.gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
+        #         # produce flaking averages for each series if any stage is missing.
+        #         if len(insert_zero_list) > 0:  # If any data is missing...average flanking data
+        #             for key, value in self.gene_map.items():
+        #                 series1 = value[:len(value) / 2]  # split the data
+        #                 series2 = value[len(value) / 2:]
+        #                 self.gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
 
-                # finaly, add in zeroed out genes
-                for key in self.raw_counts.keys():
-                    if key not in self.gene_map.keys():
-                        self.gene_map[key] = [0] * int(len(self.data_frame_header["Gene"]))
-                    else:
-                        pass
-            elif self.args.num > 2:
-                print "Data Container line 229 - does not support more than three series yet!"
+        #         # finaly, add in zeroed out genes
+        #         for key in self.raw_counts.keys():
+        #             if key not in self.gene_map.keys():
+        #                 self.gene_map[key] = [0] * int(len(self.data_frame_header["Gene"]))
+        #             else:
+        #                 pass
+        #     elif self.args.num > 2:
+        #         print "Data Container line 229 - does not support more than three series yet!"
 
-        return self.gene_map, self.ercc_map, self.data_frame_header
+        # return self.gene_map, self.ercc_map, self.data_frame_header
 
     def parse_cuffnorm(self, infile):
         """
