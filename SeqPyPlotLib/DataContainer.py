@@ -6,6 +6,7 @@ import subprocess
 import sys
 import numpy as np
 import pandas as pd
+from opertor import reduce
 
 class DataContainer(object):
     """"Functions for parsing input files from various programs."""
@@ -41,8 +42,12 @@ class DataContainer(object):
 
                 print "Reading data from FOLDER as HTSeq counts and normalizing using edgeR Methodology..."
                 print "See: Loraine, A.E. et al., Analysis and Visualization of RNA-Seq Expression Data Using RStudio, Bioconductor, and Integrated Genome Browser.(2015)\n"
-
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_htseq()
+                
+                data_paths, sample_names = self._config_parser_(config_path)
+                number_of_conditions = self.args.num
+                self.gene_map, self.ercc_map, self.data_frame_header = self.load_htseq_dataframe(data_paths, 
+                                                                                                 sample_names,
+                                                                                                 number_of_conditions)
 
             else:
                 print "Raw_data type selected: ", self.args.datatype
@@ -62,180 +67,84 @@ class DataContainer(object):
     def _config_parser_(self, config_path):
         """
         Read the file paths in the order given in the config file.
-        These file paths should all point to the same directory.
-        Config should be:
-        relative/file/path/to/file \t name
+        
+        Config should be tab deliminted with the file first, and its name second:
+        ~/path/to/file <TAB> name
 
+        Returns:
+            :list of lists: [[file]]
         """
-        with open(config_path, 'r') as conf 
-            return [path_name for path in line.split('\t') for line in config.readlines()]
+        with open(config_path, 'r') as conf: 
+            paths = list()
+            names = list()
+            for line in config.readlines():
+                line = line.split('\t')
+                paths.append(line[0].strip())
+                names.append(line[1].strip())
+        
+        return paths, names
+    
+    
+    def file_is_empty(self, file_name):
+        if int(os.stat(file_name).st_size) == 0:  # if file is empty, record the list position
+            return True
+        else:
+            return False
 
-    def load_htseq_dataframe(self, config_path, number_of_conditions=2):
+
+    def load_htseq_dataframe(self, data_paths, sample_names, number_of_conditions=2):
         """Read the input files from the config file and load in to a pandas dataframe."""
         
-        data_files = self._config_parser_(config_path)
-        
         #check to ensure files exist
-        for file in data_files:
+        for file in data_paths:
             assert os.path.isfile(file), "One or more files is not correct in the config."
 
         #check there are even number of files
         if number_of_conditions == 2:
-            assert len(data_files) % 2 == 0, "Even number of input files required. Use empty file if necessary."
-            assert len(self.args.time) %2 == 0
-                
+            assert len(data_paths) % 2 == 0, "Even number of input files required. Use empty file if necessary."
+            assert len(self.args.time) % 2 == 0
 
+        # Load the data
+        dfs = [pd.read_csv(file, sep='\t', names=['gene', sample_names[idx]]) for idx, file in enumerate(data_paths)]
+        df = reduce(lambda x: pd.merge(x, on='gene', how='outer'), dfs)
+        df = df[df['gene'].str.startswith('__') == False]
+        df.set_index('gene')
+        df.fillna(value=0, inplace=True)
+        
+        #write out raw data
+        # TODO Fix the file name to match the args.out variable
+        df.to_csv('raw_count_data.csv')
 
-
-
-
-
-
-
-    def __getitem__(self, key):
-        """
-        Over ride magic method
-        """
-        return self.data_frame_header[key]
-
-    #Sanity Check
-    def analyzed(self):
-        if self.args.plot_data is None:
-            return False
-        else:
-            return True
-
-    #Load in premade results from elsewhere
-    def load_results(self):
-        if self.args.filter_results is None:
-            self.de_gene_list = []
-            return self.de_gene_list
-        else:
-            with open(self.args.filter_results, 'r') as de_results:
-                self.de_gene_list = [result.rstrip() for result in de_results.readlines()]
-                # print self.de_gene_list
-                return self.de_gene_list
+        return df
     
-    @staticmethod
-    def reorder(dictionary):
-        for key, value in sorted(dictionary.items()):
-            new_order = [y for y in range(len(value)) if y % 2 == 0] + [y for y in range(len(value)) if y % 2 != 0]
-            dictionary[key] = [value[t] for t in new_order]
-            key.capitalize()
-        return dictionary
+    def create_unnormalized_matrix(self, df):
+        """Create the raw matrix for TMM normalization."""
 
-    @staticmethod
-    def __average_flanking__(value):
-        """
-        :param value: a list with missing values to be filled in
-        """
-        flanked_averaged = []
+        matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
 
-        for data in enumerate(value):
-            if data[1] is not None:
-                flanked_averaged.append(data[1])
-            else:
-                if data[0] == 0 or data[0] == len(value) - 1:  # if its the first or last position -> none
-                    flanked_averaged.append(None)
-                else:  # if the value is internal to the series list
-                    if value[data[0]-1] is not None and value[data[0] + 1] is not None:  # if there is flanking data
-                        flanking = [value[data[0] + 1], value[data[0] - 1]]
-                        flanked_averaged.append(np.mean(flanking))   # average the data
-                    else:
-                        flanked_averaged.append(None)
-        return flanked_averaged
+        empty_files = [sample_names[idx] for ix, file in enumerate(data_paths) 
+                       if self.file_is_empty(file)]
+        keep_cols = set(df.columns) - set(empty_files)
+        df = df[keep_cols]
 
-    def parse_htseq(self):
-        """
-        :return: data frame of normalized count values
-        """
+        #drop zeroed rows
+        df = df[df.values.sum(axis=1) != 0]
+        
+        #write out matrix csv
+        df.to_csv(matrix_path, sep='\t')
 
-        expression_data_frame = pd.DataFrame()
+        return df
+    
+    #TODO implement TMM
+    def tmm_normalization(self, df, matrix_df):
 
-        #for each file, fill genes with 0 if they aren't present. If the file is empty, fill the col with "N/A"
+        """"Implementation of TMM normalization and recombines missing data (zeroed out data)."""
+        pass
+        return normalized_df
+    
+## From here - reinsert empty columns and fill with zero. Then apply nieghbor averaging. 
 
 
-
-
-
-
-        insert_zero_list = []
-        missing_file = 0  # counter for recording empty files for later  fill with zeros
-        missing_file_name = []
-        self.data_frame_header = dict()
-
-        # if os.path.isdir(self.args.raw_data):
-
-        #     for datafolder in os.walk(os.path.join('.', self.args.raw_data)):
-                
-        #         #check for even number of input files
-        #         if self.args.num == 2:
-        #             if len(datafolder[2]) % 2 != 0:
-        #                 print "Need an even number of input files for num = 2. You may use an empty file."
-        #                 sys.exit()
-        #         else:
-        #             print("Still working on support for single time series data...")
-
-                current_file_count = 1
-                tot = len(datafolder[2])
-                self.data_frame_header["Gene"] = []
-
-                if self.args.num == 2 and len(self.args.time) != int(tot/2):
-                    print "Check your -time option, make sure it matches the no. of input files."
-                    sys.exit()
-
-                for _file in datafolder[2]:
-                    file_string = os.path.join('.', self.args.raw_data, _file)
-
-                    if int(os.stat(file_string).st_size) == 0:  # if file is empty, record the list position
-                        print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot) + ' --empty file')
-                        insert_zero_list.append(missing_file)
-                        missing_file_name.append('.'.join([str(_file[0:2]), str(_file[5:8])]))
-                        missing_file += 1
-                        current_file_count += 1
-
-                        continue
-
-                    if self.args.num == 1:
-                        self.data_frame_header["Gene"] = self.args.time
-                    elif self.args.num == 2:
-                        self.data_frame_header["Gene"] += [str(_file[0:11])]
-                    else:
-                        print "DC line 146"
-                        sys.exit()
-
-                    print(str(_file) + '...  ' + str(current_file_count) + '/' + str(tot))
-                    
-                    
-                    with open(file_string, 'r') as countfile:
-                        try:
-                            for row in countfile.readlines():
-                                if row.split()[0].rstrip() not in self.raw_counts.keys():
-                                    self.raw_counts[str(row.split()[0].rstrip())] = [int(row.split()[1].rstrip())]
-                                else:
-                                    self.raw_counts[str(row.split()[0].rstrip())].append(row.split()[1].rstrip())
-                        except IndexError:
-                            "Sorry for that! Make sure there are no unrelated files in the counts directory."
-                    current_file_count += 1
-                    missing_file += 1
-        else:
-            print("ERROR...")
-            print("Directory listed not available. Please pass the path to a folder with ordered htseq data.")
-            print("Alternatively, you may need to reset the -data_type parameter. Use -h for usage.")
-            sys.exit()
-
-        # matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
-        # # print 'matrix path: ', matrix_path
-
-        # with open(matrix_path, 'wb+') as matrix:
-        #     matrix_writer = csv.writer(matrix, delimiter='\t')
-        #     for key, value in self.data_frame_header.items():
-        #         matrix_writer.writerow([key] + value)
-        #     for key, value in self.raw_counts.items():
-        #         if '_' in key:
-        #             pass
-        #         else:
-        #             matrix_writer.writerow([key] + value)
         # # Run Rscript to normalize the data via EdgeR
         #         # The following normalization method was modified from\n""")
         #         # Loraine, A.E., Blakley, I.C., Jagadeesan, S. Harper, J., Miller, G., and Firon, N. (2015).
@@ -316,6 +225,76 @@ class DataContainer(object):
         #         print "Data Container line 229 - does not support more than three series yet!"
 
         # return self.gene_map, self.ercc_map, self.data_frame_header
+
+
+
+
+
+
+
+
+
+
+
+
+    # def __getitem__(self, key):
+    #     """
+    #     Over ride magic method
+    #     """
+    #     return self.data_frame_header[key]
+
+    #Sanity Check
+    def analyzed(self):
+        if self.args.plot_data is None:
+            return False
+        else:
+            return True
+
+    #Load in premade results from elsewhere
+    def load_results(self):
+        if self.args.filter_results is None:
+            self.de_gene_list = []
+            return self.de_gene_list
+        else:
+            with open(self.args.filter_results, 'r') as de_results:
+                self.de_gene_list = [result.rstrip() for result in de_results.readlines()]
+                # print self.de_gene_list
+                return self.de_gene_list
+
+###### PRESET ORDER IN THE CONFIG    
+    # @staticmethod
+    # def reorder(dictionary):
+    #     for key, value in sorted(dictionary.items()):
+    #         new_order = [y for y in range(len(value)) if y % 2 == 0] + [y for y in range(len(value)) if y % 2 != 0]
+    #         dictionary[key] = [value[t] for t in new_order]
+    #         key.capitalize()
+    #     return dictionary
+
+    @staticmethod
+    def __average_flanking__(value):
+        """
+        :param value: a list with missing values to be filled in
+        """
+        flanked_averaged = []
+
+        for data in enumerate(value):
+            if data[1] is not None:
+                flanked_averaged.append(data[1])
+            else:
+                if data[0] == 0 or data[0] == len(value) - 1:  # if its the first or last position -> none
+                    flanked_averaged.append(None)
+                else:  # if the value is internal to the series list
+                    if value[data[0]-1] is not None and value[data[0] + 1] is not None:  # if there is flanking data
+                        flanking = [value[data[0] + 1], value[data[0] - 1]]
+                        flanked_averaged.append(np.mean(flanking))   # average the data
+                    else:
+                        flanked_averaged.append(None)
+        return flanked_averaged
+
+
+
+
+        
 
     def parse_cuffnorm(self, infile):
         """
