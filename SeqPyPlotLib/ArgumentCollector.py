@@ -13,7 +13,6 @@ class Args:
             print 'Set -time argument'
             sys.exit()
 
-
         if self.args.num == 1:
             self.args.condition = ["Gene"]
         elif self.args.num == 2:
@@ -60,12 +59,14 @@ class Args:
         parser.add_argument('--------------------Required Options--------------------',
                             action='store_true',
                             default=False)
-        parser.add_argument('-time',
-                            metavar='d1,d2,d3',
-                            default=None,
-                            type=str,
-                            dest='time',
-                            help='A comma separated list of time points.')
+
+    ## SET IN THE CONFIG
+        # parser.add_argument('-time',
+        #                     metavar='d1,d2,d3',
+        #                     default=None,
+        #                     type=str,
+        #                     dest='time',
+        #                     help='A comma separated list of time points.')
         parser.add_argument('-num',
                             metavar='2',
                             default=2,
@@ -306,3 +307,6 @@ class Args:
                 logfile.write(sys.argv[i] + ' ')
             logfile.write('\n\n' + time.ctime())
 
+    def check_args(self):
+        assert self.args.num == 2 and len(self.args.time) != int(tot/2),
+            "Check your -time option, make sure it matches the no. of input files."
