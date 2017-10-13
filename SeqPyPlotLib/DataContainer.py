@@ -6,7 +6,9 @@ import subprocess
 import sys
 import numpy as np
 import pandas as pd
+
 from opertor import reduce
+from normalizer import norm_tmm as TMM
 
 class DataContainer(object):
     """"Functions for parsing input files from various programs."""
@@ -112,8 +114,7 @@ class DataContainer(object):
         df.fillna(value=0, inplace=True)
         
         #write out raw data
-        # TODO Fix the file name to match the args.out variable
-        df.to_csv('raw_count_data.csv')
+        df.to_csv('{}_raw_count_data.csv'.format(self.args.out))
 
         return df
     
@@ -134,61 +135,7 @@ class DataContainer(object):
         df.to_csv(matrix_path, sep='\t')
 
         return df
-    
-    #TODO implement TMM
-    def tmm_normalization(self, df, matrix_df):
 
-        """"Implementation of TMM normalization and recombines missing data (zeroed out data)."""
-        pass
-        return normalized_df
-    
-## From here - reinsert empty columns and fill with zero. Then apply nieghbor averaging. 
-
-
-        # # Run Rscript to normalize the data via EdgeR
-        #         # The following normalization method was modified from\n""")
-        #         # Loraine, A.E., Blakley, I.C., Jagadeesan, S. Harper, J., Miller, G., and Firon, N. (2015).
-        #         # Analysis and Visualization of RNA-Seq Expression Data Using
-        #         # RStudio, Bioconductor, and Integrated Genome Browser. pp. 481–501.
-
-        # print "Attempting data normalization by edgeR...\n"
-        # norm_path = ''
-        # try:
-        #     norm_path = os.path.join('.', self.args.out, self.args.prefix + '_normalized_count_data.txt')
-        #     project_dir = os.path.join('.', self.args.out)
-        #     subprocess.call('Rscript '
-        #                     + os.path.join('.',
-        #                                     'SeqPyPlotLib',
-        #                                     'Normalization_Method.R ')
-        #                     + matrix_path
-        #                     + ' '
-        #                     + norm_path
-        #                     + ' '
-        #                     + project_dir)
-
-        #     print "Data Normalized Successfully"
-
-        # except WindowsError:
-        #     print(""" You need R installed and in your path to use this option.
-
-        #     Do you have Rscript added in your system path?
-
-        #     Google 'Windows Environment Variables' for help.
-
-        #     In windows for example its location is
-        #     C:\Program Files\R\R-3.2.1\bin
-
-        #     You have to add the path of Rscript.exe in you system path in environment variables.""")
-
-        # if norm_path == '':
-        #     print 'path unable to be constructed - Datacontainer line 178'
-        #     sys.exit()
-        # with open(norm_path, 'r') as normalized:
-        #     normalized_reader = csv.reader(normalized, delimiter='\t')
-
-        #     # add normalized data to the gene_map
-        #     for row in normalized_reader:
-        #         self.gene_map[row[0]] = [round(float(x),4) for x in row[1:]]
 
         #     # If any data points are missing:::
         #     # reinsert missing data points with zeros
@@ -261,14 +208,7 @@ class DataContainer(object):
                 # print self.de_gene_list
                 return self.de_gene_list
 
-###### PRESET ORDER IN THE CONFIG    
-    # @staticmethod
-    # def reorder(dictionary):
-    #     for key, value in sorted(dictionary.items()):
-    #         new_order = [y for y in range(len(value)) if y % 2 == 0] + [y for y in range(len(value)) if y % 2 != 0]
-    #         dictionary[key] = [value[t] for t in new_order]
-    #         key.capitalize()
-    #     return dictionary
+
 
     @staticmethod
     def __average_flanking__(value):
@@ -354,6 +294,21 @@ class DataContainer(object):
         self.reorder(self.ercc_map)
 
         return self.gene_map, self.ercc_map, self.data_frame_header
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def parse_plot_data(self, datafile):
         """This reads a preformatted data file output from SeqPyPlot."""
