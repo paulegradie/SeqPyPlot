@@ -13,3 +13,19 @@ def check_for_even_number_of_files(self, data_paths):
     """
     assert len(data_paths) % 2 == 0, "Even number of input files required. Use empty file if necessary."
     assert len(self.args.time) % 2 == 0
+
+
+class PrepareOutputDirectory:
+    """
+    Must instantiate after args are set
+    """
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def make_folder(path):
+        outdir = os.path.join(path)
+
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir)

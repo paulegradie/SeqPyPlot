@@ -10,10 +10,8 @@ import pandas as pd
 from opertor import reduce
 from normalizer import norm_tmm as TMM
 
-from htSeqParser import (_config_parser_,
-                         file_is_empty,
-                         load_htseq_dataframe,
-                         create_unnormalized_matrix)
+from parsers import PlotDataParser, Htseqparser
+from ConfigParse import config_parser
 
 
 class DataContainer(object):
@@ -22,7 +20,6 @@ class DataContainer(object):
     pandas data frames. Matrix generation and normalization happens here
     
     """
-
 
     def __init__(self, args, Optimize=False):
         """
@@ -44,57 +41,58 @@ class DataContainer(object):
 
         :param args:
         :param Optimize: Set to true when using the Go-term add on script
+
+        The initialization of the DataContainer should automatically call the correct parser, 
+        create the normalization matrix, and then 
+
+
         """
+        self.analyzed = self.analyzed()  # Function call to datermine if contain contains flitered data
 
         self.args = args
-        self.analyzed = self.analyzed()  # Function call to datermine if contain contains flitered data
-        datatype = self.args.datatype
-        self.gene_map = dict()
-        self.ercc_map = dict()
-        self.data_frame_header = dict()
-        self.raw_counts = dict()
-        self.args.unformatted_plot_data = dict()
+ 
+        # if Optimize is True:
+        #     print("Engaging optimization mode.")
+        #     self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
 
-        if Optimize is True:
-            print("Engaging optimization mode.")
-            self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
+        # First need to perform config parsing
+        paths, names = config_parser(self.args.config_path)
+
+        # we need to call a parser, and then create the matrix for normalization
+        # WOo! Good design - if the raw_data arg is set, this gets bypassed (doesn't matter what its set as)
+        parser_dict = {'htseq': htSeqParser,
+                       'cuffnorm': cuffnormParser}
+
+        # if the raw_data argument is set to true (by default)   
+        if self.args.raw_data:
+
+            # Generalize the parser and feed in the same arguments (paths and sample names) to each parser
+            # Instantiante parser
+            parser = parser_dict[self.args.datatype](self.args.num)
+
+            # Execute parser given the data paths and the sample names
+            df = parser.parse_data(paths, names)
+            matrix = self._create_unnormalized_matrix(df)
+            # TODO test this and make sure it actually... returns a df...
+            normalized_matrix = TMM(matrix)
+            # TODO recombine the zeroed genes in to the normalized matrix
+            refilled_matrix = self.recombine_genes(normalized_matrix, zeroed_genes)
 
 
-        elif self.args.raw_data is not None:
 
-            
-            if datatype == 'cuffnorm':
-                print "Reading data as cuffnorm. (This method is not recommended.)"
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_cuffnorm(self.args.raw_data)
-
-            elif datatype == 'htseq':
-
-                print "Reading data from FOLDER as HTSeq counts and normalizing using edgeR Methodology..."
-                print "See: Loraine, A.E. et al., Analysis and Visualization of RNA-Seq Expression Data Using RStudio, Bioconductor, and Integrated Genome Browser.(2015)\n"
-                
-                data_paths, sample_names = self._config_parser_(config_path)
-                number_of_conditions = self.args.num
-                self.gene_map, self.ercc_map, self.data_frame_header = self.load_htseq_dataframe(data_paths, 
-                                                                                                 sample_names,
-                                                                                                 number_of_conditions)
-
-            else:
-                print "Raw_data type selected: ", self.args.datatype
-                print "Software under development. Other raw data types will be added for parsing in the future."
-                sys.exit()
-
-        elif self.args.plot_data is not None:
-            if self.args.gene_list is not None:
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
-            else:
-                self.gene_map, self.ercc_map, self.data_frame_header = self.parse_plot_data(self.args.plot_data)
+        # if the raw_data argument is false, an analyzed data file is passed 
         else:
-            "Anomaly. Exiting."
-            sys.exit()
+            # TODO add check to plotdataparser that checks input
+            parser = PlotDataParser()
+            df = parser.
+
+
+
+
         print "Data Container initialized Successfully....\n"
 
 
-    def create_unnormalized_matrix(self, df):
+    def _create_unnormalized_matrix(self, df):
         """Create the raw matrix for TMM normalization."""
 
         matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
@@ -199,118 +197,6 @@ class DataContainer(object):
 
 
 
-    def parse_plot_data(self, datafile):
-        """This reads a preformatted data file output from SeqPyPlot."""
-        # type: (input normalized data file) -> dictionary, key=gene name, value=normalized expression data
-        # convert plotter data to a dictionary for quick access
-        gene_map = dict()
-        data_frame_header = dict()
-        ercc_map = dict()
-
-        if os.path.exists(datafile):
-            with open(datafile, 'rb') as datafile:
-                data_reader = csv.reader(datafile, delimiter='\t')
-
-                header = True
-                for row in data_reader:
-                    if header:
-                        data_frame_header[row[0]] = row[1:]
-                        header = False
-                    else:
-                        temprow = row[1:]
-                        finalrow = []
-                        for i in temprow:
-                            if i == '':
-                               finalrow.append(None)
-                            elif i < 1.0:
-                                finalrow.append(0.0)
-                            else:
-                                finalrow.append(i)
-                        gene_map[row[0].capitalize()] = finalrow
-                if self.args.num == 1:
-                    pass
-                elif self.args.num == 2:
-                    if self.args.unformatted_plot_data:
-                        self.reorder(data_frame_header)
-                        # print self.data_frame_header
-                        self.reorder(gene_map)
-                        self.reorder(ercc_map)
-                        for key, value in gene_map.items():
-                            series1 = value[:len(value) / 2]  # split the data
-                            series2 = value[len(value) / 2:]
-                            gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
-                else:
-                    print "num == more than 2 - does not support. DataConta. line 347"
-                    sys.exit()
-        else:
-            print "Couldn't open *_plotter_file.txt"
-            sys.exit()
-
-        return gene_map, ercc_map, data_frame_header
-
-
-class MakeFigureList(object):
-    """
-    Function to parse the input gene list.
-    """
-
-    def __init__(self, args):
-        """
-        :param args: Args object
-        """
-        self.args = args
-        self.gene_list = []  # The full gene list from the input file
-        self.figure_list, self.gene_list = self.input_list_parser()  # nested list - gene_list broken in to gruops of 6
-
-    def input_list_parser(self):
-
-        """
-        # type: (input_file object)
-        :return: 2D nested list object
-
-        """
-        # Handle file encodings when you open the input file
-        for e in ["utf-8", "ascii", "ansi"]:
-            try:
-                # create list of gene names ['str1', 'str2', etc]
-                genes_in = codecs.open(self.args.gene_list, 'r', encoding=e)
-                for row in genes_in:
-                    if row.rstrip() != '':
-                        self.gene_list.append(str(row.rstrip().capitalize()))
-            except UnicodeDecodeError:
-                print("File is encoded in a format other than {}.".format(e))
-
-            else:
-                print("Parsing file using {} encoding.".format(e))
-                break
-
-        # Handle the case where ultimately the file can't be opened
-        if len(self.gene_list) == 0:
-            print("File list not parsed properly. Save file as either utf-8 or ascii encoded text.")
-            raise RuntimeError
-
-        # subdivide in put files with more than 6 gene names.
-        if len(self.gene_list) >= 6:
-
-            sub_list = []
-
-            for i in range((len(self.gene_list) / 6) + 1):
-                sub_list.append(self.gene_list[:6])
-                del (self.gene_list[:6])
-                self.figure_list = [x for x in sub_list if x != []]
-
-            return self.figure_list, self.gene_list
-
-        else:
-            self.figure_list = [[x for x in self.gene_list]]
-
-            return self.figure_list, self.gene_list
-
-    def figure_list_length(self):
-        if len(self.figure_list) == 0:
-            print("Your gene list is currently empty or couldn't be opened.")
-        else:
-            return len(self.figure_list)
 
 class PrepareOutputDirectory:
     """
