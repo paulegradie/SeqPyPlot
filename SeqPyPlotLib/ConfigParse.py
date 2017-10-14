@@ -1,3 +1,5 @@
+import os
+
 def config_parser(config_path):
     """
     Read the file paths in the order given in the config file.
@@ -18,9 +20,3 @@ def config_parser(config_path):
     
     return paths, names
 
-def file_is_empty(self, file_name):
-    """Determine if a given file is empty"""
-    if int(os.stat(file_name).st_size) == 0:  # if file is empty, record the list position
-        return True
-    else:
-        return False

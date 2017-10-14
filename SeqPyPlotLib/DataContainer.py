@@ -13,6 +13,9 @@ from normalizer import norm_tmm as TMM
 from parsers import PlotDataParser, Htseqparser
 from ConfigParse import config_parser
 
+from utils, import file_is_empty
+
+
 PARSERS = {'htseq': htSeqParser,
            'cuffnorm': cuffnormParser}
 
@@ -91,7 +94,7 @@ class DataContainer(object):
 
         matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
         empty_files = [sample_names[idx] for ix, file in enumerate(data_paths) 
-                        if self.file_is_empty(file)]
+                        if file_is_empty(file)]
         keep_cols = set(df.columns) - set(empty_files)
         df = df[keep_cols]
 
