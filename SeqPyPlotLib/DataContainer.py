@@ -10,12 +10,37 @@ import pandas as pd
 from opertor import reduce
 from normalizer import norm_tmm as TMM
 
+from htSeqParser import (_config_parser_,
+                         file_is_empty,
+                         load_htseq_dataframe,
+                         create_unnormalized_matrix)
+
+
 class DataContainer(object):
-    """"Functions for parsing input files from various programs."""
+    """"
+    Class for holding normalized data in a standard format. Calls parsers to collect data in to 
+    pandas data frames. Matrix generation and normalization happens here
+    
+    """
 
 
     def __init__(self, args, Optimize=False):
         """
+        Initialize data container object. Reads in the directory specified in the config and 
+        
+        Strategy for imputing missing sampels:
+        1. The data is read in, missing samples are added as NaN columns. 
+        2. The matrix for normalization is created by:
+            1. dropping missing sample columns (imputed later)
+            2. dropping zeroed rows (TMM doesn't deal with these...?)
+        3. The matrix is normalized
+        4. The zeroed rows are added back in.
+        5. Imputation is performed on the missing columns by averaging the flanking data points
+
+
+
+        The config should specify an empty file for missing samples. Parsers will automatically
+        fill empty files with the 
 
         :param args:
         :param Optimize: Set to true when using the Go-term add on script
@@ -36,6 +61,8 @@ class DataContainer(object):
 
 
         elif self.args.raw_data is not None:
+
+            
             if datatype == 'cuffnorm':
                 print "Reading data as cuffnorm. (This method is not recommended.)"
                 self.gene_map, self.ercc_map, self.data_frame_header = self.parse_cuffnorm(self.args.raw_data)
@@ -66,65 +93,14 @@ class DataContainer(object):
             sys.exit()
         print "Data Container initialized Successfully....\n"
 
-    def _config_parser_(self, config_path):
-        """
-        Read the file paths in the order given in the config file.
-        
-        Config should be tab deliminted with the file first, and its name second:
-        ~/path/to/file <TAB> name
 
-        Returns:
-            :list of lists: [[file]]
-        """
-        with open(config_path, 'r') as conf: 
-            paths = list()
-            names = list()
-            for line in config.readlines():
-                line = line.split('\t')
-                paths.append(line[0].strip())
-                names.append(line[1].strip())
-        
-        return paths, names
-    
-    
-    def file_is_empty(self, file_name):
-        if int(os.stat(file_name).st_size) == 0:  # if file is empty, record the list position
-            return True
-        else:
-            return False
-
-
-    def load_htseq_dataframe(self, data_paths, sample_names, number_of_conditions=2):
-        """Read the input files from the config file and load in to a pandas dataframe."""
-        
-        #check to ensure files exist
-        for file in data_paths:
-            assert os.path.isfile(file), "One or more files is not correct in the config."
-
-        #check there are even number of files
-        if number_of_conditions == 2:
-            assert len(data_paths) % 2 == 0, "Even number of input files required. Use empty file if necessary."
-            assert len(self.args.time) % 2 == 0
-
-        # Load the data
-        dfs = [pd.read_csv(file, sep='\t', names=['gene', sample_names[idx]]) for idx, file in enumerate(data_paths)]
-        df = reduce(lambda x: pd.merge(x, on='gene', how='outer'), dfs)
-        df = df[df['gene'].str.startswith('__') == False]
-        df.set_index('gene')
-        df.fillna(value=0, inplace=True)
-        
-        #write out raw data
-        df.to_csv('{}_raw_count_data.csv'.format(self.args.out))
-
-        return df
-    
     def create_unnormalized_matrix(self, df):
         """Create the raw matrix for TMM normalization."""
 
         matrix_path = os.path.join('.', self.args.out, self.args.prefix + '_count_matrix.txt')
 
         empty_files = [sample_names[idx] for ix, file in enumerate(data_paths) 
-                       if self.file_is_empty(file)]
+                        if self.file_is_empty(file)]
         keep_cols = set(df.columns) - set(empty_files)
         df = df[keep_cols]
 
@@ -135,6 +111,11 @@ class DataContainer(object):
         df.to_csv(matrix_path, sep='\t')
 
         return df
+
+
+
+
+
 
 
         #     # If any data points are missing:::
@@ -175,21 +156,6 @@ class DataContainer(object):
 
 
 
-
-
-
-
-
-
-
-
-
-    # def __getitem__(self, key):
-    #     """
-    #     Over ride magic method
-    #     """
-    #     return self.data_frame_header[key]
-
     #Sanity Check
     def analyzed(self):
         if self.args.plot_data is None:
@@ -210,8 +176,7 @@ class DataContainer(object):
 
 
 
-    @staticmethod
-    def __average_flanking__(value):
+    def __average_flanking__(self, value):
         """
         :param value: a list with missing values to be filled in
         """
@@ -230,82 +195,6 @@ class DataContainer(object):
                     else:
                         flanked_averaged.append(None)
         return flanked_averaged
-
-
-
-
-        
-
-    def parse_cuffnorm(self, infile):
-        """
-        This function expects output from Cuffnorm. If the ERCC option is set, it will also return any ERCCs.
-            Returns: dictionaries with Gene:[ExpressionData]
-        """
-        self.data_frame_header = dict()
-        self.gene_map = dict()
-        self.ercc_map = dict()
-        self.gene_map_const = dict()
-        # open the files one at a time from within the loop
-        try:
-            with open(infile, 'rb') as dataFile:
-
-                data_frame = csv.reader(dataFile, delimiter='\t')
-
-                # for each row, ignore the data_frame_header row, then execute the following code
-                for gene in data_frame:
-
-                    zero = False
-                    count = 9
-                    if "tracking_id" in str(gene[0]):  # generate data_frame_header
-                        self.data_frame_header["Gene"] = []
-                        for column_header in enumerate(gene):
-                            if column_header[0] >= count:
-                                self.data_frame_header['Gene'] += [column_header[1]]
-                                count += 4
-
-                    elif "ERCC-" in gene[3]:  # collect ERCC data if ERCC option set
-                        self.ercc_map[gene[3]] = []
-                        for column in enumerate(gene):
-                            if column[0] == count:
-                                self.ercc_map[gene[3]] += [column[1]]
-                                count += 4
-
-                    else:  # Collect all data
-
-                        self.gene_map[gene[3]] = []
-                        for column in enumerate(gene):
-                            if int(column[0]) == count:
-                                #if value is less than 0.01, change it to zero...
-                                if column[1] <= 1.0:
-                                    self.gene_map[gene[3]] += [0]
-                                else:
-                                    self.gene_map[gene[3]] += [column[1]]
-                                if str(column[1]) <= 0.5:
-                                    zero = True
-                                count += 4
-
-                        if zero is False:
-                            self.gene_map_const[gene[3]] = self.gene_map[gene[3]]
-        except IOError:
-            print "/nAre you loading cuffnorm data? - Try resetting data_type argument."
-
-        self.reorder(self.data_frame_header)
-        self.reorder(self.gene_map)
-        self.reorder(self.ercc_map)
-
-        return self.gene_map, self.ercc_map, self.data_frame_header
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -359,78 +248,6 @@ class DataContainer(object):
 
         return gene_map, ercc_map, data_frame_header
 
-    def parse_edgeR(self, infile, filelist=None):
-        #Depricated
-        pass
-
-    def parse_deseq2(self, infile):
-        #Depricated
-        pass
-
-    def parse_cuffdiff(self, infile):
-        #Depricated
-        pass
-
-    def generic_parser(self, inputfile):
-        """This Generic filter will simply split your input in to two files - a data file and ERCC file."""
-        # TODO Use as templated to read in FeatureCounts data
-        pass
-    #
-    # def parse_featureCount(selfself, infile):
-    #     """This reads output from the Subread featureCount output.
-    #     The first lone of this file stars with a '#' pound symbol, so we need to skip that line. The next line
-    #     is the header. From here, the file can be treated as an un-normalized
-    #
-    #
-    #     """
-    #     # type: (input featureCount data file) -> dictionary, key=gene name, value=normalized expression data
-    #     # convert plotter data to a dictionary for quick access
-    #     gene_map = dict()
-    #     data_frame_header = dict()
-    #     ercc_map = dict()
-    #
-    #     if os.path.exists(datafile):
-    #         with open(datafile, 'rb') as datafile:
-    #             data_reader = csv.reader(datafile, delimiter='\t')
-    #
-    #             header = True
-    #             for row in data_reader:
-    #                 if '#' in row:
-    #                     continue
-    #                 if header:
-    #                     data_frame_header[row[0]] = row[1:]
-    #                     header = False
-    #                 else:
-    #                     temprow = row[1:]
-    #                     finalrow = []
-    #                     for i in temprow:
-    #                         if i == '':
-    #                             finalrow.append(None)
-    #                         elif i < 1.0:
-    #                             finalrow.append(0.0)
-    #                         else:
-    #                             finalrow.append(i)
-    #                     gene_map[row[0].capitalize()] = finalrow
-    #             if self.args.num == 1:
-    #                 pass
-    #             elif self.args.num == 2:
-    #                 if self.args.unformatted_plot_data:
-    #                     self.reorder(data_frame_header)
-    #                     # print self.data_frame_header
-    #                     self.reorder(gene_map)
-    #                     self.reorder(ercc_map)
-    #                     for key, value in gene_map.items():
-    #                         series1 = value[:len(value) / 2]  # split the data
-    #                         series2 = value[len(value) / 2:]
-    #                         gene_map[key] = self.__average_flanking__(series1) + self.__average_flanking__(series2)
-    #             else:
-    #                 print "num == more than 2 - does not support. DataConta. line 347"
-    #                 sys.exit()
-    #     else:
-    #         print "Couldn't open *_plotter_file.txt"
-    #         sys.exit()
-    #
-    #     return gene_map, ercc_map, data_frame_header
 
 class MakeFigureList(object):
     """
@@ -511,72 +328,3 @@ class PrepareOutputDirectory:
             os.makedirs(outdir)
 
 
-class DataPrinter:
-
-    """
-    This should have a data container and analyzer instance passed upon instantiation.
-
-    Available upon passing container object:
-        self.args = args
-        self.datatype = self.args.datatype
-        self.data_frame_header = dict()
-        self.gene_map = dict()
-        self.ercc_map = dict()
-        self.gene_map_const = dict()
-        self.de_gene_list = []
-        self.de_count_by_stage = None
-        self.de_gene_list = None
-        self.analyzed = self.analyzed()
-        self.filtered_data = dict()
-    """
-    def __init__(self, args, container, analyzer):
-
-        """
-        :param args: Args object
-        :param container: Data Container Object
-        :param analyzer:  Data analyzer Object
-        """
-        self.container = container
-        self.analyzer = analyzer
-        self.filtered_data = analyzer.filtered_data
-        self.args = args
-
-        if self.args.out is not None:
-            self.path = os.path.join(self.args.out, self.args.prefix)
-        else:
-            self.path = os.path.join('.', self.args.prefix)
-
-    def write_ercc_data(self):
-
-        with open((self.path + ".all_ercc.txt"), "wb+") as ercc:
-            ercc_data_writer = csv.writer(ercc, delimiter='\t')
-            for key, value in self.container.data_frame_header.items():
-                ercc_data_writer.writerow(["ERCC"] + value)
-            for key, value in self.container.ercc_map.items():
-                ercc_data_writer.writerow([key] + value)
-
-    def write_plot_data(self):
-        with open(self.path + '_plotter_data.txt', 'wb+') as plot:
-            plot_data_writer = csv.writer(plot, delimiter='\t')
-
-            for key, value in self.container.data_frame_header.items():
-                plot_data_writer.writerow([key] + value)
-
-            for key, value in sorted(self.container.gene_map.items()):
-                plot_data_writer.writerow([key] + value)
-
-    def write_filtered_data(self):
-        with open((self.path + '_filtered.txt'), "wb+") as filt:
-
-            filtered_data_writer = csv.writer(filt, delimiter='\t')
-            for key, value in self.container.data_frame_header.items():
-                filtered_data_writer.writerow([key] + value)
-
-            for key, value in self.filtered_data.items():
-                filtered_data_writer.writerow([key] + value)
-
-    def write_de_results(self):
-        with open(self.path + "_de_gene_list.txt", 'wb+') as results_out:
-            result_writer = csv.writer(results_out, delimiter='\n')
-            for de_gene in sorted(self.analyzer.filtered_data):
-                result_writer.writerow([de_gene])
