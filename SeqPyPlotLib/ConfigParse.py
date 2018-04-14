@@ -1,6 +1,7 @@
 from ConfigParser import ConfigParser
 from ast import literal_eval
 
+
 def config_parser(config_path):
     """
     Read the provided config.ini file and parse the file paths to the data.
@@ -17,4 +18,7 @@ def config_parser(config_path):
 
     dir_path = config.get('data_directory', 'dir')
 
-    return dir_path, zip(control_data, control_names), zip(treated_data, treated_names)
+    data = control_data + treated_data
+    names = control_names + treated_names
+
+    return (dir_path, data, names)
