@@ -20,12 +20,6 @@ The initialization of the DataContainer should automatically call the correct pa
 create the normalization matrix, and then 
 """
 
-import codecs
-import csv
-import os
-import subprocess
-import sys
-
 import numpy as np
 import pandas as pd
 
@@ -46,16 +40,19 @@ class DataContainer(object):
     """
 
     def __init__(self, args):
-        self.args = args
-        self.data_directory, self.paths, self.names = self._unpack_config_()
-        self.raw_df = self._parse_input_()
 
+        self.is_parsed = False
+
+        self.args = args
+        self.data_directory, self.paths, self.names, self.num_file_pairs = self._unpack_config_()
+        self.raw_df, self.ercc_data = self._parse_input_()
+        self.normalized_df = self.normalize_file_pairs()
+
+        if impute_by_nieghbors:
+            self.normalized_imputed_df = self._average_flanking_()
 
     @property
     def is_parsed(self):
-        pass
-
-    def contain_data(self):
         pass
 
     def _unpack_config_(self):
@@ -66,33 +63,61 @@ class DataContainer(object):
                 paths: A list of tuples -- [(control_data1, test_data1), etc]
                 names: A list of tuples naming the paths
         """
-        data_dir, paths, names = config_parser(self.args.config_path)
+        data_dir, paths, names, num_file_pairs = config_parser(self.args.config_path)
         paths = [os.path.join(data_dir, x) for x in paths]
-        return data_dir, paths, names
+        return data_dir, paths, names, num_file_pairs
 
     def _parse_input_(self):
         # Instantiante parser
         parser = PARSERS[self.args.datatype]()
 
         # Execute parser given the data paths and the sample names
-        raw_df = parser.parse_data(self.paths, self.names)
+        raw_df, ercc_data = parser.parse_data(self.paths, self.names)
 
-        return raw_df
-
-
-
-
-
-
-
-
-
-
-
+        self.is_parsed = True
+        return raw_df, ercc_data
 
     def normalize_data(self, raw_df, data_pairs):
         pass
 
+    def make_col_pairs(self):
+        control_cols = self.raw_df.columns[:self.num_file_pairs]
+        treated_cols = self.raw_df.columns[self.num_file_pairs:]
+
+        return zip(control_cols, treated_cols)
+
+    def normalize_file_pairs(self):
+
+        normalized_pairs = list()
+        for control, treat in self.make_col_pairs():
+
+            sub_df = self.raw_df[[control, treat]]
+            nonzero_df, zero_df = self.extract_usable_data(sub_df)
+
+            normalized_nonzero = self.execute_normalization(nonzero_df)
+            normalized_pairs.append(pd.concat([normalized_nonzero, zero_df]))
+
+        remerged_df = self.merge_dfs(normalized_pairs)
+
+        return remerged_df
+
+    def extract_usable_data(self, df):
+
+        nonzero_df = df[df.values.sum(axis=1) != 0]
+        zero_df = df[df.values.sum(axis=1) == 0]
+
+        return nonzero_df, zero_df
+
+    def execute_normalization(self, unnormalized_matrix):
+        """
+        This function should take in an unnormalized matrix of only two time points:
+        1. The control time point
+        2. The test time point
+        """
+        return TMM(unnormalized_matrix, unnormalized_matrix.columns[0])
+
+    def merge_dfs(self, dfs):
+        return reduce(lambda x, y: pd.merge(x, y, on='gene', how='outer'), dfs)
 
     def create_unnormalized_matrix(self, df):
         # TODO This function won't work. We absolutely must treat each pair of samples per time
@@ -115,35 +140,9 @@ class DataContainer(object):
 
         return nonzero_df, zero_df
 
-    def execute_normalization(self, unnormalized_matrix):
-        """
-        This function should take in an unnormalized matrix of only two time points:
-        1. The control time point
-        2. The test time point
-        """
-        return TMM(unnormalized_matrix)
-
-    def recombine_genes(self, nonzero_df, zero_df):
-        return pd.concatenate([nonzero_df, zero_df])
 
 
-
-        df = self.recombine_genes(normalized_matrix, zeroed_genes)
-        if True:
-            pass
-        # else if there is analyzed plot data
-        elif self.args.datatype == 'plot':
-            # TODO add check to plotdataparser that checks input
-            parser = PlotDataParser()
-            self.df = parser.parse_data(datafile)
-
-        print "Data Container initialized Successfully....\n"
-
-        return df
-
-
-
-    def __average_flanking__(self, value):
+    def _average_flanking_(self, value):
         """
         :param value: a list with missing values to be filled in
         """
