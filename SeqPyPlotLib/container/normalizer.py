@@ -3,11 +3,11 @@
 import numpy as np
 
 
-def _sf_tmm(obs, ref,
-            log_ratio_trim=0.3,
-            sum_trim=0.05,
-            weighting=True,
-            a_cutoff=-1e10):
+def _scaling_factor_for_tmm(obs, ref,
+                            log_ratio_trim=0.3,
+                            sum_trim=0.05,
+                            weighting=True,
+                            a_cutoff=-1e10):
     """
     Called by `norm_tmm`.
     """
@@ -45,30 +45,39 @@ def _sf_tmm(obs, ref,
         return 2**(lr[k].mean())
 
 
-def _sf_q(df, q=0.75):
+def _scaling_factor(df, q=0.75):
     """
     Parameters:
     -----------
     - df: zeroed rows removed
     - q: quartile
     """
-    lib_size = df.sum()
-    y = df.T.div(lib_size, axis=0).T
-    # fill nans with 0
-    y = y.dropna(how="all").fillna(0)
-    y = y.quantile(q)
+    # Claculate column sums
+    library_sizes = df.sum()
+
+    # Divide rows by column sums and return to
+    # original orientation
+    result = df.T.div(library_sizes, axis=0).T
+
+    # # fill nans with 0
+    # result = result.dropna(how="all").fillna(0)
+    result = result.quantile(q)
+
     # factors multiple to one
-    sf = y.div(np.exp(np.mean(np.log(y))))
-    return sf
+    scaling_factor = result.div(np.exp(np.mean(np.log(result))))
+    return scaling_factor
 
 
+def extract_usable_data(df):
+
+    nonzero_df = df[df.values.sum(axis=1) != 0]
+    zero_df = df[df.values.sum(axis=1) == 0]
+
+    return nonzero_df, zero_df
 
 
-
-
-def norm_tmm(exp_obj,
-             ref_col=None,
-             log_fold_change_trim=0.3,
+def norm_tmm(original_df,
+             log_ratio_trim=0.3,
              absolute_intensity_trim=0.05,
              weighting=True,
              a_cutoff=-1e10):
@@ -79,31 +88,27 @@ def norm_tmm(exp_obj,
 
     Parameters:
     -----------
-    - exp_obj: experiment object.
+    - original_df: experiment object.
     - ref_col: reference column from which to scale others.
     - log_ratio_trim: amount of trim to use on log-ratios.
     - absolute_intensity_trim : amount of trim to use on combined absolute values.
     - weighting: whether to compute weights.
     - a_cutoff: cutoff of absolute expression values.
     """
-    df = exp_obj.copy()
-    # remove zeros
-    nz = df.where(df > 0)
-    nz = nz.dropna(how="all").fillna(0)
-    # reference column
-    if ref_col is None:
-        # quantile factors
-        sf_q = _sf_q(nz)
-        ref_col = (abs(sf_q - np.mean(sf_q))).idxmin()
+    df = original_df.copy()
+    nonzero_df, zero_df = extract_usable_data(df)
+
+    #Take whichever column has the smallest
+    ref_col = df.columns[0]
+
     # try:
-    kwargs = {"ref": nz[ref_col],
+    kwargs = {"ref": nonzero_df[ref_col],
               "log_ratio_trim": log_ratio_trim,
-              "sum_trim": sum_trim,
+              "sum_trim": absolute_intensity_trim,
               "weighting": weighting,
               "a_cutoff": a_cutoff}
-    # except KeyError:
-        # revert back to auto?
-    sf_tmm = nz.apply(_sf_tmm, **kwargs)
+
+    sf_tmm = nonzero_df.apply(_scaling_factor_for_tmm, **kwargs)
     # apply scaling
     df = df.div(sf_tmm, axis=1)
     return df

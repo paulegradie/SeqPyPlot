@@ -11,7 +11,7 @@ Strategy for imputing missing sampels:
 5. Imputation is performed on the missing columns by averaging the flanking data points
 
 The config should specify an empty file for missing samples. Parsers will automatically
-fill empty files with the 
+fill empty files with the average of the flanking time points.
 
 :param args:
 :param Optimize: Set to true when using the Go-term add on script
@@ -22,7 +22,7 @@ create the normalization matrix, and then
 
 import numpy as np
 import pandas as pd
-
+import os
 from ConfigParse import config_parser
 from normalizer import norm_tmm as TMM
 from parsers import CuffNormParser, HtSeqParser, PlotDataParser
@@ -41,15 +41,19 @@ class DataContainer(object):
 
     def __init__(self, args):
 
-        self.is_parsed = False
+        # self.is_parsed = False
 
         self.args = args
         self.data_directory, self.paths, self.names, self.num_file_pairs = self._unpack_config_()
         self.raw_df, self.ercc_data = self._parse_input_()
-        self.normalized_df = self.normalize_file_pairs()
+        self.normalized_df = self.reorder_cols(self._normalize_file_pairs_())
 
-        if impute_by_nieghbors:
-            self.normalized_imputed_df = self._average_flanking_()
+        # if self.args.impute_by_nieghbors:
+        #     self.normalized_df = self._average_flanking_()
+
+        # if write_csv:
+        #     write_to_csv(self.raw_df, )
+
 
     @property
     def is_parsed(self):
@@ -74,7 +78,7 @@ class DataContainer(object):
         # Execute parser given the data paths and the sample names
         raw_df, ercc_data = parser.parse_data(self.paths, self.names)
 
-        self.is_parsed = True
+        # self.is_parsed = True
         return raw_df, ercc_data
 
     def normalize_data(self, raw_df, data_pairs):
@@ -86,7 +90,7 @@ class DataContainer(object):
 
         return zip(control_cols, treated_cols)
 
-    def normalize_file_pairs(self):
+    def _normalize_file_pairs_(self):
 
         normalized_pairs = list()
         for control, treat in self.make_col_pairs():
@@ -96,7 +100,7 @@ class DataContainer(object):
 
             normalized_nonzero = self.execute_normalization(nonzero_df)
             normalized_pairs.append(pd.concat([normalized_nonzero, zero_df]))
-
+        
         remerged_df = self.merge_dfs(normalized_pairs)
 
         return remerged_df
@@ -109,37 +113,15 @@ class DataContainer(object):
         return nonzero_df, zero_df
 
     def execute_normalization(self, unnormalized_matrix):
-        """
-        This function should take in an unnormalized matrix of only two time points:
-        1. The control time point
-        2. The test time point
-        """
-        return TMM(unnormalized_matrix, unnormalized_matrix.columns[0])
+        return TMM(unnormalized_matrix)
 
     def merge_dfs(self, dfs):
-        return reduce(lambda x, y: pd.merge(x, y, on='gene', how='outer'), dfs)
+        return reduce(lambda x, y: pd.merge(x, y, left_index=True, right_index=True, how='outer'), dfs)
 
-    def create_unnormalized_matrix(self, df):
-        # TODO This function won't work. We absolutely must treat each pair of samples per time
-        # point separately. We should only remove zeroed genes right before we perform normalization,
-        # and then reinsert them immediately aftewards. This is because
-        """Create the raw matrix for TMM normalization."""
-
-        empty_files = [sample_names[idx] for ix, _file_ in enumerate(data_paths)
-                       if file_is_empty(_file_)]
-        keep_cols = set(df.columns) - set(empty_files)
-        df = df[keep_cols]
-
-        # drop zeroed rows
-        nonzero_df = df[df.values.sum(axis=1) != 0]
-        zero_df = df[df.values.sum(axis=1) == 0]
-
-        # write out matrix csv
-        matrix_path = os.path.join('.', self.args.out, self.args.prefix)
-        write_to_csv(matrix_path, suffix='_count_matrix.txt')
-
-        return nonzero_df, zero_df
-
+    def reorder_cols(self, df):
+        controls = [x[1] for x in enumerate(df.columns) if x[0] % 2 == 0]
+        treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
+        return df[controls + treated]
 
 
     def _average_flanking_(self, value):

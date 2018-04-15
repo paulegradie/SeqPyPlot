@@ -20,5 +20,5 @@ def config_parser(config_path):
 
     data = control_data + treated_data
     names = control_names + treated_names
-
-    return (dir_path, data, names)
+    assert len(control_data) == len(treated_data), "Use empty file to fill gaps in data."
+    return (dir_path, data, names, len(control_data))
