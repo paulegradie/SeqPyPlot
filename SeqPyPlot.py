@@ -2,7 +2,7 @@ import time
 import os
 import sys
 
-import SeqPyPlotLib.DataContainer as DataContainer
+from SeqPyPlotLib.container.DataContainer import DataContainer
 
 from SeqPyPlotLib.DataPlotter import MainDataPlotter
 from SeqPyPlotLib.DataAnalyzer import DataAnalyzer
@@ -11,18 +11,34 @@ from SeqPyPlotLib.ArgumentCollector import Args
 from SeqPyPlotLib import timing
 
 
-print '\n' + '{:^68}'.format(
-    '***SeqPyPlot v0.2***'), '\nA tool for helping you analyze pilot data (data without replicates).\n'
+if __name__ == "__main__":
 
-if len(sys.argv) == 0:
-    print "Set options."
-    sys.exit()
-start = float(time.time())
-print '\n\n'
-# Collect args
-argz = Args()
-argz.make_logs()
-args = argz.args
+    print '\n' + '{:^68}'.format(
+        '***SeqPyPlot v0.2***'), '\nA tool for helping you analyze pilot data (data without replicates).\n'
+
+
+    if len(sys.argv) == 0:
+        print "Set options."
+        sys.exit()
+    start = float(time.time())
+    print '\n\n'
+    # Collect args
+    argz = Args()
+    argz.make_logs()
+    args = argz.args
+
+    full_container = DataContainer.DataContainer(args)
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # if neither raw data and plot data is given... exit
@@ -39,15 +55,12 @@ args = argz.args
 
 
 
-# Call the datacontainer and pass it the args, it will auto handle the config/plotdata input.
-FullContainer = DataContainer.DataContainer(args)
-
 if args.plot_data is None:
     # Then we are looking to analyze the data
-    Analyzer = DataAnalyzer(args, FullContainer)
+    Analyzer = DataAnalyzer(a_cgs, fullContainer)
     Analyzer.seqpyfilter()  # object containing analyzed data
 
-    DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+    DataPrinter = DataContainer.DataPrinter(args, full_container, Analyzer)
     DataPrinter.write_plot_data()
     DataPrinter.write_de_results()
     DataPrinter.write_filtered_data()
@@ -66,23 +79,23 @@ elif args.plot_data is not None:
         # Create Output files
         DataContainer.PrepareOutputDirectory.make_folder(args.out)
 
-        FullContainer = DataContainer.DataContainer(args)  # object containing parsed premade plot data
+        full_container = DataContainer.DataContainer(args)  # object containing parsed premade plot data
         if args.de_results is not None:  # if no results are provided, calculate them and then load them
-            FullContainer.load_results()
-            Analyzer = DataAnalyzer(args, FullContainer)
+            full_container.load_results()
+            Analyzer = DataAnalyzer(args, full_container)
         else:
-            Analyzer = DataAnalyzer(args, FullContainer)
+            Analyzer = DataAnalyzer(args, full_container)
 
         Analyzer.seqpyfilter()
 
-        assert FullContainer.analyzed
+        assert full_container.analyzed
 
         # Ready, get set....
         FigureList = DataContainer.MakeFigureList(args)  # object containing gene list for plotting and other attributes
         Plot_Builder = MainDataPlotter(args, Analyzer, FigureList)  # object used for generating plots
         Plot_Builder.plot_figures()
 
-        DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+        DataPrinter = DataContainer.Da_caPrinter(args, fullContainer, Analyzer)
         if args.report:
             DataPrinter.write_plot_data()
             DataPrinter.write_de_results()
@@ -126,12 +139,12 @@ elif args.plot_data is not None:
 
     else:  # IF plot data is provided without a genelist
         # perform the DE analysis using processed plot data
-        FullContainer = DataContainer.DataContainer(args)
-        Analyzer = DataAnalyzer(args, FullContainer)
+        full_container = DataContainer.DataContainer(args)
+        Analyzer = DataAnalyzer(args, full_container)
         Analyzer.seqpyfilter()
         Plot_Builder = MainDataPlotter(args, Analyzer, None)
 
-        DataPrinter = DataContainer.DataPrinter(args, FullContainer, Analyzer)
+        DataPrinter = DataContainer.DataPrinter(args, full_container, Analyzer)
         if args.report:
             DataPrinter.write_plot_data()
             DataPrinter.write_de_results()
