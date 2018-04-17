@@ -22,11 +22,10 @@ create the normalization matrix, and then
 
 import numpy as np
 import pandas as pd
-import os
-from ConfigParse import config_parser
+
 from normalizer import norm_tmm as TMM
-from parsers import CuffNormParser, HtSeqParser, PlotDataParser
-from utils import file_is_empty, write_to_csv
+from ..parsers import CuffNormParser, HtSeqParser, PlotDataParser
+
 
 PARSERS = {'htseq': HtSeqParser,
            'cuffnorm': CuffNormParser,
@@ -39,12 +38,17 @@ class DataContainer(object):
     pandas data frames. Matrix generation and normalization happens here
     """
 
-    def __init__(self, args):
+    def __init__(self, config):
 
         # self.is_parsed = False
 
-        self.args = args
-        self.data_directory, self.paths, self.names, self.num_file_pairs = self._unpack_config_()
+        self.config = config
+
+        self.data_directory = self.config.get('data_directory', 'dir')
+        self.paths = self.config.get('data', 'paths')
+        self.names = self.config.get('names', 'sample_names')
+        self.num_file_pairs = self.config.get('misc', 'num_file_pairs')
+
         self.raw_df, self.ercc_data = self._parse_input_()
         self.normalized_df = self.reorder_cols(self._normalize_file_pairs_())
 
@@ -58,18 +62,6 @@ class DataContainer(object):
     @property
     def is_parsed(self):
         pass
-
-    def _unpack_config_(self):
-        """Unpack config contents
-        Returns:
-            tuple:
-                data_dir: A string
-                paths: A list of tuples -- [(control_data1, test_data1), etc]
-                names: A list of tuples naming the paths
-        """
-        data_dir, paths, names, num_file_pairs = config_parser(self.args.config_path)
-        paths = [os.path.join(data_dir, x) for x in paths]
-        return data_dir, paths, names, num_file_pairs
 
     def _parse_input_(self):
         # Instantiante parser
@@ -100,7 +92,7 @@ class DataContainer(object):
 
             normalized_nonzero = self.execute_normalization(nonzero_df)
             normalized_pairs.append(pd.concat([normalized_nonzero, zero_df]))
-        
+
         remerged_df = self.merge_dfs(normalized_pairs)
 
         return remerged_df
@@ -122,7 +114,6 @@ class DataContainer(object):
         controls = [x[1] for x in enumerate(df.columns) if x[0] % 2 == 0]
         treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
         return df[controls + treated]
-
 
     def _average_flanking_(self, value):
         """
