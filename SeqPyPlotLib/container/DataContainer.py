@@ -19,13 +19,13 @@ fill empty files with the average of the flanking time points.
 The initialization of the DataContainer should automatically call the correct parser, 
 create the normalization matrix, and then 
 """
-
+import os
 import numpy as np
 import pandas as pd
 
 from normalizer import norm_tmm as TMM
 from ..parsers import CuffNormParser, HtSeqParser, PlotDataParser
-
+from ..parsers.config_parser import config_parser
 
 PARSERS = {'htseq': HtSeqParser,
            'cuffnorm': CuffNormParser,
@@ -40,17 +40,17 @@ class DataContainer(object):
 
     def __init__(self, config):
 
-        # self.is_parsed = False
-
-        self.config = config
+        self.config = config_parser(config)
 
         self.data_directory = self.config.get('data_directory', 'dir')
         self.paths = self.config.get('data', 'paths')
         self.names = self.config.get('names', 'sample_names')
-        self.num_file_pairs = self.config.get('misc', 'num_file_pairs')
+        self.num_file_pairs = self.config.getint('misc', 'num_file_pairs')
 
         self.raw_df, self.ercc_data = self._parse_input_()
         self.normalized_df = self.reorder_cols(self._normalize_file_pairs_())
+        self.file_pairs = self.config.get('names', 'file_pairs')
+        self.times = self.config.get('names', 'times')
 
         # if self.args.impute_by_nieghbors:
         #     self.normalized_df = self._average_flanking_()
@@ -65,7 +65,7 @@ class DataContainer(object):
 
     def _parse_input_(self):
         # Instantiante parser
-        parser = PARSERS[self.args.datatype]()
+        parser = PARSERS[self.config.get('data', 'data_type')]()
 
         # Execute parser given the data paths and the sample names
         raw_df, ercc_data = parser.parse_data(self.paths, self.names)

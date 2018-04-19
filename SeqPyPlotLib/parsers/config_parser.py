@@ -1,6 +1,6 @@
 from ConfigParser import ConfigParser
 from ast import literal_eval
-
+import os
 
 def config_parser(config_path):
     """
@@ -10,10 +10,12 @@ def config_parser(config_path):
     config = ConfigParser()
     config.read(config_path)
 
-    dir_path, data, names, num_file_pairs = configure_input_data(config)
+    dir_path, data, names, pairs, num_file_pairs = configure_input_data(config)
     config.set('data', 'paths', value=data)
     config.set('names', 'sample_names', value=names)
-    config.set('misc', 'num_file_pairs', value=num_file_pairs)
+    config.set('names', 'file_pairs', value=pairs)  
+    config.add_section('misc')
+    config.set('misc', 'num_file_pairs', value=str(num_file_pairs))
 
     return config
 
@@ -28,8 +30,10 @@ def configure_input_data(config_object):
 
     dir_path = config_object.get('data_directory', 'dir')
 
-    data = control_data + treated_data
+    data = [os.path.join(dir_path, x) for x in control_data] + [os.path.join(dir_path, x) for x in treated_data]
     names = control_names + treated_names
 
+    pairs = zip(control_names, treated_names)
+
     assert len(control_data) == len(treated_data), "Use empty file to fill gaps in data."
-    return dir_path, data, names, len(control_data)
+    return dir_path, data, names, pairs, len(control_data)
