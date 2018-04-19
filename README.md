@@ -2,6 +2,11 @@
 #             ***SeqPyPlot v0.2***
 A tool for helping you analyze pilot data (data without replicates).
 
+## SeqPyPlot is currently under a major refactorization! This will bring us to v0.4
+I believe there is some potential for a bit of machine learning, or at least more intelligent analysis for this sort of dataset.
+Once these ideas are incorporated (which should be much easier to accomplish after the refactor), we'll move to v1.0.
+
+
 ## Installation
 There are no special installation requirements for this project! It is written in pure python directly from the command line (or IDE of your  choice). There are however a few dependencies. For Windows users, I strongly suggest installing the Anaconda python distribution. You can find these distributions here:
 
