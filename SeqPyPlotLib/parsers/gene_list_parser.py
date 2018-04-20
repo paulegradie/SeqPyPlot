@@ -53,6 +53,6 @@ class MakeFigureList(object):
                 del (gene_list[:num_genes_per_figure])
                 plot_groups = [x for x in sub_list if x != []]
         else:
-            plot_groups = [[x for x in self.gene_list]]
+            plot_groups = [[x for x in gene_list]]
 
         return plot_groups
