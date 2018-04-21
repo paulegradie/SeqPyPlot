@@ -5,22 +5,9 @@ import numpy as np
 import logging
 import seaborn as sns
 sns.set_palette('Blues', n_colors=256)
-
-
-try:
-    import matplotlib.lines as mlines
-    import matplotlib.pyplot as plt
-    import numpy as np
-except ImportError:
-    print("Check Dependencies. You need numpy and MatPlotLib")
-    sys.exit()
-try:
-    import seaborn as sns
-    sns.set_palette('Blues', n_colors=256)
-except ImportError:
-    print("You should install Seaborn! For now these plots are gonna look awful!")
-    sys.exit()
-
+import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class PairedDataLinePlotter(object):
@@ -40,38 +27,6 @@ class PairedDataLinePlotter(object):
         self.labels = self.config_obj.get('names', 'conditions')
         self.prefix = self.config_obj.get('names', 'experiment_name')
 
-    def create_output_directory(self):
-        #TODO Fix this to make it work
-        dir_name = 'default_dir'
-        if not self.config_obj.get('data_directory', 'output'):
-            os.mkdir(dir_name)
-        else:
-            dir_name = self.config_obj.get('data_directory', 'output')
-            os.mkdir(dir_name)
-        return dir_name
-
-    def set_figure(self, figure_prefix, **args):
-        fig = plt.figure(num=1,
-                         dpi=600,
-                         figsize=(10, 10),
-                         edgecolor='black',
-                         frameon=False,
-                         )
-        fig.suptitle(figure_prefix,
-                     verticalalignment='top',
-                     horizontalalignment='right',
-                     fontsize=24
-                     )
-        return fig
-
-    def set_line(self, line_color, edge_color, face_color, kwargs={}):
-        series_line = mlines.Line2D([], [],
-                                    color=line_color,
-                                    markeredgecolor=edge_color,
-                                    markerfacecolor=face_color,
-                                    **kwargs)
-        return series_line
-            
     def plot_figure(self, figure_list, plottable_data):
         """[summary]
         
@@ -131,25 +86,44 @@ class PairedDataLinePlotter(object):
             plt.cla()
             plt.close()
 
+    def create_output_directory(self):
+        #TODO Fix this to make it work
+        dir_name = 'default_dir'
+        if not self.config_obj.get('data_directory', 'output'):
+            os.mkdir(dir_name)
+        else:
+            dir_name = self.config_obj.get('data_directory', 'output')
+            os.mkdir(dir_name)
+        return dir_name
+
+    def set_figure(self, figure_prefix, **args):
+        fig = plt.figure(num=1,
+                         dpi=600,
+                         figsize=(10, 10),
+                         edgecolor='black',
+                         frameon=False,
+                         )
+        fig.suptitle(figure_prefix,
+                     verticalalignment='top',
+                     horizontalalignment='right',
+                     fontsize=24
+                     )
+        return fig
+
+    def set_line(self, line_color, edge_color, face_color, kwargs={}):
+        series_line = mlines.Line2D([], [],
+                                    color=line_color,
+                                    markeredgecolor=edge_color,
+                                    markerfacecolor=face_color,
+                                    **kwargs)
+        return series_line
+
     def save_figure(self, fig, fig_idx, figure_list):
         path_ = os.path.join(self.output_dir, self.prefix)
         genes = str([fi.strip() for fi in figure_list[fig_idx-1]])
         file_name = "{}_{}_{}.png".format(path_, str(fig_idx), genes)
 
         fig.savefig(file_name, format='png', bbox_inches='tight')
-
-    def tidy_up_figure(self, fig, handles):
-
-        labels = (self.labels
-                  + ["Log2: " + str(self.log)]
-                  + ["Fold: " + str(round(2.0**self.log, ndigits=1))])
-                #   + ["Diff: " + str(int(self.args.dif_range[0])) + ', ' + str(int(self.args.dif_range[1]))])
-          
-        fig.legend(handles=handles,
-                   labels=labels,
-                   loc='upper right')
-
-        return fig
 
     def gene_exists(self, gene):
         return gene in self.normalized_df.index.tolist()
@@ -266,12 +240,6 @@ class PairedDataLinePlotter(object):
                             elinewidth='1',
                             label="Range around the mean = log2(range)=1 ")
 
-    def tidy_up_plot(self):
-
-        plt.subplots_adjust(top=0.85)
-        plt.tight_layout()
-        return plt
-
     def compute_max_yval(self, series1_data, series2_data, diffs, scale=1.4):
         return max(np.mean(np.mean(np.asarray([series1_data, series2_data]), axis=0)) + diffs) * float(scale)
 
@@ -324,3 +292,21 @@ class PairedDataLinePlotter(object):
 
         return ax  # may need to return plt
 
+    def tidy_up_figure(self, fig, handles):
+
+        labels = (self.labels
+                  + ["Log2: " + str(self.log)]
+                  + ["Fold: " + str(round(2.0**self.log, ndigits=1))])
+                #   + ["Diff: " + str(int(self.args.dif_range[0])) + ', ' + str(int(self.args.dif_range[1]))])
+          
+        fig.legend(handles=handles,
+                   labels=labels,
+                   loc='upper right')
+
+        return fig
+
+    def tidy_up_plot(self):
+
+        plt.subplots_adjust(top=0.85)
+        plt.tight_layout()
+        return plt
