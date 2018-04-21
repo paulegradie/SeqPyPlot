@@ -137,7 +137,6 @@ class PairedDataLinePlotter(object):
         file_name = "{}_{}_{}.png".format(path_, str(fig_idx), genes)
 
         fig.savefig(file_name, format='png', bbox_inches='tight')
-        
 
     def tidy_up_figure(self, fig, handles):
 
