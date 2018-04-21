@@ -13,6 +13,7 @@ class Args:
             print 'Set -time argument'
             sys.exit()
 
+
         if self.args.num == 1:
             self.args.condition = ["Gene"]
         elif self.args.num == 2:
@@ -59,16 +60,12 @@ class Args:
         parser.add_argument('--------------------Required Options--------------------',
                             action='store_true',
                             default=False)
-
-    ## SET IN THE CONFIG
-        # parser.add_argument('-time',
-        #                     metavar='d1,d2,d3',
-        #                     default=None,
-        #                     type=str,
-        #                     dest='time',
-        #                     help='A comma separated list of time points.')
-
-
+        parser.add_argument('-time',
+                            metavar='d1,d2,d3',
+                            default=None,
+                            type=str,
+                            dest='time',
+                            help='A comma separated list of time points.')
         parser.add_argument('-num',
                             metavar='2',
                             default=2,
@@ -98,46 +95,44 @@ class Args:
                             default='htseq',
                             type=str,
                             dest='datatype',
-                            help='Either htseq, subread, cuffnorm')
+                            help='Either cuffnorm, cuffdiff, deseq2, or edgeR.')
 
         parser.add_argument('--------------------Required Input Options--------------------',
                             action='store_true',
                             default=False)
-        # TODO New strategy, use a single input option (to handle both directory or single file) and 
-        # set the raw_data option to true or false. This will remove one of the options for data input
-        #simplifying the input arguments. The rest should be handled internally with a few checks.
-        # parser.add_argument('-raw_data',
-        #                     type=str,
-        #                     default=None,
-        #                     metavar='True',
-        #                     dest='raw_data',
-        #                     help='Input file or folder.')
-        parser.add_argument('-config',
-                            metavar='Config',
-                            default=None,
+
+        parser.add_argument('-raw_data',
                             type=str,
-                            dest='config',
-                            help='Path to the config file'
-                            )
+                            default=None,
+                            metavar='None',
+                            dest='raw_data',
+                            help='Input file or folder.')
         parser.add_argument('-plot_data',
                             type=str,
                             default=None,
                             metavar='None',
                             dest='plot_data',
                             help='Formatted input data to plot')
+        parser.add_argument('-unform_plot_data',
+                            action='store_true',
+                            default=False,
+                            dest='unformatted_plot_data',
+                            help='Default: False. Reorder plot data (1,1,2,2 -> 1,2,1,2.')
         parser.add_argument('-gene_list',
                             type=str,
                             default=None,
                             metavar='None',
                             dest='gene_list',
                             help='\tSingle Column Gene list in txt file.')
-        # parser.add_argument('-input_results',
-        #                     type=str,
-        #                     default=None,
-        #                     metavar='None',
-        #                     dest='de_results',
-        #                     help='Optional. Your own flagged gene list.')
+
+        parser.add_argument('-input_results',
+                            type=str,
+                            default=None,
+                            metavar='None',
+                            dest='de_results',
+                            help='Optional. Your own flagged gene list.')
         ## Filter args
+
         parser.add_argument('--------------------Filter Options--------------------',
                             action='store_true',
                             default=False)
@@ -311,6 +306,3 @@ class Args:
                 logfile.write(sys.argv[i] + ' ')
             logfile.write('\n\n' + time.ctime())
 
-    def check_args(self):
-        assert self.args.num == 2 and len(self.args.time) != int(tot/2),
-            "Check your -time option, make sure it matches the no. of input files."
