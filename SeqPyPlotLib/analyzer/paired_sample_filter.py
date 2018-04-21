@@ -1,5 +1,5 @@
 
-from ..container.DataContainer import DataContainer
+from ..container.data_container import DataContainer
 import pandas as pd
 import os
 
@@ -22,7 +22,7 @@ class PairedSampleFilter(DataContainer):
         [type] -- [description]
     """
 
-    def __init__(self, config):
+    def __init__(self, config_obj):
         """[summary]
         
         Arguments:
@@ -34,17 +34,17 @@ class PairedSampleFilter(DataContainer):
         self.state_change    -- a list of dfs
 
         """
-        super(PairedSampleFilter, self).__init__(config=config)    
-        self.log2fold = self.config.getfloat('params', 'log2fold')
-        self.low = self.config.getint('params', 'low')
-        self.hi = self.config.getint('params', 'hi')
-        self.diff = self.config.getint('params', 'diff')
+        super(PairedSampleFilter, self).__init__(config_obj=config_obj)    
+        self.log2fold = self.config_obj.getfloat('params', 'log2fold')
+        self.low = self.config_obj.getint('params', 'low')
+        self.hi = self.config_obj.getint('params', 'hi')
+        self.diff = self.config_obj.getint('params', 'diff')
 
         self.split_dfs = self.split()
         self.main_filter_process(self.split_dfs)
 
         # Collect other information concerning the data
-        times = self.config.get('names', 'times')
+        times = self.config_obj.get('names', 'times')
         self.de_count_by_stage = {time: len(df) for time, df in zip(times, self.filtered_genes)}
 
         self.de_count_by_gene = self.count_by_gene()

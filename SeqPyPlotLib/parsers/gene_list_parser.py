@@ -1,4 +1,3 @@
-
 import codecs
 import os
 
@@ -7,7 +6,7 @@ class MakeFigureList(object):
 
     def __init__(self, config_obj):
 
-        self.config = config_obj
+        self.config_obj = config_obj
 
         self.gene_list = self.input_file_parser()
         self.plot_groups = self.make_plot_groups(self.gene_list)
@@ -18,7 +17,7 @@ class MakeFigureList(object):
         # Handle file encodings when you open the input file
         file_parsed = False
 
-        input_file = self.config.get('plots', 'genelist')
+        input_file = self.config_obj.get('file_names', 'genelist')
         assert os.stat(input_file).st_size > 0, "Gene list for plotting was empty, gene_list_parser 2"
         
         for e in ["utf-8", "ascii", "ansi"]:
