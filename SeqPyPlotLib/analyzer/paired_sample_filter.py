@@ -1,9 +1,7 @@
-
-from ..container.data_container import DataContainer
 import pandas as pd
 import os
 
-class PairedSampleFilter(DataContainer):
+class PairedSampleFilter(object):
     """
     This class handles filtering paired normalized samples.
     It inherits from the DataContainer object and only needs a valid config.ini
@@ -22,26 +20,16 @@ class PairedSampleFilter(DataContainer):
         [type] -- [description]
     """
 
-    def __init__(self, config_obj):
-        """[summary]
-        
-        Arguments:
-            config {[type]} -- [description]
-        
-        Other properties available after __init__:
-        self.saturated_dfs   -- a list of dfs
-        self.filtered_genes  -- a list of dfs 
-        self.state_change    -- a list of dfs
+    def __init__(self, config_obj, container_obj):
 
-        """
-        super(PairedSampleFilter, self).__init__(config_obj=config_obj)    
         self.log2fold = self.config_obj.getfloat('params', 'log2fold')
         self.low = self.config_obj.getint('params', 'low')
         self.hi = self.config_obj.getint('params', 'hi')
-        self.diff = self.config_obj.getint('params', 'diff')
+        self.diff = self.config_obj.getlist('params', 'diff')
 
+        self.file_pairs = self.config_obj.get('names', 'file_pairs')
         self.split_dfs = self.split()
-        self.main_filter_process(self.split_dfs)
+        self.filtered_genes = self.main_filter_process(self.split_dfs)
 
         # Collect other information concerning the data
         times = self.config_obj.get('names', 'times')
@@ -76,8 +64,8 @@ class PairedSampleFilter(DataContainer):
 
         result = self.apply_low(merged_dfs)
         result = self.apply_hi(result)
-        self.filtered_genes = result  # A list of dataframes
-        
+        return result  # A list of dataframes
+
     def split(self):
         return [self.normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
 
