@@ -22,8 +22,6 @@ def config_parser(config_path):
     data, names, pairs, num_file_pairs = configure_input_data(config_obj)
     
     config_obj.set('data', 'paths', value=data)
-    
-    config_obj.set('params', 'diff', value=diff)
 
     config_obj.set('names', 'sample_names', value=names)
     config_obj.set('names', 'file_pairs', value=pairs)  
@@ -41,6 +39,8 @@ def configure_input_data(config_object):
     treated_data = config_object.getlist('data', 'treated')
     data = [os.path.join(dir_path, x) for x in control_data] + [os.path.join(dir_path, x) for x in treated_data]
     
+    control_names = config_object.getlist('names', 'controls')
+    treated_names = config_object.getlist('names', 'treated')
     names = control_names + treated_names
     control_names = config_object.getlist('names', 'controls')
     treated_names = config_object.getlist('names', 'treated')

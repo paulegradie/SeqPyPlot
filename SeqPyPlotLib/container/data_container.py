@@ -45,19 +45,26 @@ class DataContainer(object):
         self.data_directory = self.config_obj.get('data_directory', 'dir')
         self.paths = self.config_obj.get('data', 'paths')
         self.names = self.config_obj.get('names', 'sample_names')
+        self.times = self.config_obj.get('names', 'times')
+        self.file_pairs = self.config_obj.get('names', 'file_pairs')
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
 
-        self.raw_df, self.ercc_data = self._parse_input_()
+        (self.raw_df,
+         self.ercc_data) = self._parse_input_()
+        
         self.normalized_df = self.reorder_cols(self._normalize_file_pairs_())
-        self.file_pairs = self.config_obj.get('names', 'file_pairs')
-        self.times = self.config_obj.get('names', 'times')
+        self.complete_gene_list = self.normalized_df.index.tolist()
 
+        self.split_normalized_dfs = self.split()
         # if self.args.impute_by_nieghbors:
         #     self.normalized_df = self._average_flanking_()
 
         # if write_csv:
         #     write_to_csv(self.raw_df, )
 
+
+    def split(self):
+        return [self.normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
 
     @property
     def is_parsed(self):
@@ -115,6 +122,7 @@ class DataContainer(object):
         treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
         return df[controls + treated]
 
+    #TODO implement support for missing data (data imputation)
     def _average_flanking_(self, value):
         """
         :param value: a list with missing values to be filled in

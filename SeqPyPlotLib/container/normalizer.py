@@ -3,13 +3,13 @@
 import numpy as np
 
 
-def _scaling_factor_for_tmm(obs, ref,
-                            log_ratio_trim=0.3,
-                            sum_trim=0.05,
-                            weighting=True,
-                            a_cutoff=-1e10):
+def compute_scaling_factor(obs, ref,
+                           log_ratio_trim=0.3,
+                           sum_trim=0.05,
+                           weighting=True,
+                           a_cutoff=-1e10):
     """
-    Called by `norm_tmm`.
+    This is largely taken from the Smyth implementation in R.
     """
     if all(obs == ref):
         return 1
@@ -19,12 +19,16 @@ def _scaling_factor_for_tmm(obs, ref,
 
     # log ration of expression accounting for library size
     lr = np.log2((obs / obs_sum) / (ref / ref_sum))
+    
     # absolute expression
     ae = (np.log2(obs / obs_sum) + np.log2(ref / ref_sum)) / 2
+    
     # estimated asymptotic variance
     v = (obs_sum - obs) / obs_sum / obs + (ref_sum - ref) / ref_sum / ref
+    
     # create mask
     m = np.isfinite(lr) & np.isfinite(ae) & (ae > a_cutoff)
+    
     # drop the masked values
     lr = lr[m]
     ae = ae[m]
@@ -45,33 +49,13 @@ def _scaling_factor_for_tmm(obs, ref,
         return 2**(lr[k].mean())
 
 
-def _scaling_factor(df, q=0.75):
-    """
-    Parameters:
-    -----------
-    - df: zeroed rows removed
-    - q: quartile
-    """
-    # Claculate column sums
-    library_sizes = df.sum()
-
-    # Divide rows by column sums and return to
-    # original orientation
-    result = df.T.div(library_sizes, axis=0).T
-
-    # # fill nans with 0
-    # result = result.dropna(how="all").fillna(0)
-    result = result.quantile(q)
-
-    # factors multiple to one
-    scaling_factor = result.div(np.exp(np.mean(np.log(result))))
-    return scaling_factor
-
-
 def extract_usable_data(df):
 
-    nonzero_df = df[df.values.sum(axis=1) != 0]
-    zero_df = df[df.values.sum(axis=1) == 0]
+    d = df.copy()
+    d.fillna(0, inplace=True)
+    
+    nonzero_df = df.where(df > 0).dropna(axis=0)
+    zero_df = df.where(df == 0).dropna(axis=0)
 
     return nonzero_df, zero_df
 
@@ -95,20 +79,135 @@ def norm_tmm(original_df,
     - weighting: whether to compute weights.
     - a_cutoff: cutoff of absolute expression values.
     """
+    
     df = original_df.copy()
     nonzero_df, zero_df = extract_usable_data(df)
 
-    #Take whichever column has the smallest
+    # Always use control as ref
     ref_col = df.columns[0]
 
-    # try:
     kwargs = {"ref": nonzero_df[ref_col],
               "log_ratio_trim": log_ratio_trim,
               "sum_trim": absolute_intensity_trim,
               "weighting": weighting,
               "a_cutoff": a_cutoff}
 
-    sf_tmm = nonzero_df.apply(_scaling_factor_for_tmm, **kwargs)
+    sf_tmm = nonzero_df.apply(compute_scaling_factor, **kwargs)
+    
+    remerged_df = nonzero_df.merge(zero_df, how='right')
+
     # apply scaling
     df = df.div(sf_tmm, axis=1)
     return df
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def _scaling_factor(df, quartile=0.60):
+#     """
+#     Parameters:
+#     -----------
+#     - df: zeroed rows removed
+#     - quartile: percent used to claculate trimming of outer quartile data
+#     """
+#     library_sizes = df.sum()
+
+#     result_df = df.div(library_sizes, axis=1)
+#     result_df = result_df.quantile(quartile)
+
+#     # factors multiple to one
+#     scaling_factor = result_df.div(np.exp(np.mean(np.log(result_df))))
+#     return scaling_factor
+
+
+
+
+
+# def _scaling_factor_for_tmm(df, quartile=0.75):
+#     """
+#     Parameters:
+#     -----------
+#     - df: zeroed rows removed
+#     - q: quartile
+#     """
+#     lib_size = df.sum()
+#     y = df.div(lib_size, axis=0)
+#     # fill nans with 0
+#     y = y.dropna(how="all").fillna(0)
+#     y = y.quantile(quartile)
+#     # factors multiple to one
+#     scaling_factor = y.div(np.exp(np.mean(np.log(y))))
+#     return scaling_factor
+
+# def norm_tmm(exp_obj,
+#              ref_col=None,
+#              log_ratio_trim=0.3,
+#              sum_trim=0.05,
+#              weighting=True,
+#              a_cutoff=-1e10):
+#     """
+#     Trimmed Mean of M-values (TMM) is the weighted mean of log ratios between
+#     this test and the reference, after exclusion of the most expressed genes
+#     and the genes with the largest log ratios.
+    
+#     Parameters:
+#     -----------
+#     - exp_obj: experiment object.
+#     - ref_col: reference column from which to scale others.
+#     - log_ratio_trim: amount of trim to use on log-ratios.
+#     - sum_trim: amount of trim to use on combined absolute values.
+#     - weighting: whether to compute weights.
+#     - a_cutoff: cutoff of absolute expression values.
+#     """
+#     df = exp_obj.counts_df.copy()
+#     # remove zeros
+#     nz = df.where(df > 0)
+#     nz = nz.dropna(how="all").fillna(0)
+#     # reference column
+#     if ref_col is None:
+#         # quantile factors
+#         sf_q = _sf_q(nz)
+#         ref_col = (abs(sf_q - np.mean(sf_q))).idxmin()
+#     # try:
+#     kwargs = {"ref": nz[ref_col],
+#               "log_ratio_trim": log_ratio_trim,
+#               "sum_trim": sum_trim,
+#               "weighting": weighting,
+#               "a_cutoff": a_cutoff}
+#     # except KeyError:
+#         # revert back to auto?
+#     sf_tmm = nz.apply(_sf_tmm, **kwargs)
+#     # apply scaling
+#     df = df.div(sf_tmm, axis=1)
+#     return df
+
+# def norm_q(exp_obj, q=0.75):
+#     """
+#     Ported from edgeR and still needs to be validated. Also, maybe compare
+#     edgeR method to limma implementation.
+    
+#     Quantile normalization.
+    
+#     Parameters:
+#     -----------
+#     - exp_obj: experiment object.
+#     - q: quantile.
+#     """
+#     df = exp_obj.counts_df.copy()
+#     # remove zeros
+#     nz = df.where(df > 0)
+#     nz = nz.dropna(how="all").fillna(0)
+#     sf_q = _sf_q(nz, q)
+#     # apply scaling
+#     df = df.div(sf_q, axis=1)
+#     return df

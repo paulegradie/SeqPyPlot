@@ -1,15 +1,20 @@
 from base.plot_base import PlotBase
 from ..analyzer.paired_sample_filter import PairedSampleFilter
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 import matplotlib.lines as mlines
+import os
+import numpy as np
+
 
 class TallyDe(PlotBase):
 
     def __init__(self, config_obj, container_obj):
+        plt.close()
+        super(TallyDe, self).__init__()
 
-        self.cutoffs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
-                        1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
-                        3, 4, 5]
+        self.cutoffs = [x/100. for x in range(200) if x % 5 == 0]
+        
         self.container_obj = container_obj
         self.config_obj = config_obj
 
@@ -21,28 +26,28 @@ class TallyDe(PlotBase):
         self.hi = self.config_obj.getint('params', 'hi')
         self.diff = self.config_obj.getlist('params', 'diff')
 
-    def compute_tally(self)
+    def compute_tally(self):
 
-        line_plot_y_list = []
-        iteration = len(cutoffs)
+        y_values = []
+        iteration = len(self.cutoffs)
         print("Iterating over log2fold cutoff values... ")
 
         for idx, cutoff in enumerate(self.cutoffs):
-            
-            analyzer = PairedSampleFilter(self.config_obj, self.container_obj)
-        
+            # print("current cutoff: ", cutoff)
+            analyzer = PairedSampleFilter(self.config_obj, self.container_obj, log2fold=cutoff)
+
             # print temp_de_count
-            line_plot_y_list.append(len(analyzer.complete_de_gene_list))
+            y_values.append(len(analyzer.complete_de_gene_list))
             text = "{} of {}.".format(idx + 1, len(self.cutoffs)+1)
             print('{:^43}'.format(text))
 
-        return line_plot_y_list
+        return y_values
 
     def set_figure(self, handles):
         # create a figure for the current figure
         fig = plt.figure(num=1,
                          figsize=(7, 7),
-                         dpi=600,
+                         dpi=1200,
                          edgecolor='black',
                          frameon=False,
                          )
@@ -63,10 +68,9 @@ class TallyDe(PlotBase):
         fig.legend(handles=handles,
                     labels=(labels),
                     loc='upper right')
-        return fig
+        rcParams['legend.frameon'] = 'False' 
 
-    def set_line(self, color='white'):
-        return mlines.Line2D([], [], color=color)
+        return fig
 
     def create_subplot(self, ax, y_values):
         ax.plot(self.cutoffs,
@@ -78,7 +82,7 @@ class TallyDe(PlotBase):
                  linestyle="-",
                  dash_capstyle='round',
                  dash_joinstyle='bevel',
-                 label=label,
+                 label="DE cutoffs by log2fold",
                  fillstyle='full',
                  markeredgecolor='black',
                  markerfacecolor='white',
@@ -89,7 +93,7 @@ class TallyDe(PlotBase):
     def format_tally_plot(self, ax):
 
         # xlim is the length of the label list
-        ax.set_xlim(0, 5.5)
+        ax.set_xlim(0, 3)
         ax.spines['right'].set_color('none')
         ax.spines['top'].set_color('none')
         ax.xaxis.set_ticks_position('bottom')
@@ -102,21 +106,20 @@ class TallyDe(PlotBase):
     def save_fig(self, fig):
 
         path_ = os.path.join(self.output_dir, self.prefix)
-        file_name = "_".join([path_, "_DE_cutoff_by_log2fold.png"])
+        file_name = "_".join([path_, "_DE_Tally_Plot.png"])
         fig.savefig(file_name, format='png', bbox_inches='tight')
         fig.close()
 
     def save_plot(self, fig):
 
         path_ = os.path.join(self.output_dir, self.prefix)
-        file_name = "_".join([path_,"DE_Gene_by_time.png"])
+        file_name = "_".join([path_,"DE_Tally_Plot.png"])
 
         fig.savefig(file_name, format='png', bbox_inches='tight')
 
         return fig
 
-
-    def create_tall_plot(self):
+    def create_tally_plot(self):
 
         handles = [self.set_line() for _ in range(3)]
         fig = self.set_figure(handles)
@@ -124,6 +127,7 @@ class TallyDe(PlotBase):
 
         y_values = self.compute_tally()
         ax = self.create_subplot(ax, y_values)
-        ax = format_tally_plot(ax)
+        ax = self.format_tally_plot(ax)
 
-        self.save_plot(self, fig)
+        self.save_plot(fig)
+        plt.close()

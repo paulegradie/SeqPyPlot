@@ -1,11 +1,16 @@
-
 from base.plot_base import PlotBase
+import matplotlib.pyplot as plt
+import os
 
-class PairedBarPlot(BasePlot):
+plt.style.use('bmh')
+
+class PairedBarPlot(PlotBase):
 
     def __init__(self, config_obj):
         
-        super(PlotBase, self).__init__()
+        super(PairedBarPlot, self).__init__()
+
+        plt.close()
 
         self.config_obj = config_obj
 
@@ -17,11 +22,6 @@ class PairedBarPlot(BasePlot):
         self.hi = self.config_obj.getint('params', 'hi')
         self.low = self.config_obj.getint('params', 'low')
         self.diff = self.config_obj.getlist('params', 'diff')
-
-        plt.close()
-
-    def set_lines(self, color):
-        return  mlines.Line2D([], [], color=color)
 
     def save_plot(self, fig):
 
@@ -35,25 +35,32 @@ class PairedBarPlot(BasePlot):
     def tidy_figure_up(self, fig, handles):
 
         hi = 'inf' if self.hi > 99999 else self.hi
-        fig.legend(handles=[expression_upper, expression_lower, log_line, difference],
-                   labels=(["Log2: " + str(self.log),
-                            "Range: " + "-".join([str(self.low), str(hi)]),
-                            "Diff: {}, {}".format(str(int(self.diff[0])), str(int(self.diff[1])))]),
-                   loc='upper right')
 
+        diffstart = str(int(self.diff[0]))
+        diffend = str(int(self.diff[1]))
+        fig.legend(handles=[self.set_line({'color': 'white'}) for _ in range(3)],
+                   labels=(
+                       ["Log2: " + str(self.log),
+                        "Range: " + " - ".join([str(self.low), str(hi)]),
+                        "Diff: " + " - ".join([diffstart, diffend])]
+                        ),
+                   loc='upper right')
+        plt.tight_layout()
         return fig
 
-    def create_subplot(self, x_axis, y_values, x_label, bar_width=0.5, color='black'):
+    def create_subplot(self, x_axis, y_values, x_label, ymax, bar_width=0.5, color='black'):
+
         ax = plt.subplot()
+        ax.bar(x_axis, y_values, bar_width, color=color, align="center")
+        ax = self.format_subplot(ax, x_axis, x_label, ymax, num_stages=len(x_label))
+        return ax
+
+    def format_subplot(self, ax, x_axis, x_label, ymax, num_stages):
+
         ax.set_xticks(x_axis)
         ax.set_xticklabels(x_label, rotation='vertical')
         ax.set_ylim([0, ymax])
-        ax.bar(x_axis, y_values, bar_width, color=colour, align="center")
 
-        ax = self.format_plot(ax, num_stages=len(x_label))
-        return ax
-
-    def format_plot(self, ax, num_stages):
         # add some text for labels, title and axes ticks
         ax.set_ylabel('No. of Flagged Genes')
         ax.set_xlabel('Experimental Stage')
@@ -66,15 +73,15 @@ class PairedBarPlot(BasePlot):
         ax.spines['left'].set_visible(True)
 
         if num_stages > 6:
-            ax.set_tick_params(axis='both', which='major', labelsize=8)
+            ax.tick_params(axis='both', which='major', labelsize=8)
         else:
-            ax.set_tick_params(axis='both',  # changes apply to the x-axis
-                               which='both',  # both major and minor ticks are affected
-                               bottom='on',  # ticks along the bottom edge are off
-                               top='off',  # ticks along the top edge are off
-                               left='on',
-                               right='off',
-                               labelbottom='on')  # labels along the bottom edge are off
+            ax.tick_params(axis='both',  # changes apply to the x-axis
+                           which='both',  # both major and minor ticks are affected
+                           bottom='on',  # ticks along the bottom edge are off
+                           top='off',  # ticks along the top edge are off
+                           left='on',
+                           right='off',
+                           labelbottom='on')  # labels along the bottom edge are off
 
         return ax
 
@@ -87,9 +94,9 @@ class PairedBarPlot(BasePlot):
         x_axis = range(len(y_values))
 
         fig = self.set_figure(figure_prefix='Paired Sample DE Bar Plot')
-        ax = self.create_subplot(x_axis, y_values, x_label)
+        ax = self.create_subplot(x_axis, y_values, x_label, ymax)
 
-        line_handles = [self.set_lines('white') for _ in range(4)]
+        line_handles = [self.set_line() for _ in range(4)]
         fig = self.tidy_figure_up(fig, line_handles)
 
         self.save_plot(fig)
