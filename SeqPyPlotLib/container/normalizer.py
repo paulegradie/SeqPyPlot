@@ -53,9 +53,9 @@ def extract_usable_data(df):
 
     d = df.copy()
     d.fillna(0, inplace=True)
-    
+
     nonzero_df = df.where(df > 0).dropna(axis=0)
-    zero_df = df.where(df == 0).dropna(axis=0)
+    zero_df = df.drop(nonzero_df.index)
 
     return nonzero_df, zero_df
 
@@ -98,6 +98,7 @@ def norm_tmm(original_df,
 
     # apply scaling
     df = df.div(sf_tmm, axis=1)
+
     return df
 
 

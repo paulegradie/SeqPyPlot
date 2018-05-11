@@ -25,7 +25,7 @@ import pandas as pd
 
 from normalizer import norm_tmm as TMM
 from ..parsers import CuffNormParser, HtSeqParser, PlotDataParser
-
+from ..utils.utils import write_to_csv
 
 PARSERS = {'htseq': HtSeqParser,
            'cuffnorm': CuffNormParser,
@@ -56,19 +56,16 @@ class DataContainer(object):
         self.complete_gene_list = self.normalized_df.index.tolist()
 
         self.split_normalized_dfs = self.split()
+
         # if self.args.impute_by_nieghbors:
         #     self.normalized_df = self._average_flanking_()
 
         # if write_csv:
-        #     write_to_csv(self.raw_df, )
-
+        write_to_csv(self.raw_df, 'test_raw_df.txt')
+        write_to_csv(self.normalized_df, 'test_raw_normed_df.txt')
 
     def split(self):
         return [self.normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
-
-    @property
-    def is_parsed(self):
-        pass
 
     def _parse_input_(self):
         # Instantiante parser
@@ -79,9 +76,6 @@ class DataContainer(object):
 
         # self.is_parsed = True
         return raw_df, ercc_data
-
-    def normalize_data(self, raw_df, data_pairs):
-        pass
 
     def make_col_pairs(self):
         control_cols = self.raw_df.columns[:self.num_file_pairs]
@@ -95,21 +89,12 @@ class DataContainer(object):
         for control, treat in self.make_col_pairs():
 
             sub_df = self.raw_df[[control, treat]]
-            nonzero_df, zero_df = self.extract_usable_data(sub_df)
 
-            normalized_nonzero = self.execute_normalization(nonzero_df)
-            normalized_pairs.append(pd.concat([normalized_nonzero, zero_df]))
+            normalized_sub_df = self.execute_normalization(sub_df)
+            normalized_pairs.append(normalized_sub_df)
 
         remerged_df = self.merge_dfs(normalized_pairs)
-
         return remerged_df
-
-    def extract_usable_data(self, df):
-
-        nonzero_df = df[df.values.sum(axis=1) != 0]
-        zero_df = df[df.values.sum(axis=1) == 0]
-
-        return nonzero_df, zero_df
 
     def execute_normalization(self, unnormalized_matrix):
         return TMM(unnormalized_matrix)

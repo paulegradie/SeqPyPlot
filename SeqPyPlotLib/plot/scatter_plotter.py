@@ -39,12 +39,12 @@ class ScatterPlots(PlotBase):
         self.diff = self.config_obj.getlist('params', 'diff')
         self.times = self.config_obj.getlist('names', 'times')
 
-
         self.scatrange = self.config_obj.getlist('plot_options', 'scatrange')
 
         # organize plot data
         self.flagged_data = self.analyzer_obj.filtered_genes  # a list of dfs
         self.unflagged_data = self.collect_unflagged_data()  # a list of dfsff
+        import pdb;pdb.set_trace()
 
     def collect_unflagged_data(self):
 

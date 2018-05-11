@@ -40,7 +40,7 @@ def file_is_empty(file_name):
 def write_to_csv(data, file_path, suffix=None):
     """ write dataframe to csv """
 
-    assert type(data) == 'pandas.core.frame.DataFrame'
+    assert str(type(data)) == "<class 'pandas.core.frame.DataFrame'>"
     file_name = os.path.join(file_path, suffix if suffix else '')
     data.to_csv(file_name, sep='\t')
     return None
