@@ -8,7 +8,7 @@ setup(
     version='0.4.0',
     author='Paul E Gradie',
     author_email='paul.e.gradie@gmail.com',
-    packages=['SeqPyPlotLib', 'test'],
+    packages=['seqpyplot', 'test'],
     scripts=['bin/SeqPyPlot.py'],
     url='http://pypi.python.org/pypi/seqpyplot',
     license='LICENSE.txt',
