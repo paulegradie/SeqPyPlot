@@ -1,5 +1,5 @@
 from setuptools import setup
-from distutils.core import setup
+# from distutils.core import setup
 
 
 
@@ -8,7 +8,7 @@ setup(
     version='0.4.0',
     author='Paul E Gradie',
     author_email='paul.e.gradie@gmail.com',
-    packages=['seqpyplot', 'seqpyplot.test'],
+    packages=['SeqPyPlotLib', 'test'],
     scripts=['bin/SeqPyPlot.py'],
     url='http://pypi.python.org/pypi/seqpyplot',
     license='LICENSE.txt',
@@ -17,6 +17,7 @@ setup(
     install_requires=[
         "pandas == 0.22.0",
         "numpy == 1.14.3",
+        
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
