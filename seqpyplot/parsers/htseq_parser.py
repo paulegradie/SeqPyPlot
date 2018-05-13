@@ -10,7 +10,10 @@ missing sample columns as NaN.
 
 import pandas as pd
 from pathos.multiprocessing import ProcessPool
-
+try:
+    from functools import reduce # for py3 compatibility
+except ImportError:
+    pass
 
 class HtSeqParser(object):
 

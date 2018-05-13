@@ -20,12 +20,19 @@ The initialization of the DataContainer should automatically call the correct pa
 create the normalization matrix, and then 
 """
 import os
+
 import numpy as np
 import pandas as pd
 
-from normalizer import norm_tmm as TMM
 from ..parsers import CuffNormParser, HtSeqParser, PlotDataParser
 from ..utils.utils import write_to_csv
+from .normalizer import norm_tmm as TMM
+
+try:
+    from functools import reduce # python 3 compatibility
+except ImportError:
+    pass
+
 
 PARSERS = {'htseq': HtSeqParser,
            'cuffnorm': CuffNormParser,
@@ -43,31 +50,32 @@ class DataContainer(object):
         self.config_obj = config_obj
 
         self.data_directory = self.config_obj.get('data_directory', 'dir')
-        self.paths = self.config_obj.get('data', 'paths')
-        self.names = self.config_obj.get('names', 'sample_names')
-        self.times = self.config_obj.get('names', 'times')
+        self.paths = self.config_obj.getlist('data', 'paths')
+        self.names = self.config_obj.getlist('names', 'sample_names')
+        self.times = self.config_obj.getlist('names', 'times')
         self.file_pairs = self.config_obj.get('names', 'file_pairs')
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
 
-        (self.raw_df,
-         self.ercc_data) = self._parse_input_()
+        # (self.raw_df,
+        #  self.ercc_data) = self._parse_input_()
         
-        self.normalized_df = self.reorder_cols(self._normalize_file_pairs_())
-        self.complete_gene_list = self.normalized_df.index.tolist()
+        # self.normalized_df = self.reorder_cols(self.normalize_file_pairs())
+        # self.complete_gene_list = self.normalized_df.index.tolist()
 
-        self.split_normalized_dfs = self.split()
+        # self.split_normalized_dfs = self.split()
 
         # if self.args.impute_by_nieghbors:
         #     self.normalized_df = self._average_flanking_()
 
-        # if write_csv:
-        write_to_csv(self.raw_df, 'test_raw_df.txt')
-        write_to_csv(self.normalized_df, 'test_raw_normed_df.txt')
+        # # if write_csv:
+        # write_to_csv(self.raw_df, 'test_raw_df.txt')
+        # write_to_csv(self.normalized_df, 'test_raw_normed_df.txt')
+    
+    @staticmethod
+    def split(normalized_df, file_pairs):
+        return [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in file_pairs]
 
-    def split(self):
-        return [self.normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
-
-    def _parse_input_(self):
+    def parse_input(self):
         # Instantiante parser
         parser = PARSERS[self.config_obj.get('data', 'data_type')]()
 
@@ -77,18 +85,26 @@ class DataContainer(object):
         # self.is_parsed = True
         return raw_df, ercc_data
 
-    def make_col_pairs(self):
-        control_cols = self.raw_df.columns[:self.num_file_pairs]
-        treated_cols = self.raw_df.columns[self.num_file_pairs:]
+    def make_col_pairs(self, df):
+        """
+        Input: df where a1, a2, b1, b2
+        Return: col names as [(a1, b1), (a2, b2)]
+        """
+        control_cols = df.columns[:self.num_file_pairs]
+        treated_cols = df.columns[self.num_file_pairs:]
 
         return zip(control_cols, treated_cols)
 
-    def _normalize_file_pairs_(self):
-
+    def normalize_file_pairs(self, raw_df):
+        """
+        TMM shouldn't be used to normalize across developmental time
+        series data. This func splits off pairs at the same step
+        and normalized them togther
+        """
         normalized_pairs = list()
-        for control, treat in self.make_col_pairs():
+        for control, treat in self.make_col_pairs(raw_df):
 
-            sub_df = self.raw_df[[control, treat]]
+            sub_df = raw_df[[control, treat]]
 
             normalized_sub_df = self.execute_normalization(sub_df)
             normalized_pairs.append(normalized_sub_df)

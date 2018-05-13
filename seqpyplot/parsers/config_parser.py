@@ -1,4 +1,4 @@
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from ast import literal_eval
 import os
 
@@ -19,12 +19,12 @@ def config_parser(config_path):
     config_obj = ConfigParser()
     config_obj.read(config_path)
 
-    data, names, pairs, num_file_pairs = configure_input_data(config_obj)
+    data, names, pairs, num_file_pairs = _configure_input_data_(config_obj)
     
-    config_obj.set('data', 'paths', value=data)
+    config_obj.set('data', 'paths', value=str(data))
 
-    config_obj.set('names', 'sample_names', value=names)
-    config_obj.set('names', 'file_pairs', value=pairs)  
+    config_obj.set('names', 'sample_names', value=str(names))
+    config_obj.set('names', 'file_pairs', value=str(pairs))  
 
     config_obj.add_section('misc')
     config_obj.set('misc', 'num_file_pairs', value=str(num_file_pairs))
@@ -32,7 +32,7 @@ def config_parser(config_path):
     return config_obj
 
 
-def configure_input_data(config_object):
+def _configure_input_data_(config_object):
 
     dir_path = config_object.get('data_directory', 'dir')
     control_data = config_object.getlist('data', 'controls')
