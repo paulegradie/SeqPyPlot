@@ -1,14 +1,14 @@
-from SeqPyPlotLib.analyzer.paired_sample_filter import PairedSampleFilter
-from SeqPyPlotLib.container.data_container import DataContainer
+from SeqPyPlot.seqpyplot.analyzer.paired_sample_filter import PairedSampleFilter
+from SeqPyPlot.seqpyplot.container.data_container import DataContainer
 
-from SeqPyPlotLib.parsers.config_parser import config_parser
-from SeqPyPlotLib.parsers.gene_list_parser import MakeFigureList
+from SeqPyPlot.seqpyplot.parsers.config_parser import config_parser
+from SeqPyPlot.seqpyplot.parsers.gene_list_parser import MakeFigureList
 
-from SeqPyPlotLib.plot.paired_line_plotter import PairedDataLinePlotter
-from SeqPyPlotLib.plot.bar_plotter import PairedBarPlot
-from SeqPyPlotLib.plot.de_tally_plotter import TallyDe
-from SeqPyPlotLib.plot.scatter_plotter import ScatterPlots
-from SeqPyPlotLib.plot.PCA import PCADecomposition
+from SeqPyPlot.seqpyplot.plot.paired_line_plotter import PairedDataLinePlotter
+from SeqPyPlot.seqpyplot.plot.bar_plotter import PairedBarPlot
+from SeqPyPlot.seqpyplot.plot.de_tally_plotter import TallyDe
+from SeqPyPlot.seqpyplot.plot.scatter_plotter import ScatterPlots
+from SeqPyPlot.seqpyplot.plot.PCA import PCADecomposition
 
 
 from shutil import rmtree
