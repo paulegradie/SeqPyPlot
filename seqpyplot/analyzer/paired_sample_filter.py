@@ -32,23 +32,6 @@ class PairedSampleFilter(object):
         
         self.file_pairs = self.config_obj.get('names', 'file_pairs')
 
-        #TODO use dispersion estimate to inform DE calls - how? maybe by using the estimate to prefilter
-        # genes above the dispersion estimate 
-        #self.dispersion_estimate = self.calculate_dispersion_estimate()
-
-        self.normalized_df = container_obj.normalized_df
-        self.split_normalized_dfs = self.container_obj.split_normalized_dfs
-
-        self.filtered_genes = self.main_filter_process(self.split_normalized_dfs)
-
-        # Collect other information concerning the data
-        times = self.config_obj.getlist('names', 'times')
-        self.de_count_by_stage = {time: len(df) for time, df in zip(times, self.filtered_genes)}
-
-        self.de_count_by_gene = self.count_by_gene()
-        self.de_gene_list_by_stage = {time: df.index for time, df in zip(times, self.filtered_genes)}
-        self.complete_de_gene_list = set(sorted(reduce(lambda x, y: pd.concat([x, y], axis=0), self.filtered_genes).index.tolist()))
-        
     def count_by_gene(self):
         
         gene_count = dict()
@@ -164,3 +147,24 @@ class PairedSampleFilter(object):
         dispersion_estimate = row_means.mean()
 
         return dispersion_estimate
+
+
+
+if __name__ == "__main__":
+    #TODO use dispersion estimate to inform DE calls - how? maybe by using the estimate to prefilter
+    # genes above the dispersion estimate 
+    #self.dispersion_estimate = self.calculate_dispersion_estimate()
+
+    self.normalized_df = container_obj.normalized_df
+    self.split_normalized_dfs = self.container_obj.split_normalized_dfs
+
+    self.filtered_genes = self.main_filter_process(self.split_normalized_dfs)
+
+    # Collect other information concerning the data
+    times = self.config_obj.getlist('names', 'times')
+    self.de_count_by_stage = {time: len(df) for time, df in zip(times, self.filtered_genes)}
+
+    self.de_count_by_gene = self.count_by_gene()
+    self.de_gene_list_by_stage = {time: df.index for time, df in zip(times, self.filtered_genes)}
+    self.complete_de_gene_list = set(sorted(reduce(lambda x, y: pd.concat([x, y], axis=0), self.filtered_genes).index.tolist()))
+    

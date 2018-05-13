@@ -55,21 +55,6 @@ class DataContainer(object):
         self.times = self.config_obj.getlist('names', 'times')
         self.file_pairs = self.config_obj.get('names', 'file_pairs')
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
-
-        # (self.raw_df,
-        #  self.ercc_data) = self._parse_input_()
-        
-        # self.normalized_df = self.reorder_cols(self.normalize_file_pairs())
-        # self.complete_gene_list = self.normalized_df.index.tolist()
-
-        # self.split_normalized_dfs = self.split()
-
-        # if self.args.impute_by_nieghbors:
-        #     self.normalized_df = self._average_flanking_()
-
-        # # if write_csv:
-        # write_to_csv(self.raw_df, 'test_raw_df.txt')
-        # write_to_csv(self.normalized_df, 'test_raw_normed_df.txt')
     
     @staticmethod
     def split(normalized_df, file_pairs):
