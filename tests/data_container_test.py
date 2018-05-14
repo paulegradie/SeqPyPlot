@@ -5,6 +5,8 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import pytest
+import os
+
 from pandas.testing import assert_frame_equal
 
 from SeqPyPlot.seqpyplot.container.data_container import DataContainer
@@ -21,13 +23,16 @@ def test_foo():
 
 @pytest.fixture(scope='module')
 def load_container():
-    config_obj = config_parser('tests\\test_config.ini')
+
+    conf = os.path.join('tests', 'test_config.ini')
+    config_obj = config_parser(conf)
     dc = DataContainer(config_obj)
     return dc
 
 def test_config_load():
 
-    config_obj = config_parser('tests\\test_config.ini')
+    conf = os.path.join('tests', 'test_config.ini')
+    config_obj = config_parser(conf)
     dc = DataContainer(config_obj)
     assert True
 
