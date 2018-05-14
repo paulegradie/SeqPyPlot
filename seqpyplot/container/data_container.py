@@ -53,7 +53,7 @@ class DataContainer(object):
         self.paths = self.config_obj.getlist('data', 'paths')
         self.names = self.config_obj.getlist('names', 'sample_names')
         self.times = self.config_obj.getlist('names', 'times')
-        self.file_pairs = self.config_obj.get('names', 'file_pairs')
+        self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
     
     def split(self, normalized_df):

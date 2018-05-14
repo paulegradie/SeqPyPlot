@@ -38,7 +38,7 @@ class PairedSampleFilter(object):
         assert isinstance(self.diff, list), 'diff must be iterable - 2 values'
 
         self.times = self.config_obj.getlist('names', 'times')
-        self.file_pairs = self.config_obj.get('names', 'file_pairs')
+        self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
 
     def main_filter_process(self, input_df_list):
         

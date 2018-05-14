@@ -45,7 +45,7 @@ def _configure_input_data_(config_object):
     control_names = config_object.getlist('names', 'controls')
     treated_names = config_object.getlist('names', 'treated')
 
-    pairs = zip(control_names, treated_names)
+    pairs = [(x, y) for x, y in zip(control_names, treated_names)]
 
     assert len(control_data) == len(treated_data), "Use empty file to fill gaps in data."
     return data, names, pairs, len(control_data)

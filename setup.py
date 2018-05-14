@@ -15,6 +15,9 @@ setup(
     install_requires=[
         "pandas == 0.22.0",
         "numpy == 1.14.3",
+        "pathos",
+        "seaborn",
+        "sklearn"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

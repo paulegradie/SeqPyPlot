@@ -50,7 +50,7 @@ if __name__ == "__main__":
     complete_gene_list = normalized_df.index.tolist()
 
     Filter = PairedSampleFilter(config_obj)
-    filter_result = Filter(split_normalized_dfs)
+    filter_result = Filter.main_filter_process(split_normalized_dfs)
     
     fig_list = MakeFigureList(config_obj)
 
