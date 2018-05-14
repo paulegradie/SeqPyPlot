@@ -51,22 +51,23 @@ if __name__ == "__main__":
 
     Filter = PairedSampleFilter(config_obj)
     filter_result = Filter.main_filter_process(split_normalized_dfs)
-    
+    de_gene_list = Filter.complete_de_gene_list
+
     fig_list = MakeFigureList(config_obj)
 
-    # line_plotter = PairedDataLinePlotter(config_obj, analyzer, de_gene_list)
-    # line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=plottable_data)
+    # line_plotter = PairedDataLinePlotter(config_obj, Filter, de_gene_list, normalized_df)
+    # line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=normalized_df)
 
     # bar_plotter = PairedBarPlot(config_obj=config_obj)
-    # bar_plotter.create_bar_plot(analyzer.de_count_by_stage)
+    # bar_plotter.create_bar_plot(Filter.de_count_by_stage)
 
-    scatter_plotter = ScatterPlots(config_obj=config_obj, container_obj=container, analyzer_obj=Filter)
-    scatter_plotter.create_scatter_plots()
+    # scatter_plotter = ScatterPlots(config_obj=config_obj, container_obj=container, analyzer_obj=Filter)
+    # scatter_plotter.create_scatter_plots()
 
-    # tally_plotter = TallyDe(config_obj, container)
-    # tally_plotter.create_tally_plot()
+    tally_plotter = TallyDe(config_obj, container)
+    tally_plotter.create_tally_plot(split_normalized_dfs)
 
-    # pca_decomp = PCADecomposition(config_obj, container)
-    # pca_decomp.create_pca_plot()
+    pca_decomp = PCADecomposition(config_obj, container)
+    pca_decomp.create_pca_plot()
 
     print("Script completed no errors")

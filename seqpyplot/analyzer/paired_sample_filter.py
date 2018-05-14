@@ -60,9 +60,11 @@ class PairedSampleFilter(object):
         Arguments:
             result {list of pandas dfs} -- filter results
         """
-        self.de_count_by_stage = {time: len(df) for time, df in zip(self.times, result)}
+        time_result = zip(self.times, result)
+        self.filtered_genes = result
+        self.de_count_by_stage = {time: len(df) for time, df in time_result}
         self.de_count_by_gene = self.count_by_gene(result)
-        self.de_gene_list_by_stage = {time: df.index for time, df in zip(times, result)}
+        self.de_gene_list_by_stage = {time: df.index for time, df in time_result}
         self.complete_de_gene_list = set(sorted(reduce(lambda x, y: pd.concat([x, y], axis=0), result).index.tolist()))
         
         return None

@@ -10,11 +10,14 @@ from seqpyplot.plot.base.plot_base import PlotBase
 from ast import literal_eval
 from operator import concat
 
-
+try:
+    from functools import reduce
+except ImportError:
+    pass
 
 class PairedDataLinePlotter(PlotBase):
 
-    def __init__(self, config_obj, analyzer_obj, de_gene_list):
+    def __init__(self, config_obj, analyzer_obj, de_gene_list, normalized_df):
         super(PairedDataLinePlotter, self).__init__()
         plt.close()
 
@@ -22,7 +25,7 @@ class PairedDataLinePlotter(PlotBase):
         self.output_dir = self.create_output_directory()
         
         self.analyzer_obj = analyzer_obj
-        self.normalized_df = analyzer_obj.normalized_df
+        self.normalized_df = normalized_df
         self.de_gene_list = de_gene_list
 
         self.log = self.analyzer_obj.log2fold
@@ -143,10 +146,10 @@ class PairedDataLinePlotter(PlotBase):
         Returns:
             [type] -- [description]
         """
-        data_length = self.analyzer_obj.normalized_df.shape[1]
+        data_length = self.normalized_df.shape[1]
 
         try:
-            data = self.analyzer_obj.normalized_df.loc[gene]
+            data = self.normalized_df.loc[gene]
             
         except KeyError:
             print("The current gene: -- {} -- was not found in the plot data.".format(gene_name))

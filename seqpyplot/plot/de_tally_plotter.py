@@ -26,15 +26,16 @@ class TallyDe(PlotBase):
         self.hi = self.config_obj.getint('params', 'hi')
         self.diff = self.config_obj.getlist('params', 'diff')
 
-    def compute_tally(self):
+    def compute_tally(self, input_df_list):
 
         y_values = []
         iteration = len(self.cutoffs)
         print("Iterating over log2fold cutoff values... ")
-
         for idx, cutoff in enumerate(self.cutoffs):
-            # print("current cutoff: ", cutoff)
-            analyzer = PairedSampleFilter(self.config_obj, self.container_obj, log2fold=cutoff)
+            print("current cutoff: ", cutoff)
+            analyzer = PairedSampleFilter(self.config_obj,
+                                          log2fold=cutoff)
+            _ = analyzer.main_filter_process(input_df_list)
 
             # print temp_de_count
             y_values.append(len(analyzer.complete_de_gene_list))
@@ -119,13 +120,12 @@ class TallyDe(PlotBase):
 
         return fig
 
-    def create_tally_plot(self):
-
+    def create_tally_plot(self, input_df_list):
         handles = [self.set_line() for _ in range(3)]
         fig = self.set_figure(handles)
         ax = plt.subplot()
 
-        y_values = self.compute_tally()
+        y_values = self.compute_tally(input_df_list)
         ax = self.create_subplot(ax, y_values)
         ax = self.format_tally_plot(ax)
 

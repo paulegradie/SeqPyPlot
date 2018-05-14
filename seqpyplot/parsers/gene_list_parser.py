@@ -47,7 +47,7 @@ class MakeFigureList(object):
 
             sub_list = []
 
-            for i in range((len(gene_list) / num_genes_per_figure) + 1):
+            for i in range(int(len(gene_list) / num_genes_per_figure) + 1):
                 sub_list.append(gene_list[:6])
                 del (gene_list[:num_genes_per_figure])
                 plot_groups = [x for x in sub_list if x != []]

@@ -57,7 +57,9 @@ class DataContainer(object):
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
     
     def split(self, normalized_df):
-        return [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
+        self.normalized_df = normalized_df
+        self.split_normalized_dfs = [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
+        return self.split_normalized_dfs
 
     def parse_input(self):
         # Instantiante parser
@@ -65,7 +67,9 @@ class DataContainer(object):
 
         # Execute parser given the data paths and the sample names
         raw_df, ercc_data = parser.parse_data(self.paths, self.names)
-
+        
+        self.complete_gene_list = raw_df.index.tolist()
+        
         # self.is_parsed = True
         return raw_df, ercc_data
 
