@@ -6,7 +6,7 @@ import logging
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-from base.plot_base import PlotBase
+from seqpyplot.plot.base.plot_base import PlotBase
 from ast import literal_eval
 from operator import concat
 

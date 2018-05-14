@@ -1,19 +1,24 @@
 import atexit
 from time import clock
 
+try:
+    from functools import reduce
+except ImportError:
+    pass
+
 def secondsToStr(t):
     return "%d:%02d:%02d.%03d" % \
-        reduce(lambda ll,b : divmod(ll[0],b) + ll[1:],
+        reduce(lambda ll, b : divmod(ll[0],b) + ll[1:],
             [(t*1000,),1000,60,60])
 
-line = "="*40
 def log(s, elapsed=None):
-    print line
-    print secondsToStr(clock()), '-', s
+    line = "="*40
+    print(line)
+    print(secondsToStr(clock()), '-', s)
     if elapsed:
-        print "Elapsed time:", elapsed
-    print line
-    print
+        print("Elapsed time: {}".format(elapsed))
+    print(line)
+    print('')
 
 def endlog():
     end = clock()

@@ -1,4 +1,4 @@
-from base.plot_base import PlotBase
+from seqpyplot.plot.base.plot_base import PlotBase
 from ..analyzer.paired_sample_filter import PairedSampleFilter
 import matplotlib.pyplot as plt
 from matplotlib import rcParams

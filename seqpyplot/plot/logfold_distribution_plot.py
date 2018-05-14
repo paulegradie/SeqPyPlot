@@ -1,6 +1,4 @@
-   from base.plot_base import PlotBase
-
-
+from seqpyplot.plot.base.plot_base import PlotBase
 
 
    class LogfoldDistPlot(PlotBase):
@@ -12,7 +10,7 @@
            self.config = config_obj
 
 
-        def 
+
        
    
    

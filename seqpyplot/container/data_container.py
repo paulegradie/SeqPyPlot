@@ -56,9 +56,8 @@ class DataContainer(object):
         self.file_pairs = self.config_obj.get('names', 'file_pairs')
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
     
-    @staticmethod
-    def split(normalized_df, file_pairs):
-        return [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in file_pairs]
+    def split(self, normalized_df):
+        return [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
 
     def parse_input(self):
         # Instantiante parser

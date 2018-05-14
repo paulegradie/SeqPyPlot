@@ -48,7 +48,8 @@ def test_split(load_container):
     })
 
     dc = load_container
-    res = dc.split(fake_df, fake_file_pairs)
+    dc.file_pairs = fake_file_pairs
+    res = dc.split(fake_df)
 
     expected = [
         pd.DataFrame({

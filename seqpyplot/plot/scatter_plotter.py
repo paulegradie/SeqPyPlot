@@ -1,4 +1,4 @@
-from base.plot_base import PlotBase
+from seqpyplot.plot.base.plot_base import PlotBase
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import os
