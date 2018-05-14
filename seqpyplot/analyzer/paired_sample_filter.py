@@ -1,12 +1,18 @@
 import pandas as pd
 import os
+import numpy as np
+
+try:
+    from functools import reduce
+except ImportError:
+    pass
 
 class PairedSampleFilter(object):
     """
     This class handles filtering paired normalized samples.
     It inherits from the DataContainer object and only needs a valid config.ini
 
-    Operations word on file pairs. Paired columns are extracted from the
+    Operations work on file pairs. Paired columns are extracted from the
     normalized df and filtering is applied. Operations that act on the
     entire extracted df should be executed before ops that split the extracted df.
     i.e. fold change and diff ops act on the entire data frame, where as hi and low
@@ -21,16 +27,16 @@ class PairedSampleFilter(object):
     """
     
 
-    def __init__(self, config_obj, container_obj, log2fold=None, low=None, hi=None, diff=None):
+    def __init__(self, config_obj, log2fold=None, low=None, hi=None, diff=None):
         
         self.config_obj = config_obj
-        self.container_obj = container_obj
 
         self.log2fold = log2fold or self.config_obj.getfloat('params', 'log2fold')
         self.low = low or self.config_obj.getint('params', 'low')
         self.hi = hi or self.config_obj.getint('params', 'hi')
         self.diff = diff or self.config_obj.getlist('params', 'diff')
-        
+        assert isinstance(self.diff, list), 'diff must be iterable - 2 values'
+
         self.times = self.config_obj.getlist('names', 'times')
         self.file_pairs = self.config_obj.get('names', 'file_pairs')
 
@@ -46,7 +52,7 @@ class PairedSampleFilter(object):
         result = self.apply_hi(result)
 
         # Set Attributes
-        set_attributes(result)
+        self.set_attributes(result)
         return result  # A list of filtered dataframes
 
     def set_attributes(self, result):
@@ -57,7 +63,7 @@ class PairedSampleFilter(object):
         self.de_count_by_stage = {time: len(df) for time, df in zip(self.times, result)}
         self.de_count_by_gene = self.count_by_gene(result)
         self.de_gene_list_by_stage = {time: df.index for time, df in zip(times, result)}
-        self.complete_de_gene_list = set(sorted(reduce(lambda x, y: pd.concat([x, y], axis=0), self.filtered_genes).index.tolist()))
+        self.complete_de_gene_list = set(sorted(reduce(lambda x, y: pd.concat([x, y], axis=0), result).index.tolist()))
         
         return None
 
@@ -80,7 +86,7 @@ class PairedSampleFilter(object):
         filtered_results = list()
         for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
 
-            result = df[control_col].div(df[treated_col])
+            result = np.log2(df[treated_col].div(df[control_col])).abs()
 
             fold_change_dfs.append(result)
             filtered_results.append(df[result > self.log2fold])            
@@ -105,8 +111,7 @@ class PairedSampleFilter(object):
             result = df[control_col].sub(df[treated_col]).abs()
             diff_dfs.append(result)
 
-            df = df[result > self.diff[0]]
-            df = df[result < self.diff[1]]
+            df = df[(result >= self.diff[0]) & (result <= self.diff[1])]
             filtered_results.append(df)            
 
         self.diff_filtered_dfs = pd.concat(diff_dfs, axis=1)
@@ -124,7 +129,7 @@ class PairedSampleFilter(object):
         state_change = list()
         for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
             df.columns = [control_col, treated_col]
-            passing = df[(df[control_col] > self.low) | (df[treated_col] > self.low)]
+            passing = df[(df[control_col] >= self.low) | (df[treated_col] >= self.low)]
             filtered_results.append(passing)
             
             deactivated = df[(df[control_col] > self.low) & (df[treated_col] < self.low)]
@@ -144,21 +149,24 @@ class PairedSampleFilter(object):
         saturated_dfs = list()
         for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
 
-            passing = df[(df[control_col] < self.hi) | (df[control_col] < self.hi)]
+            passing = df[
+                (df[control_col] < self.hi) | 
+                (df[treated_col] < self.hi)
+                ]
             filtered_results.append(passing)
 
-            saturated = df[(df[control_col] > self.hi) & (df[control_col] > self.hi)]
+            saturated = df[(df[control_col] > self.hi) & (df[treated_col] > self.hi)]
             saturated_dfs.append(saturated)
 
         self.saturated_dfs = saturated_dfs
 
         return filtered_results
 
-    def calculate_dispersion_estimate(self):
+    def calculate_dispersion_estimate(self, normalized_df):
 
         dispersion_df = list()
         for cont, treat in self.file_pairs:
-            dispersion_df.append((self.container_obj.normalized_df[cont] - self.container_obj.normalized_df[treat]).abs())
+            dispersion_df.append((normalized_df[cont] - normalized_df[treat]).abs())
 
         disp_df = pd.concat(dispersion_df, axis=1)
         row_means = disp_df.mean(axis=1)
