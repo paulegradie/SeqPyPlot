@@ -70,7 +70,6 @@ class DataContainer(object):
         
         self.complete_gene_list = raw_df.index.tolist()
         
-        # self.is_parsed = True
         return raw_df, ercc_data
 
     def make_col_pairs(self, df):
@@ -98,7 +97,7 @@ class DataContainer(object):
             normalized_pairs.append(normalized_sub_df)
 
         remerged_df = self.merge_dfs(normalized_pairs)
-        return remerged_df
+        return self.reorder_cols(remerged_df)
 
     def execute_normalization(self, unnormalized_matrix):
         return TMM(unnormalized_matrix)
@@ -110,6 +109,20 @@ class DataContainer(object):
         controls = [x[1] for x in enumerate(df.columns) if x[0] % 2 == 0]
         treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
         return df[controls + treated]
+
+    def correct_heteroskedacity(self, normalized_df):
+
+        """
+        Employ Box-cox transformation (power tranfsormation) to correct
+        heteroskedacitiy in the data.
+        Use sklearn.linearregression to compute vectors for control and treat and use the
+        coefficient for lambda in boxcox
+        """
+        pass
+    
+    def remove_principle_variation(self, normalized_df):
+        # use SVD to remove first component.
+
 
     #TODO implement support for missing data (data imputation)
     def _average_flanking_(self, value):
