@@ -15,6 +15,7 @@ from seqpyplot.plot.de_tally_plotter import TallyDe
 from seqpyplot.plot.scatter_plotter import ScatterPlots
 from seqpyplot.plot.PCA import PCADecomposition
 
+import os
 
 
 if __name__ == "__main__":
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config_obj = config_parser(args.config)
-    
+
     # load the data container
     container = DataContainer(config_obj)
 
@@ -48,15 +49,19 @@ if __name__ == "__main__":
     normalized_df = container.normalize_file_pairs(raw_df) # Single df of normalized data
     split_normalized_dfs = container.split(normalized_df)  # List of normalized dfs
 
+
+    corrected_experimental = container.correct_heteroskedacity(split_normalized_dfs)
+
+
     # Evaluate data for DE genes
     Filter = PairedSampleFilter(config_obj)
-    filter_result = Filter.main_filter_process(split_normalized_dfs, cor_hetsket=True)
+    filter_result = Filter.main_filter_process(split_normalized_dfs)
     de_gene_list = Filter.complete_de_gene_list
 
     # Create line plots
-    line_plotter = PairedDataLinePlotter(config_obj, Filter, de_gene_list, normalized_df)
-    fig_list = MakeFigureList(config_obj)
-    line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=normalized_df)
+    # line_plotter = PairedDataLinePlotter(config_obj, Filter, de_gene_list, normalized_df)
+    # fig_list = MakeFigureList(config_obj)
+    # line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=normalized_df)
 
     bar_plotter = PairedBarPlot(config_obj=config_obj)
     bar_plotter.create_bar_plot(Filter.de_count_by_stage)

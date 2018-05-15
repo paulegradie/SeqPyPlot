@@ -20,9 +20,14 @@ The initialization of the DataContainer should automatically call the correct pa
 create the normalization matrix, and then 
 """
 import os
+import math
 
 import numpy as np
 import pandas as pd
+
+from pathlib import Path
+from scipy import linalg
+from sklearn.linear_model import LinearRegression   
 
 from ..parsers import CuffNormParser, HtSeqParser, PlotDataParser
 from ..utils.utils import write_to_csv
@@ -48,8 +53,7 @@ class DataContainer(object):
     def __init__(self, config_obj):
 
         self.config_obj = config_obj
-
-        self.data_directory = self.config_obj.get('data_directory', 'dir')
+        self.data_directory = Path(self.config_obj.get('data_directory', 'dir'))
         self.paths = self.config_obj.getlist('data', 'paths')
         self.names = self.config_obj.getlist('names', 'sample_names')
         self.times = self.config_obj.getlist('names', 'times')
@@ -110,19 +114,76 @@ class DataContainer(object):
         treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
         return df[controls + treated]
 
-    def correct_heteroskedacity(self, normalized_df):
+    def rotate(self, origin, point_tuple, angle):
+        """
+        Rotate a point_tuple counterclockwise by a given angle around a given origin.
 
+        The angle should be given in radians.
+        """
+        # angle = np.radians(angle)
+        origin_x, origin_y = origin
+        px, py = point_tuple
+
+        # qx = origin_x + np.cos(angle) * (px - origin_x) - np.sin(angle) * (py - origin_y)
+        qy = origin_y + np.sin(angle) * (px - origin_x) + np.cos(angle) * (py - origin_y)
+        # return qx, qy
+        return qy
+
+    def calc_angle(self, coef1, coef2):
+       return np.abs(
+           np.arctan(np.abs(coef1 - coef2) / (1. + (coef1 * coef2)))
+       )
+
+    def correct_heteroskedacity(self, dfs):
         """
         Employ Box-cox transformation (power tranfsormation) to correct
         heteroskedacitiy in the data.
-        Use sklearn.linearregression to compute vectors for control and treat and use the
+        Use sklearn.linearregression to compute vectors for conntrol and treat and use the
         coefficient for lambda in boxcox
         """
-        pass
-    
-    def remove_principle_variation(self, normalized_df):
-        # use SVD to remove first component.
+        result = list()
+        for df in dfs:
+            df = df.copy()
 
+            cols = df.columns.tolist()
+
+            df.loc[:, 'mean'] = df.mean(axis=1)
+            control = df[cols[0]].values.reshape(-1, 1)
+            treated = df[cols[1]].values.reshape(-1, 1)
+            mean = df['mean'].values.reshape(-1, 1)
+
+            control_regression = LinearRegression(fit_intercept=True, n_jobs=2)
+            control_regression.fit(control, mean)
+            treated_regression = LinearRegression(fit_intercept=True, n_jobs=2)
+            treated_regression.fit(treated, mean)
+
+            coef1 = float(np.squeeze(control_regression.coef_))
+            coef2 = float(np.squeeze(treated_regression.coef_))
+
+            intercepts = [control_regression.intercept_, treated_regression.intercept_]
+            max_idx = np.argmax(intercepts)
+            min_idx = np.argmin(intercepts)
+
+            vertical_shift = float(intercepts[max_idx]) - float(intercepts[min_idx])
+
+            # Transform
+            df[cols[min_idx]] = df[cols[min_idx]].apply(lambda x: x + vertical_shift)
+            df[cols[min_idx]] = self.rotate(origin=(0, float(intercepts[max_idx])),
+                                            point_tuple=(df['mean'], df[cols[min_idx]]), 
+                                            angle=self.calc_angle(coef1, coef2))
+
+            result.append(df.drop('mean', axis=1))
+        
+        return result
+
+    def remove_variance(self, df, num_components=1):
+        "Use Single Value Decomposition to remove first component of variation"
+        u, s, v = linalg.svd(df, full_matrices=False)
+        s = np.diag(s)
+        s[:num_components, :] = 0.0
+        
+        reconstructed = np.dot(u, np.dot(s, v))
+        return reconstructed
 
     #TODO implement support for missing data (data imputation)
     def _average_flanking_(self, value):

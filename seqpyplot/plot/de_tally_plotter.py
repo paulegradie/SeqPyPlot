@@ -13,7 +13,7 @@ class TallyDe(PlotBase):
         plt.close()
         super(TallyDe, self).__init__()
 
-        self.cutoffs = [x/100. for x in range(200) if x % 5 == 0]
+        self.cutoffs = [x/100. for x in range(200) if x % 5 == 0][1:]
         
         self.container_obj = container_obj
         self.config_obj = config_obj

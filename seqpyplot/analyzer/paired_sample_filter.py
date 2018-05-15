@@ -1,6 +1,7 @@
-import pandas as pd
 import os
+
 import numpy as np
+import pandas as pd
 
 try:
     from functools import reduce
@@ -26,7 +27,6 @@ class PairedSampleFilter(object):
         [type] -- [description]
     """
     
-
     def __init__(self, config_obj, log2fold=None, low=None, hi=None, diff=None):
         
         self.config_obj = config_obj
