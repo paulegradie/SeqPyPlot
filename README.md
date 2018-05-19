@@ -38,7 +38,7 @@ optional arguments:
   -u, --unnorm          Do not normalize data.
 </pre>
 
-
+## Example config file contents
 <pre>
 [data_directory]
 dir=C:\\Users\\paule\\code\\SeqPyPlot\\examples\\htseqCounts
@@ -78,11 +78,11 @@ prefix='SeqPyPlot'
 5. Submit a pull request :D
 
 ## History and background
-SPPLOT (rna-Seq Python PLOT library) was written to provide a simple to use quick analysis tool for pilot RNA-seq data. Pilot study data is defined here as data that doesn't include replicates. A common need among developmental biologists right now is the ability to interogate pilot study data and access gene expression quickly. Usually these data are not used for publishing, but rather to guide future experiments and provide a quick peak at approximate expression levels within the target tissue. 
+SPPLOT (rna-Seq Python PLOT library) was written to provide a simple to use, quick analysis tool for interrogating pilot RNA-seq data. Pilot study data is defined here as data that doesn't include replicates. A common need among developmental biologists right now is the ability to interogate pilot study data and access gene expression quickly. Usually these data are not used for publishing, but rather to guide future experiments and provide a quick peak at approximate expression levels within the target tissue. 
 
 Quoted from the edgeR manual (a popular tool written in R used for calculating differential expression of genes:
 
-`RNA-Seq and ChIP-Seq are still expensive technologies, so it sometimes happens that only one library can be created for each treatment condition. In these cases there are no replicate libraries from which to estimate biological variability. In this situation, the data analyst is faced with the following choices, none of which are ideal. We do not recommend any of these choices as a satisfactory alternative for biological replication. Rather, they are the best that can be done at the analysis stage [using no replicates].`
+"__RNA-Seq and ChIP-Seq are still expensive technologies, so it sometimes happens that only one library can be created for each treatment condition. In these cases there are no replicate libraries from which to estimate biological variability. In this situation, the data analyst is faced with the following choices, none of which are ideal. We do not recommend any of these choices as a satisfactory alternative for biological replication. Rather, they are the best that can be done at the analysis stage [using no replicates].__```
 
 The manual goes to suggest the following option (which is admittedly not their preferred suggestion...)
 
