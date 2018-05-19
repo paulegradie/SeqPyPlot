@@ -237,6 +237,7 @@ class MainDataPlotter(object):
             self.__series1_plot(series1_data, series1_mask, x_axis, self.args.condition[0], self.args.num)
 
             if self.args.num == 2:
+                # import pdb;pdb.set_trace()
                 self.__series2_plot(series2_data, series2_mask, x_axis, self.args.condition[1])
 
                 # error bars
@@ -368,11 +369,11 @@ class MainDataPlotter(object):
         if min(upper) < 0 or min(lower) < 0 or min(low_plot) < 0:
             print("Error bars out of range - but still continuing.")
 
-        return upper, lower, low_plot
+        return upper, lower#, low_plot
 
     def __err_range_plot(self, series_mean, xs, label):
-
-        upper, lower, tempx = self._calc_error(series_mean)
+        # import pdb;pdb.set_trace()
+        upper, lower = self._calc_error(series_mean)
 
         # xs is x_axis
         return plt.errorbar(xs,

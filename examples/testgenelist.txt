@@ -7,10 +7,8 @@ Insig1
 Ift172
 Tgfbr2
 Bcor
-Bmpr1a
 Snai1
 Tgfbr1
 Smad2
 Shh
 Dhrs3
-Mef2c
