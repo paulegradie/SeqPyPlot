@@ -7,7 +7,7 @@ setup(
     author='Paul E Gradie',
     author_email='paul.e.gradie@gmail.com',
     packages=find_packages(exclude=['tests']),
-    scripts=['bin/SeqPyPlot.py'],
+    scripts=['bin/SPPLOT.py'],
     #url='http://pypi.python.org/pypi/seqpyplot',
     license='LICENSE.txt',
     description='Package for descriptive analysis.',
