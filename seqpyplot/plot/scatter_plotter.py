@@ -94,7 +94,7 @@ class ScatterPlots(PlotBase):
                 ax = self.format_plot(ax, title, lims)
                 cols = df.columns.tolist()
 
-                #TEMP
+                # #TEMP
                 # model = LinearRegression(fit_intercept=True)
                 # model.fit(df['mean'].values.reshape(-1, 1), df[cols[0]].values.reshape(-1, 1))
                 # ax.plot([0, 10000], [0, model.coef_ * 10000 + model.intercept_], color='yellow', linestyle='--')
@@ -103,11 +103,11 @@ class ScatterPlots(PlotBase):
                 # model.fit(df['mean'].values.reshape(-1, 1), df[cols[1]].values.reshape(-1, 1))
                 # ax.plot([0, 10000], [0, model.coef_ * 10000 + model.intercept_], color='yellow', linestyle='--')
 
-                # ax.scatter(df['mean'], df[cols[0]], s=2, color='blue')
-                # ax.scatter(df['mean'], df[cols[1]], s=2, color='red')
-                # ax.plot(range(len(upperbound)), upperbound, color='black', linestyle='--')
-                # ax.plot(range(len(lowerbound)), lowerbound, color='black', linestyle='--')
-                # ax.plot(range(lims[1]), range(lims[1]))
+                ax.scatter(df['mean'], df[cols[0]], s=2, color='blue')
+                ax.scatter(df['mean'], df[cols[1]], s=2, color='red')
+                ax.plot(range(len(upperbound)), upperbound, color='black', linestyle='--')
+                ax.plot(range(len(lowerbound)), lowerbound, color='black', linestyle='--')
+                ax.plot(range(lims[1]), range(lims[1]))
 
             self.save_fig(time)
             plt.close()

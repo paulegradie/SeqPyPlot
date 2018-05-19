@@ -19,25 +19,27 @@ if __name__ == "__main__":
 # Arguments
 
     usage = """
-    This is how you use this program
+    SPPLOT only requires a path to a configuration file. The config file
+    is expected to be in .ini format. See the examples/ directory for an
+    example config file.
+
+    NYI indicates not-yet-implemented.
     """
-    name = "SeqpyPlot v0.4"
+
+    epilog = "\n\n"
     
-    epilog = "This is an epilog"
-    
-    parser = ArgumentParser(description=name,
-                            prog='SeqPyPlot v0.4',
-                            usage=usage,
+    parser = ArgumentParser(description=usage,
+                            prog='SPPLOT v0.4',
                             epilog=epilog)
 
 
     parser.add_argument('-c', '--config', type=str, required=True)
-    parser.add_argument('-o', '--overwrite', action='store_true')
 
-    parser.add_argument('-i', '--impute', action='store_true')
-    parser.add_argument('-p', '--plot',   action='store_true')
-    parser.add_argument('-t', '--correct', action='store_true')
-    parser.add_argument('-u', '--unnorm', action='store_true')
+    parser.add_argument('-o', '--overwrite', action='store_true', help='Overwrite existing output directory.')
+    parser.add_argument('-i', '--impute', action='store_true', help='Impute missing data using neighbors: NYI')
+    parser.add_argument('-p', '--plot',   action='store_true', help='Create all plots.')
+    parser.add_argument('-t', '--correct', action='store_true', help='Attempt to correct for heteroskedasticity: NYI')
+    parser.add_argument('-u', '--unnorm', action='store_true', help='Do not normalize data.')
 
     args = parser.parse_args()
 
