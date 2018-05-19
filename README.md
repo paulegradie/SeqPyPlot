@@ -120,7 +120,7 @@ The expression plots output from SPPLOT use TMM normalized values and show relat
 #### PCA Plots
 After normalization, it is essential to verify that samples cluster appropriately. Typically, RNA-seq datasets from developmental time series data will contain a great deal of variation between time points, but not between samples within a time point. Of course this is not always the case. Nonetheless, observing relatively close clustering of samples from the same stage in a PCA plot is genarally desirable. If such clustering is not observed, then this may indicate a significant problem with sample composition and invalidate your experiment.
 
-![MDSPlot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/PCA_plot.png "PCA Plot")
+![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/PCA_plot.png "PCA Plot")
 
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Perhaps the most important parameter is the logfold change threshold. This plot shows the effect of tuning this threshold by counting the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
