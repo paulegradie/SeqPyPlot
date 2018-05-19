@@ -33,8 +33,8 @@ class TallyDe(PlotBase):
     def compute_tally(self, input_df_list):
 
         y_values = []
-        print("Iterating over log2fold cutoff values... ")
-        for idx, cutoff in tqdm(enumerate(self.cutoffs)):
+        print("\nIterating over log2fold cutoff values... ")
+        for idx, cutoff in tqdm(enumerate(self.cutoffs), total=len(self.cutoffs)):
             analyzer = PairedSampleFilter(self.config_obj,
                                           log2fold=cutoff)
             _ = analyzer.main_filter_process(input_df_list)

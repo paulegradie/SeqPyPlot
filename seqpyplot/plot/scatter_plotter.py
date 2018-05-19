@@ -1,12 +1,15 @@
-from seqpyplot.plot.base.plot_base import PlotBase
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
 import os
+
+import matplotlib.lines as mlines
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from sklearn.linear_model import LinearRegression
+
+from seqpyplot.plot.base.plot_base import PlotBase
 
 plt.style.use('bmh')
-from sklearn.linear_model import LinearRegression   
 
 
 class ScatterPlots(PlotBase):
@@ -77,10 +80,10 @@ class ScatterPlots(PlotBase):
             
             titles = ['Flagged Genes', 'Unflagged Genes']
             lims = (self.scatrange[0], self.scatrange[1])
-
+            
             dfs = [flagged_df, unflagged_df]
             for ax, df, title in zip(axes.flatten(), dfs, titles):
-                
+
                 df['mean'] = df.mean(axis=1)
                 # upper, lower = self.calc_bounds(df['mean'].tolist())
 
@@ -107,8 +110,13 @@ class ScatterPlots(PlotBase):
                 ax.scatter(df['mean'], df[cols[1]], s=2, color='red')
                 ax.plot(range(len(upperbound)), upperbound, color='black', linestyle='--')
                 ax.plot(range(len(lowerbound)), lowerbound, color='black', linestyle='--')
-                ax.plot(range(lims[1]), range(lims[1]))
+                ax.plot(range(lims[1]), range(lims[1]), color='white', linestyle='--')
 
+            blue_dot = mpatches.Patch(color='blue', label='Control')
+            red_dot = mpatches.Patch(color='red', label='Treated')
+            plt.legend(handles=[blue_dot, red_dot])
+
+            plt.tight_layout()
             self.save_fig(time)
             plt.close()
 
@@ -137,7 +145,7 @@ class ScatterPlots(PlotBase):
         fig.legend(handles=handles,
                    labels=(labels),
                    loc='upper right',
-                   prop={'size': 5})
+                   prop={'size': 8})
         fig.tight_layout()
 
         return fig, axes

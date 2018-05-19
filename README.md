@@ -12,10 +12,14 @@ Use of SPLLOT requires installation. To install seqpyplot, run:
 
 `python setup.py install`
 
+To test the install, run the execution script using the example config and example data:
+
+`python bin/SPPLOT.py -c bin/example_config.ini --plot --overwrite`
+
+The examples/test_output directory should be overwritten with the same results.
+
 ## Usage
     
-#### usage: python SPPLOT.py [op
-
 <pre>
 $ python bin/SPPLOT.py -h
 usage: SPPLOT v0.4 [-h] -c CONFIG [-o] [-i] [-p] [-t] [-u]
@@ -150,8 +154,10 @@ There are two plots - flagged and un-flagged. The white line along the $f(x) = x
 The current and previous versions of SPPLOT were built by me (Paul G). I would LOVE to add more credits! Fork this repository and help make SPPLOT a more useful and user friendly tool!
 
 ## License
-This software is currently open source, and I'm looking to write a short paper on the utility of this software to submit to an open source journal. IF/when that happens, citations may be in order. Maybe. Probably not worth worrying about though!
+Copyright 2018 Paul E. Gradie
 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

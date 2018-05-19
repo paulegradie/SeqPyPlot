@@ -80,6 +80,9 @@ if __name__ == "__main__":
 # Generate Plots
 
     if args.plot:
+
+        print("\nPlotting data...\n")
+
         line_plotter = PairedDataLinePlotter(config_obj, filter_obj, data)
         fig_list = MakeFigureList(config_obj)
         line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=data)
@@ -101,4 +104,4 @@ if __name__ == "__main__":
 #--------------------------------------------------------------------
 # Tidy up
 
-    print("Script completed no errors")
+    print("\nScript completed no errors")

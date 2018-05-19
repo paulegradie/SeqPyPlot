@@ -29,11 +29,12 @@ class MakeFigureList(object):
                 gene_list = [row.strip().title() for row in input_file if row.strip() != '']
                 file_parsed = True
 
-            except UnicodeDecodeError:
-                print("File is encoded in a format other than {}.".format(e))
-
+            except UnicodeDecodeError as e:
+                print("Gene list file is encoded in a format other than {}.".format(e))
+                print(e)
+                print("\nSkipping paired line plots.")
             else:
-                print("Parsing file using {} encoding.".format(e))
+                print("Parsing gene list file using {} encoding.".format(e))
                 break
 
         if not file_parsed:

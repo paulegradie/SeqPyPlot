@@ -1,15 +1,17 @@
 from __future__ import division
+
+import logging
 import os
 import sys
-import numpy as np
-import logging
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-from seqpyplot.plot.base.plot_base import PlotBase
 from ast import literal_eval
 from operator import concat
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 from tqdm import tqdm
+
+from seqpyplot.plot.base.plot_base import PlotBase
 
 try:
     from functools import reduce
@@ -52,7 +54,7 @@ class PairedDataLinePlotter(PlotBase):
                             'markeredgewidth': 0.95,
                             'markersize': 6}
 
-        pbar = tqdm(total=sum([1 for gene in figure_list for gene in figure_list]))
+        pbar = tqdm(total=sum([len(x) for x in figure_list]))
 
         for fig_idx, figure in enumerate(figure_list, start=1):
 
@@ -64,7 +66,7 @@ class PairedDataLinePlotter(PlotBase):
             line_plot_kwargs.update({'color': 'red', 'markeredgecolor': 'red', 'markerfacecolor': 'white'})
             series2 = self.set_line(kwargs=line_plot_kwargs)
     
-            legend_line_kwargs = {'color': 'white'} #EEEEEE'}
+            legend_line_kwargs = {'color': 'white'}
             log_line = self.set_line(legend_line_kwargs)
             fold_line = self.set_line(legend_line_kwargs)
             diff_line = self.set_line(legend_line_kwargs)
@@ -74,17 +76,16 @@ class PairedDataLinePlotter(PlotBase):
                 fig.add_subplot(3, 2, idx).set_title('- ' + str(gene) + ' -', fontsize=20)
 
                 if not self.gene_exists(gene):
-                    logging.warning('Don"t worry - this just means the gene is probably turned off.')
-                    continue
-                
-                is_de = self.is_de(gene)  # check if the gene is DE for bg highlighting
+                    logging.warning(
+                        'Data for -- {} -- not found. This just means the gene is probably turned off.'.format(gene))
+                    pbar.update(1)
 
-                data = self.retrieve_data(gene)
-                self.create_subplot(is_de, *data)
-                pbar.update(1)
+                else:
+                    is_de = self.is_de(gene)  # check if the gene is DE for bg highlighting
+                    data = self.retrieve_data(gene)
+                    self.create_subplot(is_de, *data)
+                    pbar.update(1)
             
-            pbar.close()
-
             handles = [series1, series2, log_line, fold_line, diff_line]
             fig = self.tidy_up_figure(fig, handles)
 
@@ -94,6 +95,7 @@ class PairedDataLinePlotter(PlotBase):
             plt.cla()
             plt.close()
 
+        pbar.close()
 
     def tidy_up_figure(self, fig, handles):
 
@@ -165,10 +167,10 @@ class PairedDataLinePlotter(PlotBase):
         # empty data file (to keep the data paired)
         series1 = np.array(
             [float(x) if x is not None else None for x in data[:(len(data) // 2)]]).astype(
-            np.double)
+             np.double)
         series2 = np.array(
             [float(x) if x is not None else None for x in data[(len(data) // 2):]]).astype(
-            np.double)
+             np.double)
         s1mask = np.isfinite(series1)
         s2mask = np.isfinite(series2)
 
@@ -217,7 +219,7 @@ class PairedDataLinePlotter(PlotBase):
 
         x_axis = np.arange(float(max(len(series1_data), len(series2_data))))
 
-        data_mean, mean_mask = self.compute_mean(series1_data, series2_data)
+        data_mean, _ = self.compute_mean(series1_data, series2_data)
 
         diffs = self.compute_bounds(data_mean)
         y_max = self.compute_max_yval(series1_data, series2_data, diffs)       

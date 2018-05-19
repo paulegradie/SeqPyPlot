@@ -1,8 +1,11 @@
-from seqpyplot.plot.base.plot_base import PlotBase
-import matplotlib.pyplot as plt
 import os
 
+import matplotlib.pyplot as plt
+
+from seqpyplot.plot.base.plot_base import PlotBase
+
 plt.style.use('bmh')
+
 
 class PairedBarPlot(PlotBase):
 
@@ -45,8 +48,25 @@ class PairedBarPlot(PlotBase):
                         "Diff: " + " - ".join([diffstart, diffend])]
                         ),
                    loc='upper right')
-        plt.tight_layout()
         return fig
+
+
+    def set_figure(self, figure_prefix, **args):
+        fig = plt.figure(num=1,
+                         figsize=(7, 7),
+                         dpi=800,
+                         edgecolor='black',
+                         frameon=False,
+                         )
+        fig.suptitle(figure_prefix,
+                     verticalalignment='top',
+                     horizontalalignment='left',
+                     fontsize=16,
+                     x=0.108,
+                     y=1.08
+                     )
+        return fig
+
 
     def create_subplot(self, x_axis, y_values, x_label, ymax, bar_width=0.5, color='black'):
 
@@ -64,7 +84,6 @@ class PairedBarPlot(PlotBase):
         # add some text for labels, title and axes ticks
         ax.set_ylabel('No. of Flagged Genes')
         ax.set_xlabel('Experimental Stage')
-        ax.set_title('Number of flagged genes per stage', loc='left')
         ax.yaxis.grid()
 
         ax.spines['top'].set_visible(False)
@@ -89,14 +108,15 @@ class PairedBarPlot(PlotBase):
 
         y_values = [int(de_count_by_time_dict[x]) for x in self.labels]
         x_label = self.labels
-        ymax = max(y_values) * 1.3
+        ymax = max(y_values) * 1.2
   
         x_axis = range(len(y_values))
 
         fig = self.set_figure(figure_prefix='Paired Sample DE Bar Plot')
-        ax = self.create_subplot(x_axis, y_values, x_label, ymax)
+        self.create_subplot(x_axis, y_values, x_label, ymax)
 
         line_handles = [self.set_line() for _ in range(4)]
         fig = self.tidy_figure_up(fig, line_handles)
+        plt.tight_layout()
 
         self.save_plot(fig)

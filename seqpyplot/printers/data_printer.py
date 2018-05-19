@@ -102,7 +102,7 @@ class DataPrinter(object):
         output_name = "_".join([self.prefix, 'de_gene_list.spp'])
         output_path = os.path.join(self.output_dir, output_name)            
 
-        with open(output_path, 'w+') as outfile:
+        with open(output_path, 'w+', newline='') as outfile:
             result_writer = writer(outfile, delimiter=' ')
             
             for de_gene in sorted(de_gene_list):
