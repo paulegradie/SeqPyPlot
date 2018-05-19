@@ -115,7 +115,7 @@ The best approach we have right now is to use a relative normalization method su
 
 The expression plots output from SPPLOT use TMM normalized values and show relative difference between values across time/stages. SPPLOT provides a secondary measure of relative expression, akin to a scale bar, that is intended to help users interpret the relative differences between expression values in log space. SPPLOT calculates the mean between two measurements at a given stage and then calculates the log fold change provided by the user and plots error bars centered on the mean with the range of the logfold difference (default 0.7). The output also highlights (in yellow) any plot for a gene that is flagged at any time point.
 
-![MDSPlot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/Expression_plot.png "Expression Plot")
+![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Expression_plot.png "Expression Plot")
 
 #### PCA Plots
 After normalization, it is essential to verify that samples cluster appropriately. Typically, RNA-seq datasets from developmental time series data will contain a great deal of variation between time points, but not between samples within a time point. Of course this is not always the case. Nonetheless, observing relatively close clustering of samples from the same stage in a PCA plot is genarally desirable. If such clustering is not observed, then this may indicate a significant problem with sample composition and invalidate your experiment.
@@ -125,12 +125,12 @@ After normalization, it is essential to verify that samples cluster appropriatel
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Perhaps the most important parameter is the logfold change threshold. This plot shows the effect of tuning this threshold by counting the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
 
-![Tally Plot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/Tally_plot.png "Tally Plot")
+![Tally Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Tally_plot.png "Tally Plot")
 
 #### Flagged Gene Bar Plots
 Bar plots are provided to give information on the number of genes flagged at each stage given a set of filter parameters.
 
-![Bar Plot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/Bar_plot.png "Bar Plot")
+![Bar Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Bar_plot.png "Bar Plot")
 
 ### Plots for Adjusting Filter Parameters
 The following plots are intended to aid the user in finding appropriate filter parameters. The filter takes four parameters illustrated in the following image.

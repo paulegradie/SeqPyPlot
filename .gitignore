@@ -9,3 +9,5 @@ build/
 .pytest_cache
 *.ipynb
 dist/
+.egg-info/
+.DS_Store
