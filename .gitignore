@@ -3,4 +3,9 @@
 .vscode/
 .ipynb_checkpoints/
 *.pyc
-deprecated/*
+deprecated/
+build/
+.eggs
+.pytest_cache
+*.ipynb
+dist/
