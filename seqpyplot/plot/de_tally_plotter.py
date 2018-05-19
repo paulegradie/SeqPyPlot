@@ -1,10 +1,14 @@
-from seqpyplot.plot.base.plot_base import PlotBase
-from ..analyzer.paired_sample_filter import PairedSampleFilter
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-import matplotlib.lines as mlines
 import os
+
+import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import rcParams
+
+from seqpyplot.plot.base.plot_base import PlotBase
+from tqdm import tqdm
+
+from ..analyzer.paired_sample_filter import PairedSampleFilter
 
 
 class TallyDe(PlotBase):
@@ -29,10 +33,8 @@ class TallyDe(PlotBase):
     def compute_tally(self, input_df_list):
 
         y_values = []
-        iteration = len(self.cutoffs)
         print("Iterating over log2fold cutoff values... ")
-        for idx, cutoff in enumerate(self.cutoffs):
-            print("current cutoff: ", cutoff)
+        for idx, cutoff in tqdm(enumerate(self.cutoffs)):
             analyzer = PairedSampleFilter(self.config_obj,
                                           log2fold=cutoff)
             _ = analyzer.main_filter_process(input_df_list)
@@ -40,7 +42,7 @@ class TallyDe(PlotBase):
             # print temp_de_count
             y_values.append(len(analyzer.complete_de_gene_list))
             text = "{} of {}.".format(idx + 1, len(self.cutoffs)+1)
-            print('{:^43}'.format(text))
+            # print('{:^43}'.format(text))
 
         return y_values
 

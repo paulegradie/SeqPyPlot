@@ -6,6 +6,7 @@ import numpy as np
 import seaborn as sns
 
 plt.style.use('bmh')
+from sklearn.linear_model import LinearRegression   
 
 
 class ScatterPlots(PlotBase):
@@ -22,13 +23,13 @@ class ScatterPlots(PlotBase):
         [type] -- [description]
     """
 
-    def __init__(self, config_obj, container_obj, analyzer_obj):
+    def __init__(self, config_obj, container_obj, filter_obj):
         super(ScatterPlots, self).__init__()
         plt.close()
 
         self.config_obj = config_obj
         self.container_obj = container_obj
-        self.analyzer_obj = analyzer_obj
+        self.filter_obj = filter_obj
 
         self.output_dir = self.create_output_directory()
         self.prefix = self.config_obj.get('names', 'experiment_name')
@@ -42,7 +43,7 @@ class ScatterPlots(PlotBase):
         self.scatrange = self.config_obj.getlist('plot_options', 'scatrange')
 
         # organize plot data
-        self.flagged_data = self.analyzer_obj.filtered_genes  # a list of dfs
+        self.flagged_data = self.filter_obj.filtered_genes  # a list of dfs
         self.unflagged_data = self.collect_unflagged_data()  # a list of dfsff
 
     def collect_unflagged_data(self):
@@ -51,7 +52,7 @@ class ScatterPlots(PlotBase):
 
         unflagged_data = list()
         for (filtered_df,
-             normalized_df) in zip(self.analyzer_obj.filtered_genes,
+             normalized_df) in zip(self.filter_obj.filtered_genes,
                                    self.container_obj.split_normalized_dfs):
             
             flagged_genes = set(filtered_df.index.tolist())
@@ -61,7 +62,7 @@ class ScatterPlots(PlotBase):
 
     def create_scatter_plots(self):
         """
-        This need only take in the result from analyzer_obj:
+        This need only take in the result from filter_obj:
             analyzer.filterd_genes
         which is a list of data frames
         
@@ -93,11 +94,20 @@ class ScatterPlots(PlotBase):
                 ax = self.format_plot(ax, title, lims)
                 cols = df.columns.tolist()
 
-                ax.scatter(df['mean'], df[cols[0]], s=2, color='blue')
-                ax.scatter(df['mean'], df[cols[1]], s=2, color='red')
-                ax.plot(range(len(upperbound)), upperbound, color='black', linestyle='--')
-                ax.plot(range(len(lowerbound)), lowerbound, color='black', linestyle='--')
-                ax.plot(range(lims[1]), range(lims[1]))
+                #TEMP
+                # model = LinearRegression(fit_intercept=True)
+                # model.fit(df['mean'].values.reshape(-1, 1), df[cols[0]].values.reshape(-1, 1))
+                # ax.plot([0, 10000], [0, model.coef_ * 10000 + model.intercept_], color='yellow', linestyle='--')
+
+                # model = LinearRegression(fit_intercept=True)
+                # model.fit(df['mean'].values.reshape(-1, 1), df[cols[1]].values.reshape(-1, 1))
+                # ax.plot([0, 10000], [0, model.coef_ * 10000 + model.intercept_], color='yellow', linestyle='--')
+
+                # ax.scatter(df['mean'], df[cols[0]], s=2, color='blue')
+                # ax.scatter(df['mean'], df[cols[1]], s=2, color='red')
+                # ax.plot(range(len(upperbound)), upperbound, color='black', linestyle='--')
+                # ax.plot(range(len(lowerbound)), lowerbound, color='black', linestyle='--')
+                # ax.plot(range(lims[1]), range(lims[1]))
 
             self.save_fig(time)
             plt.close()

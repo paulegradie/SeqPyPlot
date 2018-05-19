@@ -1,5 +1,7 @@
 import codecs
 import os
+from pathlib import Path
+
 
 class MakeFigureList(object):
 
@@ -17,7 +19,7 @@ class MakeFigureList(object):
         # Handle file encodings when you open the input file
         file_parsed = False
 
-        input_file = self.config_obj.get('file_names', 'genelist')
+        input_file = Path(self.config_obj.get('file_names', 'genelist'))
         assert os.stat(input_file).st_size > 0, "Gene list for plotting was empty, gene_list_parser 2"
         
         for e in ["utf-8", "ascii", "ansi"]:

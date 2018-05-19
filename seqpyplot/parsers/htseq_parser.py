@@ -37,9 +37,6 @@ class HtSeqParser(object):
                          .pipe(self.df_cleanup)
                          .pipe(self.split_on_ercc))
 
-        self.save_out(data, 'data')
-        self.save_out(ercc_df, 'ercc_data')
-
         return data, ercc_df
 
     def load_data(self, data_paths, sample_names):
@@ -72,7 +69,3 @@ class HtSeqParser(object):
         data = df[~ercc_cols]
 
         return data, ercc_df
-
-    def save_out(self, df, name):
-        # write out raw data for access later
-        df.to_csv('{}_raw_count_data.csv'.format(name))

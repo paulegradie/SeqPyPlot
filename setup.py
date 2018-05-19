@@ -17,7 +17,8 @@ setup(
         "numpy == 1.14.3",
         "pathos",
         "seaborn",
-        "sklearn"
+        "sklearn",
+        "tqdm"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

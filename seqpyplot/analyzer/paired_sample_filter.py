@@ -53,6 +53,7 @@ class PairedSampleFilter(object):
 
         # Set Attributes
         self.set_attributes(result)
+        self.filtered_df_list = result
         return result  # A list of filtered dataframes
 
     def set_attributes(self, result):

@@ -29,9 +29,8 @@ from pathlib import Path
 from scipy import linalg
 from sklearn.linear_model import LinearRegression   
 
-from ..parsers import CuffNormParser, HtSeqParser, PlotDataParser
-from ..utils.utils import write_to_csv
-from .normalizer import norm_tmm as TMM
+from seqpyplot.parsers import CuffNormParser, HtSeqParser, PlotDataParser
+from seqpyplot.container.normalizer import norm_tmm as TMM
 
 try:
     from functools import reduce # python 3 compatibility
@@ -70,11 +69,14 @@ class DataContainer(object):
         parser = PARSERS[self.config_obj.get('data', 'data_type')]()
 
         # Execute parser given the data paths and the sample names
-        raw_df, ercc_data = parser.parse_data(self.paths, self.names)
+        data_df, ercc_df = parser.parse_data(self.paths, self.names)
         
-        self.complete_gene_list = raw_df.index.tolist()
+        self.data_df = data_df
+        self.ercc_df = ercc_df
+
+        self.complete_gene_list = data_df.index.tolist()
         
-        return raw_df, ercc_data
+        return data_df, ercc_df
 
     def make_col_pairs(self, df):
         """
@@ -86,22 +88,24 @@ class DataContainer(object):
 
         return zip(control_cols, treated_cols)
 
-    def normalize_file_pairs(self, raw_df):
+    def normalize_file_pairs(self, data_df):
         """
         TMM shouldn't be used to normalize across developmental time
         series data. This func splits off pairs at the same step
         and normalized them togther
         """
         normalized_pairs = list()
-        for control, treat in self.make_col_pairs(raw_df):
+        for control, treat in self.make_col_pairs(data_df):
 
-            sub_df = raw_df[[control, treat]]
+            sub_df = data_df[[control, treat]]
 
             normalized_sub_df = self.execute_normalization(sub_df)
             normalized_pairs.append(normalized_sub_df)
 
         remerged_df = self.merge_dfs(normalized_pairs)
-        return self.reorder_cols(remerged_df)
+        reordered_df = self.reorder_cols(remerged_df)
+        self.normalized_data = reordered_df
+        return reordered_df
 
     def execute_normalization(self, unnormalized_matrix):
         return TMM(unnormalized_matrix)
@@ -167,10 +171,14 @@ class DataContainer(object):
             vertical_shift = float(intercepts[max_idx]) - float(intercepts[min_idx])
 
             # Transform
-            df[cols[min_idx]] = df[cols[min_idx]].apply(lambda x: x + vertical_shift)
-            df[cols[min_idx]] = self.rotate(origin=(0, float(intercepts[max_idx])),
+
+            # First, rotate the lower line (lower y intercept) around its y intercept
+
+            df[cols[min_idx]] = self.rotate(origin=(0, float(intercepts[min_idx])),
                                             point_tuple=(df['mean'], df[cols[min_idx]]), 
                                             angle=self.calc_angle(coef1, coef2))
+            df[cols[min_idx]] = df[cols[min_idx]].apply(lambda x: x + vertical_shift)
+
 
             result.append(df.drop('mean', axis=1))
         
@@ -185,23 +193,23 @@ class DataContainer(object):
         reconstructed = np.dot(u, np.dot(s, v))
         return reconstructed
 
-    #TODO implement support for missing data (data imputation)
-    def _average_flanking_(self, value):
-        """
-        :param value: a list with missing values to be filled in
-        """
-        flanked_averaged = []
+    # #TODO reimplement support for missing data (data imputation)
+    # def _average_flanking_(self, value):
+    #     """
+    #     :param value: a list with missing values to be filled in
+    #     """
+    #     flanked_averaged = []
 
-        for data in enumerate(value):
-            if data[1] is not None:
-                flanked_averaged.append(data[1])
-            else:
-                if data[0] == 0 or data[0] == len(value) - 1:  # if its the first or last position -> none
-                    flanked_averaged.append(None)
-                else:  # if the value is internal to the series list
-                    if value[data[0]-1] is not None and value[data[0] + 1] is not None:  # if there is flanking data
-                        flanking = [value[data[0] + 1], value[data[0] - 1]]
-                        flanked_averaged.append(np.mean(flanking))   # average the data
-                    else:
-                        flanked_averaged.append(None)
-        return flanked_averaged
+    #     for data in enumerate(value):
+    #         if data[1] is not None:
+    #             flanked_averaged.append(data[1])
+    #         else:
+    #             if data[0] == 0 or data[0] == len(value) - 1:  # if its the first or last position -> none
+    #                 flanked_averaged.append(None)
+    #             else:  # if the value is internal to the series list
+    #                 if value[data[0]-1] is not None and value[data[0] + 1] is not None:  # if there is flanking data
+    #                     flanking = [value[data[0] + 1], value[data[0] - 1]]
+    #                     flanked_averaged.append(np.mean(flanking))   # average the data
+    #                 else:
+    #                     flanked_averaged.append(None)
+    #     return flanked_averaged

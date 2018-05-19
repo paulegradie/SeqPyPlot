@@ -9,6 +9,7 @@ import numpy as np
 from seqpyplot.plot.base.plot_base import PlotBase
 from ast import literal_eval
 from operator import concat
+from tqdm import tqdm
 
 try:
     from functools import reduce
@@ -17,19 +18,19 @@ except ImportError:
 
 class PairedDataLinePlotter(PlotBase):
 
-    def __init__(self, config_obj, analyzer_obj, de_gene_list, normalized_df):
+    def __init__(self, config_obj, filter_obj, normalized_df):
         super(PairedDataLinePlotter, self).__init__()
         plt.close()
 
         self.config_obj = config_obj
         self.output_dir = self.create_output_directory()
-        
-        self.analyzer_obj = analyzer_obj
-        self.normalized_df = normalized_df
-        self.de_gene_list = de_gene_list
 
-        self.log = self.analyzer_obj.log2fold
-        self.low = self.analyzer_obj.low
+        self.filter_obj = filter_obj
+        self.normalized_df = normalized_df
+        self.complete_de_gene_list = filter_obj.complete_de_gene_list
+
+        self.log = self.filter_obj.log2fold
+        self.low = self.filter_obj.low
         self.times = self.config_obj.getlist('names', 'times')
         self.labels = self.config_obj.getlist('names', 'conditions')
         self.prefix = self.config_obj.get('names', 'experiment_name')
@@ -50,6 +51,8 @@ class PairedDataLinePlotter(PlotBase):
                             'fillstyle': 'full',
                             'markeredgewidth': 0.95,
                             'markersize': 6}
+
+        pbar = tqdm(total=sum([1 for gene in figure_list for gene in figure_list]))
 
         for fig_idx, figure in enumerate(figure_list, start=1):
 
@@ -78,6 +81,9 @@ class PairedDataLinePlotter(PlotBase):
 
                 data = self.retrieve_data(gene)
                 self.create_subplot(is_de, *data)
+                pbar.update(1)
+            
+            pbar.close()
 
             handles = [series1, series2, log_line, fold_line, diff_line]
             fig = self.tidy_up_figure(fig, handles)
@@ -134,7 +140,7 @@ class PairedDataLinePlotter(PlotBase):
         return gene in self.normalized_df.index.tolist()
 
     def is_de(self, gene):
-        return gene in self.de_gene_list
+        return gene in self.complete_de_gene_list
 
     def retrieve_data(self, gene):
         """
