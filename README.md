@@ -120,7 +120,7 @@ The expression plots output from SPPLOT use TMM normalized values and show relat
 #### PCA Plots
 After normalization, it is essential to verify that samples cluster appropriately. Typically, RNA-seq datasets from developmental time series data will contain a great deal of variation between time points, but not between samples within a time point. Of course this is not always the case. Nonetheless, observing relatively close clustering of samples from the same stage in a PCA plot is genarally desirable. If such clustering is not observed, then this may indicate a significant problem with sample composition and invalidate your experiment.
 
-![MDSPlot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/PCA_plot.png "MDS Plot")
+![MDSPlot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/PCA_plot.png "PCA Plot")
 
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Perhaps the most important parameter is the logfold change threshold. This plot shows the effect of tuning this threshold by counting the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.
@@ -139,13 +139,13 @@ The following plots are intended to aid the user in finding appropriate filter p
 
 The paramters used to filter genes are shown in the figure below:
 
-![Filter Plot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/Filter.png "Filter")
+![Filter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Filter.png "Filter")
 
 #### Scatter Plots
 Scatter plots are useful for double checking that normalization was successful and that your fold change parameter is reasonable across samples.
 There are two plots - flagged and un-flagged. The white line along the $f(x) = x$ vector indicates the center of the value distribution across all means, and all expressin values ar plotted against their relative mean. In other words, the mean is calculated for value pairs (control and experimental), and then each vlue is plotted against its mean. The dotted lines represents the log2fold change (from the user provided log2fold argument, default = 0.7) around the mean.
 
-![Scatter Plot](https://github.com/paulgradie/SPPLOT/blob/master/examples/images/Scatter_plot.png "Scatter Plot")
+![Scatter Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Scatter_plot.png "Scatter Plot")
 
 
 ## Credits
