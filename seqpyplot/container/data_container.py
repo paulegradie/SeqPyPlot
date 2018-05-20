@@ -27,6 +27,7 @@ import pandas as pd
 
 from pathlib import Path
 from scipy import linalg
+from scipy.stats import boxcox
 from sklearn.linear_model import LinearRegression   
 
 from seqpyplot.parsers import CuffNormParser, HtSeqParser, PlotDataParser
@@ -53,7 +54,7 @@ class DataContainer(object):
 
         self.config_obj = config_obj
         self.data_directory = Path(self.config_obj.get('data_directory', 'dir'))
-        self.paths = self.config_obj.getlist('data', 'paths')
+        self.paths = [str(Path(x)) for x in self.config_obj.getlist('data', 'paths')]
         self.names = self.config_obj.getlist('names', 'sample_names')
         self.times = self.config_obj.getlist('names', 'times')
         self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
@@ -118,32 +119,33 @@ class DataContainer(object):
         treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
         return df[controls + treated]
 
-    def rotate(self, origin, point_tuple, angle):
+    def rotate(self, point_tuple, theta):
         """
         Rotate a point_tuple counterclockwise by a given angle around a given origin.
-
         The angle should be given in radians.
         """
-        # angle = np.radians(angle)
-        origin_x, origin_y = origin
-        px, py = point_tuple
 
-        # qx = origin_x + np.cos(angle) * (px - origin_x) - np.sin(angle) * (py - origin_y)
-        qy = origin_y + np.sin(angle) * (px - origin_x) + np.cos(angle) * (py - origin_y)
-        # return qx, qy
-        return qy
+        rotation_matrix = np.array([[np.cos(theta), np.sin(theta)],
+                                    [-np.sin(theta), np.cos(theta)]])
 
-    def calc_angle(self, coef1, coef2):
+        # # angle = np.radians(angle)
+        x, y = point_tuple
+        new_x = (x * np.cos(theta)) + (x * np.sin(theta))
+        new_y = (y * -np.sin(theta)) + (y * np.cos(theta))
+
+        return new_x, new_y
+
+    def calc_theta(self, coef1, coef2):
        return np.abs(
            np.arctan(np.abs(coef1 - coef2) / (1. + (coef1 * coef2)))
        )
 
     def correct_heteroskedacity(self, dfs):
         """
-        Employ Box-cox transformation (power tranfsormation) to correct
-        heteroskedacitiy in the data.
-        Use sklearn.linearregression to compute vectors for conntrol and treat and use the
-        coefficient for lambda in boxcox
+        Employ Box-cox transformation (power tranfsormation) followed by rotation
+        to correct heteroskedacitiy in the data.
+        Use sklearn.linearregression to compute slopes. Use scipy to comput boxcox
+        
         """
         result = list()
         for df in dfs:
@@ -161,28 +163,31 @@ class DataContainer(object):
             treated_regression = LinearRegression(fit_intercept=True, n_jobs=2)
             treated_regression.fit(treated, mean)
 
-            coef1 = float(np.squeeze(control_regression.coef_))
-            coef2 = float(np.squeeze(treated_regression.coef_))
-
+            # First, ajust all points to the origin (remove bias, zero out bias, etc)
             intercepts = [control_regression.intercept_, treated_regression.intercept_]
             max_idx = np.argmax(intercepts)
             min_idx = np.argmin(intercepts)
+            df.loc[:, col[max_idx]] = df[col[max_idx]] - intercepts[max_idx]
+            df.loc[:, col[min_idx]] = df[col[min_idx]] - intercepts[min_idx]
 
-            vertical_shift = float(intercepts[max_idx]) - float(intercepts[min_idx])
+
 
             # Transform
-
+            theata = self.calc_theta(coef1, coef2)
             # First, rotate the lower line (lower y intercept) around its y intercept
 
-            df[cols[min_idx]] = self.rotate(origin=(0, float(intercepts[min_idx])),
-                                            point_tuple=(df['mean'], df[cols[min_idx]]), 
-                                            angle=self.calc_angle(coef1, coef2))
+            df[cols[min_idx]] = self.rotate(point_tuple=(df['mean'], df[cols[min_idx]]), 
+                                            angle=theta)
             df[cols[min_idx]] = df[cols[min_idx]].apply(lambda x: x + vertical_shift)
 
 
             result.append(df.drop('mean', axis=1))
         
         return result
+
+    def apply_box_cox(self, col_data):
+        return boxcox(col_data)
+
 
     def remove_variance(self, df, num_components=1):
         "Use Single Value Decomposition to remove first component of variation"
