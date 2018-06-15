@@ -97,15 +97,6 @@ class ScatterPlots(PlotBase):
                 ax = self.format_plot(ax, title, lims)
                 cols = df.columns.tolist()
 
-                # #TEMP
-                # model = LinearRegression(fit_intercept=True)
-                # model.fit(df['mean'].values.reshape(-1, 1), df[cols[0]].values.reshape(-1, 1))
-                # ax.plot([0, 10000], [0, model.coef_ * 10000 + model.intercept_], color='yellow', linestyle='--')
-
-                # model = LinearRegression(fit_intercept=True)
-                # model.fit(df['mean'].values.reshape(-1, 1), df[cols[1]].values.reshape(-1, 1))
-                # ax.plot([0, 10000], [0, model.coef_ * 10000 + model.intercept_], color='yellow', linestyle='--')
-
                 ax.scatter(df['mean'], df[cols[0]], s=2, color='blue')
                 ax.scatter(df['mean'], df[cols[1]], s=2, color='red')
                 ax.plot(range(len(upperbound)), upperbound, color='black', linestyle='--')

@@ -41,7 +41,7 @@ class PairedSampleFilter(object):
         self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
 
     def main_filter_process(self, input_df_list):
-        
+
         fold_change_dfs = self.apply_fold_change(input_df_list)
         diff_dfs = self.apply_diff(input_df_list)
         merged_dfs = list()
@@ -84,7 +84,6 @@ class PairedSampleFilter(object):
         return gene_count
 
     def apply_fold_change(self, input_df_list):
-
         fold_change_dfs = list()
         filtered_results = list()
         for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
