@@ -9,8 +9,8 @@ import os
 
 from pandas.testing import assert_frame_equal
 
-from SeqPyPlot.seqpyplot.container.data_container import DataContainer
-from SeqPyPlot.seqpyplot.parsers.config_parser import config_parser
+from seqpyplot.container.data_container import DataContainer
+from seqpyplot.parsers.config_parser import config_parser
 
 
 def foo(a, b):
@@ -106,7 +106,7 @@ def test_normalize_file_pairs(load_container):
     assert_frame_equal(res, expected)
 
 
-@patch('SeqPyPlot.seqpyplot.container.data_container.TMM')
+@patch('seqpyplot.container.data_container.TMM')
 def test_execute_normalization(mock_tmm, load_container):
 
     dc = load_container

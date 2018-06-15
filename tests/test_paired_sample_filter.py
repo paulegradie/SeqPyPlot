@@ -1,10 +1,10 @@
 import os
 
 import pytest
-from SeqPyPlot.seqpyplot.analyzer.paired_sample_filter import \
+from seqpyplot.analyzer.paired_sample_filter import \
     PairedSampleFilter
-from SeqPyPlot.seqpyplot.container.data_container import DataContainer
-from SeqPyPlot.seqpyplot.parsers.config_parser import config_parser
+from seqpyplot.container.data_container import DataContainer
+from seqpyplot.parsers.config_parser import config_parser
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
