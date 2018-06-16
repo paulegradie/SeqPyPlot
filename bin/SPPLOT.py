@@ -53,8 +53,6 @@ if __name__ == "__main__":
     container_obj = DataContainer(config_obj)
     data, ercc_data = container_obj.parse_input()
     
-    # import pdb;pdb.set_trace()
-    
     if args.impute:
         print('Imputation not yet implemented')
 
@@ -63,7 +61,6 @@ if __name__ == "__main__":
 
     split_data = container_obj.split(data)  # List of normalized dfs
 
-    # import pdb;pdb.set_trace()
     # if args.svd:
     #     split_data = container_obj.remove_variance(split_data)
 
@@ -91,7 +88,6 @@ if __name__ == "__main__":
     if args.plot:
 
         print("\nPlotting data...\n")
-
         line_plotter = PairedDataLinePlotter(config_obj, filter_obj, data)
         fig_list = MakeFigureList(config_obj)
         line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=data)

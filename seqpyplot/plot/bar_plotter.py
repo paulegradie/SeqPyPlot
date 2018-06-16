@@ -1,7 +1,6 @@
 import os
 
 import matplotlib.pyplot as plt
-
 from seqpyplot.plot.base.plot_base import PlotBase
 
 plt.style.use('bmh')
