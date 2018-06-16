@@ -1,7 +1,6 @@
 import os
 
 import matplotlib.pyplot as plt
-
 from seqpyplot.plot.base.plot_base import PlotBase
 
 plt.style.use('bmh')
@@ -96,11 +95,11 @@ class PairedBarPlot(PlotBase):
         else:
             ax.tick_params(axis='both',  # changes apply to the x-axis
                            which='both',  # both major and minor ticks are affected
-                           bottom='on',  # ticks along the bottom edge are off
-                           top='off',  # ticks along the top edge are off
-                           left='on',
-                           right='off',
-                           labelbottom='on')  # labels along the bottom edge are off
+                           bottom=True,  # ticks along the bottom edge are off
+                           top=False,  # ticks along the top edge are off
+                           left=True,
+                           right=False,
+                           labelbottom=True)  # labels along the bottom edge are off
 
         return ax
 

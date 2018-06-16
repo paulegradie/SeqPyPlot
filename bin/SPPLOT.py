@@ -1,5 +1,6 @@
 import os
 from argparse import ArgumentParser
+import logging
 
 from seqpyplot.analyzer.paired_sample_filter import PairedSampleFilter
 from seqpyplot.container.data_container import DataContainer
@@ -32,14 +33,14 @@ if __name__ == "__main__":
                             prog='SPPLOT v0.4',
                             epilog=epilog)
 
-
     parser.add_argument('-c', '--config', type=str, required=True)
 
     parser.add_argument('-o', '--overwrite', action='store_true', help='Overwrite existing output directory.')
     parser.add_argument('-i', '--impute', action='store_true', help='Impute missing data using neighbors: NYI')
     parser.add_argument('-p', '--plot',   action='store_true', help='Create all plots.')
-    parser.add_argument('-t', '--correct', action='store_true', help='Attempt to correct for heteroskedasticity: NYI')
+    parser.add_argument('-r', '--correct', action='store_true', help='Attempt to correct for heteroskedasticity.')
     parser.add_argument('-u', '--unnorm', action='store_true', help='Do not normalize data.')
+    # parser.add_argument('-d', '--svd', action='store_true', help='Remove variance by single value decomposition.')
 
     args = parser.parse_args()
 
@@ -51,21 +52,26 @@ if __name__ == "__main__":
     # load the data container_obj
     container_obj = DataContainer(config_obj)
     data, ercc_data = container_obj.parse_input()
+    
+    if args.impute:
+        print('Imputation not yet implemented')
 
     if not args.unnorm:
         data = container_obj.normalize_file_pairs(data) # Single df of normalized data
 
     split_data = container_obj.split(data)  # List of normalized dfs
 
+    # if args.svd:
+    #     split_data = container_obj.remove_variance(split_data)
+
     if args.correct:
-        split_data = container_obj.correct_heteroskedacity(split_data)
+        split_data = container_obj.correct_via_rotation(split_data)
 
 #--------------------------------------------------------------------
 #  Filter data
 
     filter_obj = PairedSampleFilter(config_obj)
     filter_result = filter_obj.main_filter_process(split_data)
-
 
 #--------------------------------------------------------------------
 # Save filter results
@@ -82,7 +88,6 @@ if __name__ == "__main__":
     if args.plot:
 
         print("\nPlotting data...\n")
-
         line_plotter = PairedDataLinePlotter(config_obj, filter_obj, data)
         fig_list = MakeFigureList(config_obj)
         line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=data)

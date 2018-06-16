@@ -1,6 +1,6 @@
 
 #             ***SPPLOT v0.4***
-A tool for helping you analyze pilot data (data without replicates).
+A tool for helping you analyze pilot data (data without replicates). Previously called SeqPyPlot.
 
 ## Installation
 
@@ -34,15 +34,15 @@ optional arguments:
   -o, --overwrite       Overwrite existing output directory.
   -i, --impute          Impute missing data using neighbors: NYI
   -p, --plot            Create all plots.
-  -r, --correct         Attempt to correct for offset using linear regression.
+  -t, --correct         Attempt to correct for heteroskedasticity: NYI
   -u, --unnorm          Do not normalize data.
 </pre>
 
-## Example config file contents
+
 <pre>
 [data_directory]
-dir=./examples/htseqCounts
-output=./examples/test_output
+dir=C:\\Users\\paule\\code\\SeqPyPlot\\examples\\htseqCounts
+output=C:\\Users\\paule\\code\\SeqPyPlot\\examples\\test_output
 
 [data]
 controls=['D1_Control.counts', 'D2_Control.counts', 'D3_Control.counts']
@@ -57,19 +57,16 @@ conditions=['Control', 'Treated']
 experiment_name=Example
 
 [params]
-log2fold=0.55
+log2fold=2.0
 low=2
 hi=10000
 diff=[200, 1000000]
-correction_interval_min=100
-correction_interval_max=500
-num_components=1
 
 [plot_options]
 scatrange=[10, 10000]
 
 [file_names]
-genelist=./examples/testgenelist.txt
+genelist=C:\\Users\\paule\\code\\SeqPyPlot\\examples\\testgenelist.txt
 prefix='SeqPyPlot'
 </pre>
 
@@ -81,11 +78,11 @@ prefix='SeqPyPlot'
 5. Submit a pull request :D
 
 ## History and background
-SPPLOT (rna-Seq Python PLOT library) was written to provide a simple to use, quick analysis tool for interrogating pilot RNA-seq data. Pilot study data is defined here as data that doesn't include replicates. A common need among developmental biologists right now is the ability to interogate pilot study data and access gene expression quickly. Usually these data are not used for publishing, but rather to guide future experiments and provide a quick peak at approximate expression levels within the target tissue. 
+SPPLOT (rna-Seq Python PLOT library) was written to provide a simple to use quick analysis tool for pilot RNA-seq data. Pilot study data is defined here as data that doesn't include replicates. A common need among developmental biologists right now is the ability to interogate pilot study data and access gene expression quickly. Usually these data are not used for publishing, but rather to guide future experiments and provide a quick peak at approximate expression levels within the target tissue. 
 
 Quoted from the edgeR manual (a popular tool written in R used for calculating differential expression of genes:
 
-"__RNA-Seq and ChIP-Seq are still expensive technologies, so it sometimes happens that only one library can be created for each treatment condition. In these cases there are no replicate libraries from which to estimate biological variability. In this situation, the data analyst is faced with the following choices, none of which are ideal. We do not recommend any of these choices as a satisfactory alternative for biological replication. Rather, they are the best that can be done at the analysis stage [using no replicates].__```
+`RNA-Seq and ChIP-Seq are still expensive technologies, so it sometimes happens that only one library can be created for each treatment condition. In these cases there are no replicate libraries from which to estimate biological variability. In this situation, the data analyst is faced with the following choices, none of which are ideal. We do not recommend any of these choices as a satisfactory alternative for biological replication. Rather, they are the best that can be done at the analysis stage [using no replicates].`
 
 The manual goes to suggest the following option (which is admittedly not their preferred suggestion...)
 
@@ -102,7 +99,7 @@ SPPLOT produces a range of plots for general descriptive analysis of your data. 
 #### Expression Plots
 The main plot time intended for SPPLOT users are the expression plots. These plots are not entirely interpretable and should be used only to generalize about the data. The rason is as follows. When we normalize RNA-seq expression data, we can use one of two methods -
 
-1.Between-sample normalization (used for testing for DE)
+1.Between-Sample normalization (used for testing for DE)
 e.g.
 - TMM (edgeR)
 - Geometic (DESeq2)
@@ -118,12 +115,12 @@ The best approach we have right now is to use a relative normalization method su
 
 The expression plots output from SPPLOT use TMM normalized values and show relative difference between values across time/stages. SPPLOT provides a secondary measure of relative expression, akin to a scale bar, that is intended to help users interpret the relative differences between expression values in log space. SPPLOT calculates the mean between two measurements at a given stage and then calculates the log fold change provided by the user and plots error bars centered on the mean with the range of the logfold difference (default 0.7). The output also highlights (in yellow) any plot for a gene that is flagged at any time point.
 
-![Expression Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Expression_plot.png "Expression Plot")
+![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/Expression_plot.png "Expression Plot")
 
 #### PCA Plots
 After normalization, it is essential to verify that samples cluster appropriately. Typically, RNA-seq datasets from developmental time series data will contain a great deal of variation between time points, but not between samples within a time point. Of course this is not always the case. Nonetheless, observing relatively close clustering of samples from the same stage in a PCA plot is genarally desirable. If such clustering is not observed, then this may indicate a significant problem with sample composition and invalidate your experiment.
 
-![PCA Plot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/PCA_plot.png "PCA Plot")
+![MDSPlot](https://github.com/paulgradie/SeqPyPlot/blob/master/examples/images/PCA_plot.png "PCA Plot")
 
 #### Tally Plots
 This plot provides feedback on your filter parameter selection. These paramters determine the number of genes that will be flagged. Perhaps the most important parameter is the logfold change threshold. This plot shows the effect of tuning this threshold by counting the number of flagged genes across a range of threshold values, while keeping the other filter parameters constant. A good value to choose for logfold change will be around the point in the plot that the line begins to steepen.

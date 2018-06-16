@@ -7,7 +7,6 @@ deprecated/
 build/
 .eggs
 .pytest_cache
-*.ipynb
 dist/
 .egg-info/
 .DS_Store

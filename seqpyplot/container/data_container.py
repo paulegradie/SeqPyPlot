@@ -27,6 +27,7 @@ import pandas as pd
 
 from pathlib import Path
 from scipy import linalg
+from scipy.stats import boxcox
 from sklearn.linear_model import LinearRegression   
 
 from seqpyplot.parsers import CuffNormParser, HtSeqParser, PlotDataParser
@@ -53,12 +54,13 @@ class DataContainer(object):
 
         self.config_obj = config_obj
         self.data_directory = Path(self.config_obj.get('data_directory', 'dir'))
-        self.paths = self.config_obj.getlist('data', 'paths')
+        self.paths = [str(Path(x)) for x in self.config_obj.getlist('data', 'paths')]
         self.names = self.config_obj.getlist('names', 'sample_names')
         self.times = self.config_obj.getlist('names', 'times')
         self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
         self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
-    
+        self.num_components = self.config_obj.getint('params', 'num_components')
+
     def split(self, normalized_df):
         self.normalized_df = normalized_df
         self.split_normalized_dfs = [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
@@ -118,73 +120,74 @@ class DataContainer(object):
         treated = [x[1] for x in enumerate(df.columns) if x[0] % 2 != 0]
         return df[controls + treated]
 
-    def rotate(self, origin, point_tuple, angle):
-        """
-        Rotate a point_tuple counterclockwise by a given angle around a given origin.
-
-        The angle should be given in radians.
-        """
-        # angle = np.radians(angle)
-        origin_x, origin_y = origin
-        px, py = point_tuple
-
-        # qx = origin_x + np.cos(angle) * (px - origin_x) - np.sin(angle) * (py - origin_y)
-        qy = origin_y + np.sin(angle) * (px - origin_x) + np.cos(angle) * (py - origin_y)
-        # return qx, qy
-        return qy
-
-    def calc_angle(self, coef1, coef2):
+    def calc_theta(self, coef1, coef2):
        return np.abs(
            np.arctan(np.abs(coef1 - coef2) / (1. + (coef1 * coef2)))
        )
 
-    def correct_heteroskedacity(self, dfs):
+    def compute_rot_mat(self, rad):
+        " Compute a rotation matrix using rad for a given regression coefficient "
+        rotation_matrix = np.array([[np.cos(rad), -np.sin(rad)],
+                                    [np.sin(rad), np.cos(rad)]])
+        return rotation_matrix
+
+    def correct_via_rotation(self, dfs, min_itvl=100, max_intvl=500):
         """
-        Employ Box-cox transformation (power tranfsormation) to correct
-        heteroskedacitiy in the data.
-        Use sklearn.linearregression to compute vectors for conntrol and treat and use the
-        coefficient for lambda in boxcox
+        Correct heteroscedacitiy using linear regression.
+
         """
         result = list()
-        for df in dfs:
-            df = df.copy()
+        for frame in dfs:
 
+            dataframe = frame.copy()
+            # dataframe is the sample pair - add mean
+            dataframe.loc[:, 'mean'] = dataframe.mean(axis=1)
+
+            # make filtered copy for linear regression
+            df = dataframe[(dataframe['mean'] > min_itvl) & (dataframe['mean'] < max_intvl)].copy()
+
+            # make ordered list of col names
             cols = df.columns.tolist()
 
-            df.loc[:, 'mean'] = df.mean(axis=1)
+            # prep the data for sklearn linear regression
             control = df[cols[0]].values.reshape(-1, 1)
             treated = df[cols[1]].values.reshape(-1, 1)
             mean = df['mean'].values.reshape(-1, 1)
 
+            # perform linear regression
             control_regression = LinearRegression(fit_intercept=True, n_jobs=2)
             control_regression.fit(control, mean)
             treated_regression = LinearRegression(fit_intercept=True, n_jobs=2)
             treated_regression.fit(treated, mean)
 
-            coef1 = float(np.squeeze(control_regression.coef_))
-            coef2 = float(np.squeeze(treated_regression.coef_))
+            # remove bias
+            dataframe.loc[:, cols[0]] = dataframe[cols[0]].sub(control_regression.intercept_[0])
+            dataframe.loc[:, cols[1]] = dataframe[cols[1]].sub(treated_regression.intercept_[0])
 
-            intercepts = [control_regression.intercept_, treated_regression.intercept_]
-            max_idx = np.argmax(intercepts)
-            min_idx = np.argmin(intercepts)
+            # Compute angle between two data groups
+            coefficients = list(map(float, [np.squeeze(control_regression.coef_[0]), np.squeeze(treated_regression.coef_[0])]))
+            theta = self.calc_theta(*coefficients)
 
-            vertical_shift = float(intercepts[max_idx]) - float(intercepts[min_idx])
+            # compute rotation matrix
+            rotation_matrix = self.compute_rot_mat(theta)
 
-            # Transform
+            # keep track of lower and upper col
+            lower_col = cols[np.argmin(coefficients)]
+            upper_col = cols[np.argmax(coefficients)]
 
-            # First, rotate the lower line (lower y intercept) around its y intercept
+            old_points = dataframe[[lower_col, 'mean']].values
+            new_points = np.dot(old_points, rotation_matrix)
 
-            df[cols[min_idx]] = self.rotate(origin=(0, float(intercepts[min_idx])),
-                                            point_tuple=(df['mean'], df[cols[min_idx]]), 
-                                            angle=self.calc_angle(coef1, coef2))
-            df[cols[min_idx]] = df[cols[min_idx]].apply(lambda x: x + vertical_shift)
+            corrected_df = pd.DataFrame(new_points[:, 0], columns=[lower_col], index=dataframe.index)
+            corrected_df.loc[:, upper_col] = dataframe[upper_col]
+            corrected_df = corrected_df[[cols[0], cols[1]]]
+            corrected_df[corrected_df < 0] = 0
 
+            result.append(corrected_df)
 
-            result.append(df.drop('mean', axis=1))
-        
         return result
 
-    def remove_variance(self, df, num_components=1):
+    def _compute_svd_(self, df, num_components):
         "Use Single Value Decomposition to remove first component of variation"
         u, s, v = linalg.svd(df, full_matrices=False)
         s = np.diag(s)
@@ -192,6 +195,19 @@ class DataContainer(object):
         
         reconstructed = np.dot(u, np.dot(s, v))
         return reconstructed
+
+    def remove_variance(self, dfs, num_components=1):
+        result = list()
+        for dataframe in dfs:
+            df = dataframe.copy()
+            
+            cols = df.columns
+            index = df.index
+            
+            thinned = self._compute_svd_(df, self.num_components)
+
+            result.append(pd.DataFrame(thinned, columns=cols, index=index))
+        return result
 
     # #TODO reimplement support for missing data (data imputation)
     # def _average_flanking_(self, value):
