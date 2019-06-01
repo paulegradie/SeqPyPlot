@@ -1,9 +1,0 @@
-gene_a
-gene_b
-gene_c
-gene_d
-gene_e
-gene_f
-gene_g
-gene_h
-gene_i
