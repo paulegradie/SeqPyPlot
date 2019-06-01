@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Interpretting SPPLOT</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/static/css/style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+</head>
+
+    <body>
+        <a name="top"></a>
+        <header>
+            <div class="main_title">
+                SPPLOT v0.4
+            </div>
+            A tool for helping you analyze pilot data (data without replicates).
+        </header>
+        <br />
+        <hr>
+        <nav class="navbar">
+            <a class="link" href="index">HOME</a>
+            <a class="link" href="analyze">Analyze</a>
+            <a class="link" href="make_plots">Plot</a>
+            <a class="link" href="interpretting">Interpretting</a>
+            <a class="link" href="citing">Citing</a>
+            <a class="link" href="troubleshooting">Troubleshooting</a>
+        </nav>
+        <hr class="line" />
+        <br />
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+
+        {% block body %}{% endblock %}
+
+        <footer>
+                <hr />
+                Created by Paul Gradie<br>
+                Copyright 2017
+            </footer>
+        </body>
+
+</html>

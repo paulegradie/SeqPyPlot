@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<!-- {# _app/templates/index.html_ #} -->
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+<h1>Analyze your data</h1>
+    To perform the analysis, perform the following steps:
+    <ol>
+        <li>Select the number of samples you wish to plot.</li>
+        <li>Add samples to the sample list, fill in the time point name, and select the appropriate files.</li>
+        <li>Select reasonable filter parameters.</li>
+        <li>Click the 'Perform Analysis' button.</li>
+    </ol>
+<br>
+    <h2>Reasonable filter parameters</h2>
+    <p><span>
+            Choose reasonable filter parameters may require multiple analyses using the tool provided on this page.
+            Typically, you will
+            want to first run the analysis in 'parameter search mode'. This will produce a series of parameter search
+            plots which will be displayed
+            on the page which may assist you in selecting appropriate parameters.
+        </span></p>
+    <p><span>
+            Ideally you want to select parameters that will return a reasonable number of genes. What is reasonable
+            depends on your experiment and
+            may be somewhat indicated by the log2fold cutoff plot. It is suggested to take a log2fold cutoff that is
+            very close to the tip of the
+            elbow in this plot.
+        </span></p>
+<br>
+<p>
+    When you click the 'Perform Analysis' button, your data will be submitted and a zip file will
+    be returned for you to download. This file contains all of the analysis results. You can use the
+    'filename'_plotter_data.splot' file plotting in the <a href='make_plots'>plotting</a> page.
+</p>
+<hr />
+<br /><br />
+
+<p>Status: -- {{ status }} --</p>
+
+Number of conditions
+<select name="numberofconditions" id="numCondition">
+    <!-- dafault goes on top of this list -->
+    <option value="two" id="two_conditions">two</option>
+    <option value="one" id="one_condition">one</option>
+</select>
+<br />
+<br />
+<br />
+<hr>
+
+<h3>Sample uploads</h3>
+<p>To add more time points, click the 'add another sample' button.</p>
+<p>
+    <input id="control_fileid" type="file" hidden />
+</p>
+<button id="addSample">Add sample</button>
+<button id="deleteSample">Remove last sample</button>
+<br><br>
+
+<!-- SINGLE COLUM FORM -->
+<form method="POST" autocomplete="off" data-lpignore="true" id="singlesample-search"
+    enctype="multipart/form-data" action="{{ url_for('analyzeData') }}" onsubmit="return analysis_form_validation(this);">
+
+    <input type="text" name="experimentname_1" id="singlexperimentname" placeholder="Experiment Name" value="TEST_NAME">
+
+    <table id="OneSampleTable">
+        <tr>
+            <td></td>
+            <td><span class="sampleItemSpan">Sample Names</span></td>
+            <td><span class="sampleItemSpan">Control</span></td>
+        </tr>
+        <tr>
+            <td><span name="time_name2_1" class="sampleItemSpan">1.</span></td>
+            <td><input name="time_name1_1" id="singletimename_1" class="sampleItemSpan" type="text" placeholder="T1" value="T1"></td>
+            <td><input id="singlecontrol_1" name="control_1" class="sampleItemSpan" type="file"></td>
+        </tr>
+        <!-- New rows will go here -->
+        <!-- On submit, the request will contain all of the elements of this form!  -->
+    </table>
+    <br><br>
+    <div class="paramform" id="paramform">
+        <br><br>
+        Filter Params
+        <table>
+            <tr><td><span class="params">Log2Fold:</span></td><td><input name="param_log2fold_1" id="param1_1" type="number" placeholder="0.55" step="0.01" min="0.00"></td></tr>
+            <tr><td><span class="params">Expression Min:</span></td><td><input name="param_expressionmin_1" id="param1_2" type="number" placeholder="2" min="1"></td></tr>
+            <tr><td><span class="params">Expression Max:</span></td><td><input name="param_expressionmax_1" id="param1_3" type="number" placeholder="100000" min="1"></td></tr>
+            <tr><td><span class="params">Expression Minimum Difference:</span></td><td><input name="param_min_diff_1" id="param1_4" type="number" placeholder="200" min="1"></td></tr>
+            <tr><td><span class="params">Expression Maximum Difference:</span></td><td><input name="param_max_diff_1" id="param1_5" type="number" placeholder="10000" min="1"></td></tr>
+            <tr><td><span class="params">Correction Interval Min (opt):</span></td><td><input name="param_corrintervalmin_1" id="param1_6" type="number" placeholder="200" min="1"></td></tr>
+            <tr><td><span class="params">Correction Interval Max (opt):</span></td><td><input name="param_corrintervalmax_1" id="param1_7" type="number" placeholder="500" min="1"></td></tr>
+            <tr><td><span class="params">Num Components:</span></td><td><input name="param_numcomponents_1" id="param1_8" type="number" placeholder="2"></td></tr>
+        </table>
+    </div>
+    <br><br>
+    <input value="Perform Experiment" type="submit" id="submitONEcolumn">
+</form>
+
+
+<!-- TWO COLUMN FORM -->
+<form method="POST" autocomplete="off" data-lpignore="true" id="doublesample-search"
+    enctype="multipart/form-data" action="{{ url_for('analyzeData') }}" onsubmit="return analysis_form_validation(this);">
+
+    <p>Experiment Name<br><br>
+    <input type="text" name="experimentname_2" id="doubleexperimentname" placeholder="Experiment Name" value="TEST_NAME">
+    </p>
+
+    <table id="TwoSampleTable">
+        <tr>
+            <td></td>
+            <td><span class="sampleItemSpan">Sample Names</span></td>
+            <td><span class="sampleItemSpan">Control</span></td>
+            <td><span class="sampleItemSpan">Treated</span></td>
+        </tr>
+        <tr>
+            <td><span class="">1.</span></td>
+            <td><input name="time_name2_1" id="doubletimename_1" class="sampleItemSpan" type="text" placeholder='T1' value="T1"></td>
+            <td><input name="doublecontrol_1" class="sampleItemSpan" type="file"></td>
+            <td><input name="doubletreated_1" type="file"></td>
+        </tr>
+        <!-- New rows will go here -->
+        <!-- On submit, the request will contain all of the elements of this form!  -->
+    </table>
+    <br><br>
+    <div class="paramform" id="paramform2">
+    <br><br>
+    Filter Params
+    <table>
+        <tr><td><span class="params">Log2Fold:</span></td><td><input name="param_log2fold_2" id="param2_1" type="number" placeholder="0.55" value="0.55" step="0.01" min="0.00"></td></tr>
+        <tr><td><span class="params">Expression Min:</span></td><td><input name="param_expressionmin_2" id="param2_2" type="number" placeholder="2" value="2" min="1"></td></tr>
+        <tr><td><span class="params">Expression Max:</span></td><td><input name="param_expressionmax_2" id="param2_3" type="number" placeholder="100000" value="100000" min="1"></td></tr>
+        <tr><td><span class="params">Expression Minimum Difference:</span></td><td><input name="param_min_diff_2" id="param2_4" type="number" placeholder="200" value="200" min="1"></td></tr>
+        <tr><td><span class="params">Expression Maximum Difference:</span></td><td><input name="param_max_diff_2" id="param2_5" type="number" placeholder="10000" value="10000" min="1"></td></tr>
+        <tr><td><span class="params">Correction Interval Min (opt):</span></td><td><input name="param_corrintervalmin_2" id="param2_6" type="number" placeholder="200" value="200" min="1"></td></tr>
+        <tr><td><span class="params">Correction Interval Max (opt):</span></td><td><input name="param_corrintervalmax_2" id="param2_7" type="number" placeholder="500" value="500" min="1"></td></tr>
+        <tr><td><span class="params">Num Components:</span></td><td><input name="param_numcomponents_2" id="param2_8" type="number" placeholder="2" value="2"></td></tr>
+    </table>
+    </div><br><br>
+    <input value="Perform Experiment" type="submit" id="submitTWOcolumns">
+</form>
+
+<br>
+
+<hr>
+<script>
+
+    function get(key, map) {
+        return map[key]
+    }
+
+    $("#singlesample-search").hide();
+    let defaultConditions = 2
+    window.current_form = "#doublesample-search"
+
+    let single_file_rows = ["singlecontrol_1"];
+    let single_file_names = ["singletimename_1"];
+
+    let double_file_rows_control = ["doublecontrol_1"];
+    let double_file_rows_treated = ["doubletrated_1"];
+    let double_file_names = ["doubletimename_1"];
+
+    let single_params = ["param1_1", "param1_2", "param1_3", "param1_4", "param1_5", "param1_6", "param1_7", "param1_8"];
+    let double_params = ["param2_1", "param2_2", "param2_3", "param2_4", "param2_5", "param2_6", "param2_7", "param2_8"];
+
+
+    $("select#numCondition").change(function () {
+        let map = {'one': 1, 'two': 2}
+        function get (map, key) {
+            return map[key];
+        }
+
+        var numconditions_str = $(this).children("option:selected").val()
+        // var numconditions_int = map[numconditions]
+        var numconditions_int = get(map, numconditions_str)
+
+        if (numconditions_str == "one") {
+            console.log('OK')
+            $("#doublesample-search").hide().attr("formnovalidate");
+            $("#singlesample-search").toggle();
+            window.current_form = "#singlesample-search"
+            console.log(window.current_form)
+
+        } else if (numconditions_str == "two") {
+            $("#singlesample-search").hide().attr("formnovalidate");
+            $("#doublesample-search").toggle();
+            window.current_form = "#doublesample-search"
+            console.log(window.current_form)
+
+        } else {
+            alert("MUST CHOOSE")
+        }
+    })
+
+    // var handles the numebr of sample rows
+    let curSample = 2
+
+    // add a row to the sample table
+    $("#addSample").click(function () {
+
+        var x1 = $(this).offset().top;
+
+        $(function () {
+            if (curSample <= 12) {
+
+                var rowNumber = curSample.toString()
+
+                var newRowSingle='<tr><td><span class="sampleItemSpan">'+rowNumber+'.</span></td><td><input name="time_name1_'+rowNumber+'" id="singletimename_'+rowNumber+'" class="sampleItemSpan" type="text" placeholder="T'+rowNumber+'"></td><td><input id="singlecontrol_'+rowNumber+'" name="control_'+rowNumber+'" class="sampleItemSpan" type="file"></td></tr>'
+                var newRowDouble = '<tr><td><span class="">'+rowNumber+'.</span></td><td><input name="time_name2_'+rowNumber+'" id="doubletimename_'+rowNumber+'" class="sampleItemSpan" type="text" placeholder="T'+rowNumber+'"></td><td><input name="doublecontrol_'+rowNumber+'" class="sampleItemSpan" type="file"></td><td><input name="doubletreated_'+rowNumber+'" type="file"></td></tr>'
+
+                $("#OneSampleTable").append(newRowSingle)
+                $("#TwoSampleTable").append(newRowDouble)
+
+                single_file_rows.push("singlecontrol_"+rowNumber);
+                single_file_names.push("singletimename_"+rowNumber);
+
+                double_file_rows_control.push("doublecontrol_"+rowNumber);
+                double_file_rows_treated.push("doubletrated_"+rowNumber);
+                double_file_names.push("doubletimename_"+rowNumber);
+                console.log(double_file_names)
+                curSample += 1
+
+            } else {
+                alert("Plots look bad with too many samples...")
+
+            }
+        })
+
+        var x2 = $(this).offset().top;
+        var dx = x2 - x1;
+        $(document).scrollTop($(document).scrollTop() + dx);
+    })
+
+    $("#deleteSample").click(function () {
+
+        var x1 = $(this).offset().top;
+        $(function () {
+            if (curSample > 2) {
+                $("#OneSampleTable tr:last").remove()
+                $("#TwoSampleTable tr:last").remove()
+                curSample -= 1
+
+                single_file_rows.pop()
+                single_file_names.pop()
+
+                double_file_rows_control.pop()
+                double_file_rows_treated.pop()
+                double_file_names.pop()
+                console.log(double_file_names)
+
+
+            } else {
+                alert("Need at least 1 time point")
+            }
+            return false
+        })
+        var x2 = $(this).offset().top;
+        var dx = x2 - x1;
+        $(document).scrollTop($(document).scrollTop() + dx);
+    })
+
+    // main validation function
+    function analysis_form_validation (curForm) {
+        let valid_extensions = ['counts'];
+
+        function validate_texts (text_ids) {
+            var texts_present = true;
+
+            for (var i=0; i<text_ids.length; i++) {
+                cur_id = text_ids[i];
+                el = document.getElementById(cur_id)
+                if (el.value.length == 0) {
+                    texts_present = false;
+                }
+            }
+            return texts_present;
+        }
+
+        function validate_all_files_there (curForm) {
+
+            form_inputs = curForm.getElementsByTagName("Input");
+            var num_files_found = 0
+            let file_count_is_good = false;
+
+            if (window.current_form == '#doublesample-search') {
+                var cur_cond_count = 2;
+            } else if (window.current_form == '#singlesample-search') {
+                var cur_cond_count = 1
+            }
+
+            for (var i = 0; i < form_inputs.length; i++) {
+                var form_input = form_inputs[i];
+                if (form_input.type == "file") {
+                    var filename = form_input.value
+                    if (filename.length > 0) {
+                        num_files_found += 1
+                    }
+                }
+            }
+            if (num_files_found % cur_cond_count == 0) {
+                    file_count_is_good = true;
+                }
+            if (num_files_found == 0) {
+                file_count_is_good = false;
+            }
+
+            return file_count_is_good
+        }
+
+        function validate_extensions (curForm) {
+
+            var form_inputs = curForm.getElementsByTagName("Input");
+            var extensions_all_good = true;
+
+            // get all extensions
+            var extensions = [];
+            for (var i = 0; i < form_inputs.length; i++) {
+                var form_input = form_inputs[i]
+                if (form_input.type == "file") {
+                    filename = form_input.value
+                    var filename_parts = filename.split('.')
+                    var file_extension = filename_parts[filename_parts.length-1]
+                    extensions.push(file_extension)
+                }
+            }
+
+            // check each extension is in the allowed extensions
+            for (var ext_idx = 0; ext_idx < extensions.length; ext_idx++) {
+
+                var file_extension = extensions[ext_idx];
+                if (valid_extensions.indexOf(file_extension) == -1) {
+                    extensions_all_good = false
+                }
+
+            }
+            return extensions_all_good
+        }
+
+        function validate_form_params (param_ids) { // param_ids is a list of param ids passed given the window.curren_form
+
+            var all_params_present = true;
+
+            for (var i = 0; i < param_ids.length; i++) {
+                var param_id = param_ids[i];
+                var param = document.getElementById(param_id)
+                console.log("PARAM: " + param + ": " + param_id)
+
+                if (param.value.length == 0) {
+                    console.log("NO PARAM: "+param.value.length)
+                    console.log(param.value)
+                    all_params_present = false;
+                }
+            }
+            return all_params_present;
+        }
+
+
+        form_inputs = curForm.getElementsByTagName("Input");
+
+
+        var all_files_present = validate_all_files_there(curForm);
+        var extensions_valid = validate_extensions(curForm);
+
+        if (window.current_form == '#doublesample-search') {
+            var all_numbers_present = validate_form_params(double_params);
+            var all_texts_present = validate_texts(double_file_names)
+
+        } else if (window.current_form == '#singlesample-search') {
+            var all_numbers_present = validate_form_params(single_params);
+            var all_texts_present = validate_texts(single_file_names)
+        } else {
+            alert("Only one or two conditions supported.")
+        }
+
+        // var form_validated = true;
+        // if (!all_files_present) {
+        //     alert("Files are missing. You may pass empty files when imputing a time point, but all file slots must be filled.")
+        //     form_validated = false;
+        // }
+
+        // if (!extensions_valid) {
+        //     alert("Files must be of type .counts. Row format is two column: text-tab-number-newline")
+        //     form_validated = false;
+        // }
+
+        // if (!all_numbers_present) {
+        //     alert("Filter params are missing.")
+        //     form_validated = false;
+        // }
+
+        if (!all_texts_present) {
+            alert("The experiment and files must all be named.")
+            form_validated = false;
+        }
+
+        return form_validated;
+    }
+
+
+</script>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+        // function validate_two_sample_files () {
+        //     var curForm = document.getElementById("doublesample-search")
+        //     // curForm = $("#doublesample-search");
+        //     result = generic_validate_file_inputs(curForm)
+        //     return result
+        // }
+
+        // function validate_one_sample_files () {
+        //     curForm = $("#singlesample-search");
+        //     result = generic_validate_file_inputs(curForm)
+        //     return result
+        // }
+
+
+        // if (numconditions_str == "one") {
+        //     console.log('ONLY ONE SAMPLE VALIDATION')
+        //     result = validate_one_sample_files(curform)
+        //     if (result == true) {
+        //         return true
+        //     } else {
+        //         alert("File Extension not valid.")
+        //         return false
+        //     }
+        // } else if (numconditions_str == "two") {
+        //     console.log("TWO SAMPLE VALIDATION")
+        //     result = validate_two_sample_files()
+        //     if (result == true) {
+        //         return true
+        //     } else {
+        //         alert("File Extension not valid.")
+        //         return false
+        //     }
+        // }
+        // } -->
+
+
+
+
+        <!-- // function all(iterable) {
+            //     for (var index = 0; index < iterable.length; index++) {
+            //         if (!iterable[index]) return false;
+            //     }
+            //     return true;
+            // } -->
+
+
+
+
+<!--
+// // function handles adding a sample row
+// $(function () {
+//     $("#addSample").click(function () {
+
+//         if (curSample < 13) {
+//             var rowID = "sample_sample-" + curSample.toString(10);
+//             console.log(rowID);
+//             $('#' + rowID).show();
+//             curSample += 1;
+//             console.log(curSample);
+//         } else {
+//             alert("Max number of samples is 12")
+//         }
+//     })
+// })
+
+// // function handles removing a row
+// $(function () {
+//     $("#deleteSample").click(function() {
+//         if (curSample == 0) {
+//             alert('You need at least one paired sample.');
+//         } else {
+//             var rowID = "sample_sample-" + curSample.toString(10);
+//             console.log(rowID);
+//             $('#' + rowID).hide();
+//             curSample -= 1;
+//             console.log(curSample);
+//         }
+//     })
+// }) -->

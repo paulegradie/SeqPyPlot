@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+
+
+<h1>TEST</h1>
+<br>
+RESULT: {{ result }}
+<br>
+<img src="/static/analyis_results/tmp1/expression_plot.png" alt="WOW">
+
+<div class="result_window">
+    <button>Left</button>
+
+    {% for image_path in image_locations %}
+    <div class="image_div">
+        <img class="plotimages" src="{{ image_path }}" alt="Expression Plot">
+
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+
+
+
+{% endblock %}
+

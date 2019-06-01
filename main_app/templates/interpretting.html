@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+    <h1>
+        Plot Descriptions
+    </h1>
+</p>
+<p>
+    SPPLOT produces a range of plots for general descriptive analysis of your data.
+    These plots are available using the 'plot options' shown above in the usage.
+    This section provides plot examples along with suggested interpretation.
+</p>
+<nav class="plot_links">
+    <table>
+        <tr>
+            <td>
+                <a class="plotlink" href="#expressionplots">Expression Plots</a>
+            </td>
+            <td>
+                <a class="plotlink2" href="#pcaplots">PCA Plots</a>
+            </td>
+            <td>
+                <a class="plotlink" href="#flaggedbarplots">Flagged Gene Bar Plots</a>
+            </td>
+
+        </tr>
+        <tr>
+            <td>
+                <a class="plotlink" href="#tallyplots">Tally Plots</a>
+            </td>
+            <td>
+                <a class="plotlink" href="#filterplots">Filter Plot</a>
+            </td>
+            <td>
+                <a class="plotlink" href="#scatterplots">Scatter Plots</a>
+            </td>
+        </tr>
+    </table>
+</nav>
+<hr>
+<a name="expressionplots"></a>
+<h2>
+    Expression Plots
+</h2>
+The main plot time intended for SPPLOT users are the expression plots.
+These plots are not entirely interpretable and should be used only to generalize about the data.
+The reason is as follows.
+When we normalize RNA-seq expression data, we can use one of two methods:
+<ol>
+    <li>
+        Between-sample normalization (used for testing for DE) e.g.
+    </li>
+    <ul>
+        <br />
+        <li>
+            TMM (edgeR)
+        </li>
+        <li>
+            Geometic (DESeq2)
+        </li>
+    </ul>
+    <br />
+    <li>
+        Within-Sample normalization (for comparing genes within a single sample). e.g.
+        <ul>
+            <li>
+                RPKM (single reads)
+            </li>
+            <li>
+                FPKM (Paired end reads)
+            </li>
+            <li>
+                CPM, TPM, Quartile, etc (Generic non genelength correcting methods)
+            </li>
+
+        </ul>
+
+    </li>
+
+</ol>
+<p>
+    Mixing these two forms is not well understood, so when we want to look at global quantification of RNA-seq
+    across many samples...
+    what do we do? If you look through the literature, you will likely not find expression plots using TMM
+    normalized values,
+    however we know that due to common differences in library size after library prep, RPKM/FPKM/CPM, (etc)
+    values are not directly comparable.
+    The best approach we have right now is to use a relative normalization method such as TMM and explicitly say
+    that the values shown are not absolutely quantified.
+</p>
+
+<p>The expression plots output from SPPLOT use TMM normalized values and show relative difference between values
+    across time/stages. SPPLOT provides a secondary measure of relative expression, akin to a scale bar, that is
+    intended to help users interpret the relative differences between expression values in log space. SPPLOT
+    calculates the mean between two measurements at a given stage and then calculates the log fold
+    change provided by the user and plots error bars centered on the mean with the range of the logfold difference
+    (default 0.7). The output also highlights (in yellow) any plot for a gene that is flagged at any time point.</p>
+<img class="plotimages" src="/static/images/expression_plot.png" alt="Expression Plot">
+<br />
+<a class="plotlink" href="#top">Top</a>
+<hr>
+<a name="pcaplots"></a>
+<h2>
+    PCA Plots
+</h2>
+<p>
+    After normalization, it is essential to verify that samples cluster appropriately. Typically, RNA-seq datasets
+    from developmental time series data will contain a great deal of variation between time points, but not between
+    samples within a time point. Of course this is not always the case. Nonetheless, observing relatively close
+    clustering of samples from the same stage in a PCA plot is genarally desirable. If such clustering is not
+    observed, then this may indicate a significant problem with sample composition and invalidate your experiment.
+</p>
+<img class="plotimages" src="/static/images/PCA_plot.png" alt="PCA Plot">
+<br />
+<a class="plotlink" href="#top">Top</a>
+<hr>
+<a name="flaggedbarplots"></a>
+<h2>
+    Flagged Gene Bar Plots
+</h2>
+
+<p>
+    Bar plots are provided to give information on the number of genes flagged at each stage given a set of filter
+    parameters.
+</p>
+<img class="plotimages" src="/static/images/bar_plot.png" alt="Bar Plot">
+<br />
+<a class="plotlink" href="#top">Top</a>
+<hr>
+<h1>
+    Plots for Adjusting Filter Parameters
+</h1>
+<p>
+    The following plots are intended to aid the user in finding appropriate filter parameters.
+    The filter takes four parameters illustrated in the following image.
+</p>
+<a name="tallyplots"></a>
+<h2>
+    Tally Plots
+</h2>
+<p>
+    This plot provides feedback on your filter parameter selection. These paramters determine the number of genes
+    that will be flagged. Perhaps the most important parameter is the logfold change threshold. This plot shows the
+    effect of tuning this threshold by counting the number of flagged genes across a range of threshold values,
+    while keeping the other filter parameters constant. A good value to choose for logfold change will be around the
+    point in the plot that the line begins to steepen.
+</p>
+<img class="plotimages" src="/static/images/tally_plot.png" alt="Tally Plot">
+<br />
+
+<a class="plotlink" href="#top">Top</a>
+<hr>
+<span class="italics">
+    <h2>--Filter illustration--</h2>
+</span>
+The paramters used to filter genes are shown in the figure below:
+
+<a name="filterplots"></a>
+<h2>
+    Filter Plot
+</h2>
+<img class="plotimages" src="/static/images/filter.png" alt="Filter">
+<br />
+<a class="plotlink" href="#top">Top</a>
+<a name="scatterplots"></a>
+<h2>
+    Scatter Plots
+</h2>
+<p>
+    Scatter plots are useful for double checking that normalization was successful and that your fold change
+    parameter is reasonable across samples. There are two plots - flagged and un-flagged.
+    The white line along the
+    <math style="font-style: italic;">
+        f(x) = x
+    </math>
+    vector indicates the center of the value distribution across all means,
+    and all expressin values ar plotted against their relative mean. In other words, the mean is calculated for
+    value pairs (control and experimental), and then each vlue is plotted against its mean. The dotted lines
+    represents the log2fold change (from the user provided log2fold argument, default = 0.7) around the mean.
+</p>
+<img class="plotimages" src="/static/images/scatter_plot.png" alt="Scatter Plot">
+<br />
+<a class="plotlink" href="#top">Top</a>
+
+
+{% endblock %}

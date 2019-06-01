@@ -1,0 +1,4 @@
+Time point	Number of DE genes detected
+D10	1611
+D3	549
+D6	1721

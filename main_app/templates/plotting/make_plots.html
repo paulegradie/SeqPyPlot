@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+    <div class="required_data">
+
+        File Type
+        <select name="fileType">
+            <option value="htseq">ht-seq</option>
+            <!-- <option value="cuffnorm">cuffnorm</option> -->
+            <option value="plottable_data">plottable data</option>
+        </select>
+
+        Number of series
+        <select name="num_series">
+            <!-- <option value="one">1</option> -->
+            <option value="two">2</option>
+        </select>
+    </div>
+    <br>
+    <div id="plottableInputText">
+    </div>
+    <br>
+
+    <span><h3>Gene list to plot</h3></span>
+    <span><h5>Paste a single column gene list in the box below</h5></span>
+    <textarea placeholder="Paste Gene List Here"></textarea>
+    <br>
+    <button id="plotGeneList">Plot Genes</button>
+<hr>
+<p>This</p>
+<p>is</p>
+<p>Where</p>
+The
+Plots
+Will
+Show
+UP
+
+<script>
+    $(function(){
+        $("#select").change(function(){
+            var text = "";
+            $( "select option:selected" ).each(function() {
+                text += $(this).text() += " ";
+            })
+            $( "#plottableInputText" ).text( text )
+        }).change();
+    })
+
+</script>
+
+{% endblock %}
