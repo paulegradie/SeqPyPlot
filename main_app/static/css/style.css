@@ -9,11 +9,10 @@ hr {
 
 body {
     background: rgb(255, 255, 255);
-    width: 80%;
+    width: 75%;
     margin: 0 auto;
     font-family: 'IBM Plex Sans', sans-serif;
 }
-
 
 
 .link {
@@ -34,7 +33,8 @@ body {
 }
 
 .plotimages {
-    width: 65%;
+    margin: 0 auto;
+    width: 50%;
     vertical-align: middle;
 }
 
@@ -68,5 +68,9 @@ body {
 
 .result_window {
     margin: 0 auto;
+    border: 2 solid black;
+}
 
+.image_result {
+    border: 1, solid black;
 }

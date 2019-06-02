@@ -1,14 +1,22 @@
-from flask import Flask, render_template, request, flash, url_for, redirect, jsonify
-from werkzeug.utils import secure_filename
 import json
-from shutil import rmtree
+import os
+import sys
 import uuid
+from shutil import rmtree, make_archive
+
+from flask import (Flask, flash, jsonify, redirect, render_template, request,
+                   url_for, session)
+from flask_wtf import FlaskForm
 from jinja2 import Template
+from livereload import Server
+from werkzeug.utils import secure_filename
+from wtforms import (DecimalField, FieldList, FileField, FormField,
+                     IntegerField, StringField)
+from wtforms.validators import InputRequired, NumberRange
 
-
+import boto3
 from main_app.seqpyplot.analyzer.paired_sample_filter import PairedSampleFilter
 from main_app.seqpyplot.container.data_container import DataContainer
-from main_app.seqpyplot.printers.data_printer import DataPrinter
 from main_app.seqpyplot.parsers.config_parser import config_parser
 from main_app.seqpyplot.parsers.gene_list_parser import MakeFigureList
 from main_app.seqpyplot.plot.bar_plotter import PairedBarPlot
@@ -16,32 +24,29 @@ from main_app.seqpyplot.plot.de_tally_plotter import TallyDe
 from main_app.seqpyplot.plot.paired_line_plotter import PairedDataLinePlotter
 from main_app.seqpyplot.plot.PCA import PCADecomposition
 from main_app.seqpyplot.plot.scatter_plotter import ScatterPlots
+from main_app.seqpyplot.printers.data_printer import DataPrinter
 from main_app.seqpyplot.utils import make_default_output_dir
 
+os.environ['FLASK_DEBUG'] = '1'
+os.environ['FLASK_APP'] = 'app.py'
+os.environ['FLASK_ENV'] = 'development'
 
 app = Flask(__name__)
-import sys
-from livereload import Server
-import os
-
-from flask_wtf import FlaskForm
-from wtforms import StringField, FileField, FormField, FieldList, DecimalField, IntegerField
-from wtforms.validators import InputRequired, NumberRange
-
-
 
 
 MAX_SAMPLE_ROWS = 11
 MIN_SAMPLE_ROWS = 1
-
+SPPLOT_BUCKET = 'spplot'
 
 SECRET_KEY = os.urandom(32)
 UPLOAD_FOLDER = 'tmp'
+
 
 app.config['SECRET_KEY'] = SECRET_KEY
 ALLOWED_EXTENSIONS = ['.splot']
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 if os.path.exists(UPLOAD_FOLDER):
     rmtree(UPLOAD_FOLDER)
@@ -50,25 +55,13 @@ else:
     os.mkdir(UPLOAD_FOLDER)
 
 
-@app.route('/index')
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
-@app.route('/analyze', methods=['GET', 'POST'])
-def analyze():
-    " On page load this function receives a GET request"
-    " On form submit it receives a POST request "
-    return render_template('analyzing/analyze.html', status='Experiment not yet run.')#, param_form=param_form)
-
 def check_files_present(request_files):
     if len(list(request_files.keys())) == 0:
         return False
     return True
 
-def check_suffices(request_files):
 
+def check_suffices(request_files):
     if len([x for x in request_files.keys()]) % 2 == 0:
         if all([x.filename.endswith('.splot') for x in request_files.values()]):
             return True
@@ -229,6 +222,9 @@ num_components={{ num_components }}
 
 [file_names]
 prefix={{ experiment_name }}
+
+[plot_options]
+scatrange=[10, 10000]
 """)
 
     analysis_config = config_template.render(
@@ -252,6 +248,7 @@ prefix={{ experiment_name }}
         num_components = num_components)
 
     return analysis_config
+
 
 def generate_template_kwargs(request, num_conditions, control_samples, treated_samples, tmp_dir, tmp_output_dir):
     template_kwargs = dict()
@@ -295,39 +292,52 @@ def write_config_to_tmp_dir(config_string, tmp_dir):
     return config_path
 
 
-@app.route('/uploadroute', methods=["POST", "GET"])
-def analyzeData():
+def get_datatype(request):
+    # TODO collect from form?
+    return 'htseq'
 
-    # NEED TO VALIDATE THE FORMS AND THEN GATHER THE DATA
-    control_samples, treated_samples = None, None
+
+def upload_to_s3(file_to_upload):
+    s3 = boto3.client('s3', region='us-east-2')
+    key = os.path.join('SPLOT_USER_EXPERIMENTS', os.path.basename(file_to_upload))
+    s3.upload_file(
+        file_to_upload,
+        SPPLOT_BUCKET,
+        key,
+        ExtraArgs={
+            'ACL': 'public-read',
+            'ContentType': "application/zip"
+        }
+    )
+
+@app.route('/index')
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/analyze', methods=['GET', 'POST'])
+def analyze():
+
     if request.method == "POST":
-        print("Data Validated clientside")
-        """
-        By now all of the file and parameter form validation is done, so here we just need to download
-        the files and check that the format is correct. If this fails, then there will be a page
-        refresh and the user will need to reload their data. Sucks, but this check has to be made.
-        Can look in to doing client side file type validation later on. WIll need to read the top line
-        and just assert that there are 4 elements: [text, tab, integer, newline]
-        """
-
+        " if form is submitted using POST "
         unique_data_id = str(uuid.uuid4())
         tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], unique_data_id)
         tmp_output_dir = os.path.join(tmp_dir, 'analysis_results')
         os.makedirs(tmp_dir)
         os.makedirs(tmp_output_dir)
 
-
         num_conditions = check_num_conditions(request)
 
         control_samples, treated_samples = upload_datafiles_to_tmp(request, num_conditions, tmp_dir)
         if not control_samples:
             rmtree(tmp_dir)
-            return render_template('analyzing/analysis_result.html', status="File upload Failed")
+            return render_template('analyzing/analyze.html', status="File upload Failed")
 
         files_ok, fail_list = check_filetypes(tmp_dir, control_samples, treated_samples)
         if not files_ok:
             rmtree(tmp_dir)
-            return render_template('analyzing/analysis_result.html', status="File file type check failed on: {}".format(fail_list))
+            return render_template('analyzing/analyze.html', status="File file type check failed on: {}".format(fail_list))
 
         template_kwargs = generate_template_kwargs(
             request,
@@ -342,29 +352,41 @@ def analyzeData():
 
         result, err = run_splot(config_path)
         if result is False:
-            return render_template('analyzing/analysis_result.html', status='{}'.format(err))
-
-        return render_template('analyzing/analysis_result.html', status='SUCCESS')
-
-    test = "Experiment not run"
-    print(test)
-    return render_template('analyzing/analyze.html', status=test)
+            print("RESULT FAILED")
+            return render_template('analyzing/analyze.html', status='{}'.format(err))
 
 
-def get_datatype(request):
-    # TODO collect from form?
-    return 'htseq'
+        new_dir = os.path.join('static', 'analysis_results', unique_data_id)
+        os.makedirs(new_dir)
+        print(new_dir)
+        # make archive to send to s3 for download
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], "_".join([unique_data_id[:13], get_experiment_name(request)]))
+        make_archive(
+            output_path,
+            'zip',
+            app.config['UPLOAD_FOLDER']
+            )
+        os.rename(tmp_dir, new_dir)
 
+        print("UPLOADING TO S3 FAKE")
+        # upload_to_s3(output_path)  # need to make sure the right creds are used to do this with my account
+        os.remove(output_path + '.zip')
 
-@app.route('/analysis_result', methods=["GET", "POST"])
-def analysis_result():
-    locs=[
-        "/static/analyis_results/tmp1/expression_plot.png",
-        "/static/analyis_results/tmp1/expression_plot.png",
-        "/static/analyis_results/tmp1/expression_plot.png",
-        "/static/analyis_results/tmp1/expression_plot.png",
-        ]
-    return render_template('analyzing/analysis_result.html', image_locations=locs)
+        session['session_data'] = {
+            'result_images': [x for x in os.listdir(os.path.join(new_dir, 'analysis_results')) if x.endswith('png')],
+            'unique_key': unique_data_id
+        }
+        return redirect(url_for('success'))
+
+    return render_template('analyzing/analyze.html', status='Experiment not yet run.')#, param_form=param_form)
+
+@app.route('/success', methods=['GET'])  #TODO REMOVE GET as method -- this should only be available AFTER analysis so by redirect only
+def success():
+
+    session_key = session.get('session_data', {}).get('unique_key', None)
+    files = session.get('session_data', {}).get('result_images', None)
+    image_files = list(enumerate([os.path.join('static', 'analysis_results', session_key, 'analysis_results', x) for x in files]))
+    return render_template('analyzing/analysis_result.html', status="SUCCESS!", image_files=image_files, link='link')
 
 
 @app.route('/interpretting')
@@ -389,15 +411,14 @@ def citing():
 
 def run_splot(config_path, correct_by_rotation=False):
     try:
-        import pdb; pdb.set_trace()
         config_obj = config_parser(config_path)
 
         # load the data container_obj
         container_obj = DataContainer(config_obj)
         data, ercc_data = container_obj.parse_input()
 
-        if args.impute:
-            print('Imputation not yet implemented')
+        # if args.impute:
+        #     print('Imputation not yet implemented')
 
         # TODO allow this option?
         # if not args.unnorm:
@@ -423,17 +444,19 @@ def run_splot(config_path, correct_by_rotation=False):
         # Save filter results
 
         output_path = config_obj.get('data_directory', 'output')
-        output_path = make_default_output_dir(output_path or None, args.overwrite)
+        output_path = make_default_output_dir(output_path or None, overwrite=True)
 
         data_printer = DataPrinter(config_obj, container_obj or None, filter_obj or None)()
 
         #--------------------------------------------------------------------
         # Generate Plots
 
-        print("\nPlotting data...\n")
-        line_plotter = PairedDataLinePlotter(config_obj, filter_obj, data)
-        fig_list = MakeFigureList(config_obj)
-        line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=data)
+        # !!!TODO!!! seperate script here for plotting the data
+
+        # print("\nPlotting data...\n")
+        # line_plotter = PairedDataLinePlotter(config_obj, filter_obj, data)
+        # fig_list = MakeFigureList(config_obj)
+        # line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=data)
 
         bar_plotter = PairedBarPlot(config_obj=config_obj)
         bar_plotter.create_bar_plot(filter_obj.de_count_by_stage)
@@ -452,7 +475,9 @@ def run_splot(config_path, correct_by_rotation=False):
 
         print("\nScript completed no errors")
         return True, ''
+
     except Exception as e:
+        print("SCRIPT FKUP")
         return False, e
 
 
@@ -463,15 +488,3 @@ if __name__ == '__main__':
         server.serve()
     else:
         app.run()
-
-
-
-
-
-
-
-
-
-
-
-

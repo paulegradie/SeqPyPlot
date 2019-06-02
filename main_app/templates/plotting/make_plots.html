@@ -1,56 +1,96 @@
 <!DOCTYPE html>
-{# _app/templates/index.html_ #}
+{# _app/templates/index.html_ #} {% extends "base.html" %} {% block title
+%}Home{% endblock %} {% block body %}
 
-{% extends "base.html" %}
-{% block title %}Home{% endblock %}
-{% block body %}
-
-    <div class="required_data">
-
-        File Type
-        <select name="fileType">
-            <option value="htseq">ht-seq</option>
-            <!-- <option value="cuffnorm">cuffnorm</option> -->
-            <option value="plottable_data">plottable data</option>
-        </select>
-
-        Number of series
-        <select name="num_series">
-            <!-- <option value="one">1</option> -->
-            <option value="two">2</option>
-        </select>
-    </div>
-    <br>
-    <div id="plottableInputText">
-    </div>
-    <br>
-
-    <span><h3>Gene list to plot</h3></span>
-    <span><h5>Paste a single column gene list in the box below</h5></span>
-    <textarea placeholder="Paste Gene List Here"></textarea>
-    <br>
-    <button id="plotGeneList">Plot Genes</button>
 <hr>
+<span align="middle"><h1>Plotting using your SPPLOT results</h1></span>
+<hr>
+
+<p>
+    SPPLOT provides standard utilities for plotting out your time series gene expression results with non-standard
+    additions. For example, if you provide a plottable_data.spp file, a config, and a selection of gene names
+    found in your plottable data, spplot will produce for you nicely formatted line plots. The non standard
+    additions to this are the threshold indicators.
+</p>
+<p>
+    There are three threshold indicators that are shown on the plots, two of which may not be visible depending on your data.
+</p>
+    <h3><b>Log2Fold threshold indicator<b></h3>
+<p>
+    The log2fold threshold indicator is a vertical line that sits between the two points associated with a given time
+    point. The vertical indicator line will change size depending on the value range of the points on the plot. For example,
+    if the values are at around 500 counts, the vertical line will be shorter than if the points were around 5000 counts.
+    This is because that line represents the size of the log2fold threshold chosen by you in the configuration file
+    relative to the mean of the two points on the plot at a particlar time point.
+</p>
+<p>
+    This range is also shown by the dashed lines in the scatter plot -- as the mean (x axis) increases, the distance bewteen
+    the dashed lines increases. The angle between the lines is determined by the log2fold threshold you provide, and the
+    distance is the same as the vertical indicator line at the mean of the two points on the plot for a given time point.
+</p>
+    <h3>Differential Expression threshold indicator</h3>
+<p>
+    When the difference between two values crosses the log2fold threshold, it triggers the differential expression threshold
+    indicator. For a given plot, if the distance between the two points for any time point is greater than the log2fold threshold
+    given in the config, then the background for this plot will become yellow. I.e. A yellow plot indicates a gene where
+    at some time point the expression difference was greater than the log2fold threshold you specified.
+</p>
+    <h3>Min Expression indicator</h3>
+<p>
+    It is highly probable that many if not most of your genes will have very low expression. In the cases where
+    there are expression values, but they are very low, a horizontal dashed line is plotted to show the min expression
+    value you specified in the config. If both expression values for a given time point fall below this line, they are not
+    considered during differential expression evaluation using the log2fold threshold you specified.
+</p><br>
+<hr>
+<span align="middle"><h1>Plot your data </h1></span>
+<hr>
+<div class="required_data">
+  <h2>Analysis Config: <input type="file" class="plot_config"></h2>
+  <p>
+      Upload the config output by the SPPLOT analyzer. While you are free to change this config
+      to suit the particulars of your plotting needs, it is advised that you leave the config as is.
+      If you change the thresholds, the plot threshold indicators will not reflect the original descriptive analysis
+      you performed.
+  </p>
+  <h2>Number of series:
+  <select name="num_series">
+    <!-- <option value="one">1</option> -->
+    <option value="two">2</option>
+  </select></h2>
+  This is <b>important</b>. This determines how the plottable data file will be read.
+</div>
+<br />
+<div id="plottableInputText"></div>
+<br />
+
+<h2>SPPLOT plottable data file:       <input type="file" class="plot_file"></h2>
+This is the file output from the SPPLOT analysis. It will be (experiment-name)_plottable_data.spp<br>
+
+<br><br>
+<span><h3>Gene list to plot</h3></span>
+<span><h5>Paste a single column gene list in the box below</h5></span>
+
+Gene List:<br>
+<textarea placeholder="Paste Gene List Here"></textarea>
+<br />
+<button id="plotGeneList">Plot Genes</button>
+<hr />
 <p>This</p>
 <p>is</p>
 <p>Where</p>
-The
-Plots
-Will
-Show
-UP
+The Plots Will Show UP
 
 <script>
-    $(function(){
-        $("#select").change(function(){
-            var text = "";
-            $( "select option:selected" ).each(function() {
-                text += $(this).text() += " ";
-            })
-            $( "#plottableInputText" ).text( text )
-        }).change();
-    })
-
+  $(function(){
+      $("#select").change(function(){
+          var text = "";
+          $( "select option:selected" ).each(function() {
+              text += $(this).text() += " ";
+          })
+          $( "#plottableInputText" ).text( text )
+      }).change();
+  })
 </script>
 
 {% endblock %}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- {# _app/templates/index.html_ #} -->
+{# _app/templates/index.html_ #}
 
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
@@ -40,12 +40,21 @@
 
 <p>Status: -- {{ status }} --</p>
 
+<p>
+    File Type
+    <select name="fileType">
+        <option value="htseq">ht-seq</option>
+        <!-- <option value="cuffnorm">cuffnorm</option> -->
+    </select>
+</p>
+<p>
 Number of conditions
 <select name="numberofconditions" id="numCondition">
     <!-- dafault goes on top of this list -->
     <option value="two" id="two_conditions">two</option>
     <option value="one" id="one_condition">one</option>
 </select>
+</p>
 <br />
 <br />
 <br />
@@ -60,9 +69,10 @@ Number of conditions
 <button id="deleteSample">Remove last sample</button>
 <br><br>
 
+
 <!-- SINGLE COLUM FORM -->
 <form method="POST" autocomplete="off" data-lpignore="true" id="singlesample-search"
-    enctype="multipart/form-data" action="{{ url_for('analyzeData') }}" onsubmit="return analysis_form_validation(this);">
+    enctype="multipart/form-data" onsubmit="return analysis_form_validation(this);">
 
     <input type="text" name="experimentname_1" id="singlexperimentname" placeholder="Experiment Name" value="TEST_NAME">
 
@@ -102,7 +112,7 @@ Number of conditions
 
 <!-- TWO COLUMN FORM -->
 <form method="POST" autocomplete="off" data-lpignore="true" id="doublesample-search"
-    enctype="multipart/form-data" action="{{ url_for('analyzeData') }}" onsubmit="return analysis_form_validation(this);">
+    enctype="multipart/form-data" onsubmit="return analysis_form_validation(this);">
 
     <p>Experiment Name<br><br>
     <input type="text" name="experimentname_2" id="doubleexperimentname" placeholder="Experiment Name" value="TEST_NAME">
@@ -356,9 +366,7 @@ Number of conditions
             return all_params_present;
         }
 
-
         form_inputs = curForm.getElementsByTagName("Input");
-
 
         var all_files_present = validate_all_files_there(curForm);
         var extensions_valid = validate_extensions(curForm);
@@ -374,21 +382,21 @@ Number of conditions
             alert("Only one or two conditions supported.")
         }
 
-        // var form_validated = true;
-        // if (!all_files_present) {
-        //     alert("Files are missing. You may pass empty files when imputing a time point, but all file slots must be filled.")
-        //     form_validated = false;
-        // }
+        var form_validated = true;
+        if (!all_files_present) {
+            alert("Files are missing. You may pass empty files when imputing a time point, but all file slots must be filled.")
+            form_validated = false;
+        }
 
-        // if (!extensions_valid) {
-        //     alert("Files must be of type .counts. Row format is two column: text-tab-number-newline")
-        //     form_validated = false;
-        // }
+        if (!extensions_valid) {
+            alert("Files must be of type .counts. Row format is two column: text-tab-number-newline")
+            form_validated = false;
+        }
 
-        // if (!all_numbers_present) {
-        //     alert("Filter params are missing.")
-        //     form_validated = false;
-        // }
+        if (!all_numbers_present) {
+            alert("Filter params are missing.")
+            form_validated = false;
+        }
 
         if (!all_texts_present) {
             alert("The experiment and files must all be named.")
@@ -402,98 +410,3 @@ Number of conditions
 </script>
 
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!--
-        // function validate_two_sample_files () {
-        //     var curForm = document.getElementById("doublesample-search")
-        //     // curForm = $("#doublesample-search");
-        //     result = generic_validate_file_inputs(curForm)
-        //     return result
-        // }
-
-        // function validate_one_sample_files () {
-        //     curForm = $("#singlesample-search");
-        //     result = generic_validate_file_inputs(curForm)
-        //     return result
-        // }
-
-
-        // if (numconditions_str == "one") {
-        //     console.log('ONLY ONE SAMPLE VALIDATION')
-        //     result = validate_one_sample_files(curform)
-        //     if (result == true) {
-        //         return true
-        //     } else {
-        //         alert("File Extension not valid.")
-        //         return false
-        //     }
-        // } else if (numconditions_str == "two") {
-        //     console.log("TWO SAMPLE VALIDATION")
-        //     result = validate_two_sample_files()
-        //     if (result == true) {
-        //         return true
-        //     } else {
-        //         alert("File Extension not valid.")
-        //         return false
-        //     }
-        // }
-        // } -->
-
-
-
-
-        <!-- // function all(iterable) {
-            //     for (var index = 0; index < iterable.length; index++) {
-            //         if (!iterable[index]) return false;
-            //     }
-            //     return true;
-            // } -->
-
-
-
-
-<!--
-// // function handles adding a sample row
-// $(function () {
-//     $("#addSample").click(function () {
-
-//         if (curSample < 13) {
-//             var rowID = "sample_sample-" + curSample.toString(10);
-//             console.log(rowID);
-//             $('#' + rowID).show();
-//             curSample += 1;
-//             console.log(curSample);
-//         } else {
-//             alert("Max number of samples is 12")
-//         }
-//     })
-// })
-
-// // function handles removing a row
-// $(function () {
-//     $("#deleteSample").click(function() {
-//         if (curSample == 0) {
-//             alert('You need at least one paired sample.');
-//         } else {
-//             var rowID = "sample_sample-" + curSample.toString(10);
-//             console.log(rowID);
-//             $('#' + rowID).hide();
-//             curSample -= 1;
-//             console.log(curSample);
-//         }
-//     })
-// }) -->

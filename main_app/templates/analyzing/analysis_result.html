@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{# _app/templates/index.html_ #}
+<!-- {# _app/templates/index.html_ #} -->
 
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
@@ -7,25 +7,48 @@
 
 
 
-<h1>TEST</h1>
-<br>
-RESULT: {{ result }}
-<br>
-<img src="/static/analyis_results/tmp1/expression_plot.png" alt="WOW">
+<h1>Analysis Results</h1>
+<p>
+    Congradulations! The descriptive analysis compeleted successfully.
+</p>
+<p>
+    The analysis results can be downloaded using the following link: <a href={ link }}>Analysis Results</a>
+</p>
+<p>
+    Contained in the analysis results are the files from your descriptive analysis -- including the images displayed below.
+    This page is provided to help you determine the 'optimal' settings for determining which genes are of interest.
+</p>
+<p>
+    Keep in mind that this analysis can not determine statistical significance, so any genes that are identified are not
+    necessarily <strong>truely</strong> differentially expressed.
+</p>
+<p>
+    For information on the suggested way to interpret these plots, following the link for 'Interpretting' above.
+</p>
 
+<br>
+RESULT: {{ status }}
+
+<br>
+<hr>
+<p>
+    <h1 align="middle">Result Plots</h1>
+</p>
+<hr>
 <div class="result_window">
-    <button>Left</button>
-
-    {% for image_path in image_locations %}
-    <div class="image_div">
-        <img class="plotimages" src="{{ image_path }}" alt="Expression Plot">
-
+    {% for idx, image_path in image_files %}
+    <div class="image_result">
+        <div class="result_images_{{ idx }}">
+            <img class="plotimages" src="{{ image_path }}" alt=" Plot">
+        </div>
     </div>
     <hr>
     {% endfor %}
 </div>
 
+<script>
+
+</script>
 
 
 {% endblock %}
-
