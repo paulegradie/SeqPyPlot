@@ -56,16 +56,17 @@ class PairedDataLinePlotter(PlotBase):
 
         pbar = tqdm(total=sum([len(x) for x in figure_list]))
 
+        image_files = list()
         for fig_idx, figure in enumerate(figure_list, start=1):
 
             fig = self.set_figure(figure_prefix=self.config_obj.get('file_names', 'prefix'))
 
             line_plot_kwargs.update({'color': 'blue', 'markeredgecolor': 'blue', 'markerfacecolor': 'white'})
             series1 = self.set_line(kwargs=line_plot_kwargs)
-            
+
             line_plot_kwargs.update({'color': 'red', 'markeredgecolor': 'red', 'markerfacecolor': 'white'})
             series2 = self.set_line(kwargs=line_plot_kwargs)
-    
+
             legend_line_kwargs = {'color': 'white'}
             log_line = self.set_line(legend_line_kwargs)
             fold_line = self.set_line(legend_line_kwargs)
@@ -85,12 +86,13 @@ class PairedDataLinePlotter(PlotBase):
                     data = self.retrieve_data(gene)
                     self.create_subplot(is_de, *data)
                     pbar.update(1)
-            
+
             handles = [series1, series2, log_line, fold_line, diff_line]
             fig = self.tidy_up_figure(fig, handles)
 
-            self.save_figure(fig, fig_idx, figure_list)
+            file_name = self.save_figure(fig, fig_idx, figure_list)
 
+            image_files.append(file_name)
             plt.clf()
             plt.cla()
             plt.close()
@@ -137,6 +139,8 @@ class PairedDataLinePlotter(PlotBase):
         genes = "_".join([fi.strip() for fi in figure_list[fig_idx-1]])
         file_name = "{}_{}_{}.png".format(path_, str(fig_idx), genes)
         plt.savefig(str(file_name), format='png', bbox_inches='tight')
+        print(file_name)
+        return file_name
 
     def gene_exists(self, gene):
         return gene in self.normalized_df.index.tolist()
@@ -147,10 +151,10 @@ class PairedDataLinePlotter(PlotBase):
     def retrieve_data(self, gene):
         """
         Return plot data and associated masks
-        
+
         Arguments:
             plottable_data {[type]} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
@@ -158,7 +162,7 @@ class PairedDataLinePlotter(PlotBase):
 
         try:
             data = self.normalized_df.loc[gene]
-            
+
         except KeyError:
             print("The current gene: -- {} -- was not found in the plot data.".format(gene_name))
             data = [0] * data_length
@@ -175,7 +179,7 @@ class PairedDataLinePlotter(PlotBase):
         s2mask = np.isfinite(series2)
 
         return series1, s1mask, series2, s2mask
- 
+
     def create_subplot_template(self, is_de, y_max):
         ax = plt.gca()  # origin of the plot
 
@@ -222,7 +226,7 @@ class PairedDataLinePlotter(PlotBase):
         data_mean, _ = self.compute_mean(series1_data, series2_data)
 
         diffs = self.compute_bounds(data_mean)
-        y_max = self.compute_max_yval(series1_data, series2_data, diffs)       
+        y_max = self.compute_max_yval(series1_data, series2_data, diffs)
         ax = self.create_subplot_template(is_de, y_max)
 
         plot_kwargs = {'marker': 'o',
@@ -245,7 +249,7 @@ class PairedDataLinePlotter(PlotBase):
 
         self.tidy_up_plot()
 
-        return ax 
+        return ax
 
     def compute_mean(self, series1, series2):
         """Return a numpy array and mask that contains the average of the series1 and series2 data.
@@ -274,7 +278,7 @@ class PairedDataLinePlotter(PlotBase):
             b = (2.0 * i) / ((2.0 ** self.log) + 1)
             dif = i - b
             diffs.append(float(dif))
-       
+
         diffs = np.asarray(diffs)
 
         if min(diffs) < 0 or min(series_mean - diffs) < 0:

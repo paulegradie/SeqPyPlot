@@ -14,6 +14,7 @@ class MakeFigureList(object):
         self.plot_groups = self.make_plot_groups(self.gene_list)
         assert len(self.plot_groups) > 0, "No input genes. Comon now! gene_list_parser 1"
 
+
     def input_file_parser(self):
 
         # Handle file encodings when you open the input file
@@ -21,7 +22,7 @@ class MakeFigureList(object):
 
         input_file = Path(self.config_obj.get('file_names', 'genelist'))
         assert os.stat(input_file).st_size > 0, "Gene list for plotting was empty, gene_list_parser 2"
-        
+
         for e in ["utf-8", "ascii", "ansi"]:
             try:
                 # create list of gene names ['str1', 'str2', etc]
@@ -40,11 +41,11 @@ class MakeFigureList(object):
         if not file_parsed:
             print("File list not parsed properly. Save file as either utf-8 or ascii encoded text.")
             raise RuntimeError
-        
+
         return gene_list
 
-    def make_plot_groups(self, gene_list, num_genes_per_figure=6):        
-                
+    def make_plot_groups(self, gene_list, num_genes_per_figure=6):
+
         # subdivide input files with more than 6 gene names.
         if len(gene_list) >= num_genes_per_figure:
 

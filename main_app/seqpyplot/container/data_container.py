@@ -1,8 +1,8 @@
 """
-Initialize data container object. Reads in the directory specified in the config and 
+Initialize data container object. Reads in the directory specified in the config and
 
 Strategy for imputing missing sampels:
-1. The data is read in, missing samples are added as NaN columns. 
+1. The data is read in, missing samples are added as NaN columns.
 2. The matrix for normalization is created by:
     1. dropping missing sample columns (imputed later)
     2. dropping zeroed rows (TMM doesn't deal with these...?)
@@ -16,8 +16,8 @@ fill empty files with the average of the flanking time points.
 :param args:
 :param Optimize: Set to true when using the Go-term add on script
 
-The initialization of the DataContainer should automatically call the correct parser, 
-create the normalization matrix, and then 
+The initialization of the DataContainer should automatically call the correct parser,
+create the normalization matrix, and then
 """
 import os
 import math
@@ -28,7 +28,7 @@ import pandas as pd
 from pathlib import Path
 from scipy import linalg
 from scipy.stats import boxcox
-from sklearn.linear_model import LinearRegression   
+from sklearn.linear_model import LinearRegression
 
 from seqpyplot.parsers import CuffNormParser, HtSeqParser, PlotDataParser
 from seqpyplot.container.normalizer import norm_tmm as TMM
@@ -46,7 +46,7 @@ PARSERS = {'htseq': HtSeqParser,
 
 class DataContainer(object):
     """"
-    Class for holding normalized data in a standard format. Calls parsers to collect data in to 
+    Class for holding normalized data in a standard format. Calls parsers to collect data in to
     pandas data frames. Matrix generation and normalization happens here
     """
 
@@ -66,18 +66,24 @@ class DataContainer(object):
         self.split_normalized_dfs = [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
         return self.split_normalized_dfs
 
+    def parse_plotter_data(self, datafile):
+        parser = PlotDataParser()
+        data_df, ercc_df = parser.parse_data(datafile)
+        return data_df, ercc_df
+
+
     def parse_input(self):
         # Instantiante parser
         parser = PARSERS[self.config_obj.get('data', 'data_type')]()
 
         # Execute parser given the data paths and the sample names
         data_df, ercc_df = parser.parse_data(self.paths, self.names)
-        
+
         self.data_df = data_df
         self.ercc_df = ercc_df
 
         self.complete_gene_list = data_df.index.tolist()
-        
+
         return data_df, ercc_df
 
     def make_col_pairs(self, df):
@@ -192,7 +198,7 @@ class DataContainer(object):
         u, s, v = linalg.svd(df, full_matrices=False)
         s = np.diag(s)
         s[:num_components, :] = 0.0
-        
+
         reconstructed = np.dot(u, np.dot(s, v))
         return reconstructed
 
@@ -200,10 +206,10 @@ class DataContainer(object):
     #     result = list()
     #     for dataframe in dfs:
     #         df = dataframe.copy()
-            
+
     #         cols = df.columns
     #         index = df.index
-            
+
     #         thinned = self._compute_svd_(df, self.num_components)
 
     #         result.append(pd.DataFrame(thinned, columns=cols, index=index))
@@ -218,13 +224,13 @@ class DataContainer(object):
         result = list()
         for dataframe in dfs:
             df = dataframe.copy()
-            
+
             cols = df.columns
             index = df.index
 
             diffs = pd.DataFrame(df[cols[0]].sub(df[cols[1]]))
             result.append(diffs)
-        
+
         res = pd.concat(result)
 
 

@@ -350,11 +350,10 @@ def analyze():
         config_string = render_config_template(**template_kwargs)
         config_path = write_config_to_tmp_dir(config_string, tmp_dir)
 
-        result, err = run_splot(config_path)
+        result, err = run_spplot_analysis(config_path)
         if result is False:
             print("RESULT FAILED")
             return render_template('analyzing/analyze.html', status='{}'.format(err))
-
 
         new_dir = os.path.join('static', 'analysis_results', unique_data_id)
         os.makedirs(new_dir)
@@ -380,9 +379,9 @@ def analyze():
 
     return render_template('analyzing/analyze.html', status='Experiment not yet run.')#, param_form=param_form)
 
+
 @app.route('/success', methods=['GET'])  #TODO REMOVE GET as method -- this should only be available AFTER analysis so by redirect only
 def success():
-
     session_key = session.get('session_data', {}).get('unique_key', None)
     files = session.get('session_data', {}).get('result_images', None)
     image_files = list(enumerate([os.path.join('static', 'analysis_results', session_key, 'analysis_results', x) for x in files]))
@@ -394,9 +393,114 @@ def interpretting():
     return render_template('interpretting.html')
 
 
-@app.route('/make_plots')
+def check_num_series(request):
+    number_map = {
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5
+    }
+    return number_map[request.values['num_series']]
+
+
+def collect_gene_list(request):
+    raw_list = request.values['gene_list']
+    processed_list = [x.strip() for x in raw_list.split()]  # list of genes
+    return processed_list
+
+
+def collect_plot_config_path(request, tmp_plot_dir):
+    name = request.files['analysis_config'].name
+    filename = request.files['analysis_config'].filename
+
+    file_path = os.path.join(tmp_plot_dir, filename)
+    request.files['analysis_config'].save(file_path)
+    return file_path
+
+
+def load_de_genelist(file_path):
+    with open(file_path, 'r') as fin:
+        genes = [x.strip() for x in fin.readlines()]
+    return genes
+
+
+def upload_plottable_data(request, tmp_plot_dir):
+    name = request.files['data_file'].name
+    filename = request.files['data_file'].filename
+
+    file_path = os.path.join(tmp_plot_dir, filename)
+    request.files['data_file'].save(file_path)
+    return file_path
+
+
+def upload_de_genelist(request, tmp_plot_dir):
+    name = request.files['de_gene_list'].name
+    filename = request.files['de_gene_list'].filename
+
+    file_path = os.path.join(tmp_plot_dir, filename)
+    request.files['de_gene_list'].save(file_path)
+    gene_list = load_de_genelist(file_path)
+    return gene_list
+
+def write_textbox_genelist_to_tmp(genelist, tmp_plot_dir):
+    output_path = os.path.join(tmp_plot_dir, 'genelist.txt')
+    with open(output_path, 'w') as fout:
+        for gene in genelist:
+            fout.write(gene + '\n')
+    return output_path
+
+@app.route('/make_plots', methods=['GET', 'POST'])
 def plotting():
-    return render_template('plotting/make_plots.html')
+
+    if request.method == 'POST':
+        unique_data_id = str(uuid.uuid4())
+        tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], unique_data_id)
+        tmp_output_dir = os.path.join(tmp_dir, 'plotting_results')
+        os.makedirs(tmp_dir)
+        os.makedirs(tmp_output_dir)
+
+        num_conditions = check_num_series(request)
+        processed_gene_list = collect_gene_list(request)
+        gene_list_path = write_textbox_genelist_to_tmp(processed_gene_list, tmp_output_dir)
+        config_path = collect_plot_config_path(request, tmp_output_dir)
+        plottable_data_path = upload_plottable_data(request, tmp_output_dir)
+        complete_de_genelist = upload_de_genelist(request, tmp_output_dir)
+
+        config_obj = config_parser(config_path)
+        config_obj.set('data_directory', 'dir', plottable_data_path)
+        config_obj.set('data_directory', 'output', tmp_output_dir)
+        config_obj.set('data', 'data_type', 'plot')
+        config_obj.set('file_names', 'genelist', gene_list_path)
+
+        # load the data container_obj
+        container_obj = DataContainer(config_obj)
+        data, ercc_data = container_obj.parse_plotter_data(plottable_data_path)
+        filter_obj = PairedSampleFilter(config_obj)
+        if complete_de_genelist:
+            filter_obj.complete_de_gene_list = complete_de_genelist
+        else:
+            filter_obj.complete_de_gene_list = list()
+
+        print("\nPlotting data...\n")
+        line_plotter = PairedDataLinePlotter(config_obj, filter_obj, data)
+        fig_list = MakeFigureList(config_obj)
+        line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=data)
+        image_files = [os.path.join(tmp_output_dir, x) for x in os.listdir(tmp_output_dir) if x.endswith('png')]
+
+        new_dir = os.path.join('static', 'plot_results', unique_data_id)
+        os.makedirs(new_dir)
+        static_image_files = list()
+        for old_path in image_files:
+            new_path = os.path.join(new_dir, os.path.basename(old_path))
+            os.rename(old_path, new_path)
+            static_image_files.append(new_path)
+
+        # import pdb; pdb.set_trace()
+        return render_template('plotting/make_plots.html', image_files=enumerate(static_image_files))
+
+
+    return render_template('plotting/make_plots.html', image_files=enumerate(['']))
 
 
 @app.route('/troubleshooting')
@@ -409,7 +513,7 @@ def citing():
     return render_template('citing.html')
 
 
-def run_splot(config_path, correct_by_rotation=False):
+def run_spplot_analysis(config_path, correct_by_rotation=False):
     try:
         config_obj = config_parser(config_path)
 

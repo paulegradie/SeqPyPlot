@@ -18,17 +18,17 @@ class PairedSampleFilter(object):
     entire extracted df should be executed before ops that split the extracted df.
     i.e. fold change and diff ops act on the entire data frame, where as hi and low
     ops split the extracted df.
-    
-    
+
+
     Arguments:
         DataContainer {[type]} -- [description]
-    
+
     Returns:
         [type] -- [description]
     """
-    
+
     def __init__(self, config_obj, log2fold=None, low=None, hi=None, diff=None):
-        
+
         self.config_obj = config_obj
 
         self.log2fold = log2fold or self.config_obj.getfloat('params', 'log2fold')
@@ -67,7 +67,7 @@ class PairedSampleFilter(object):
         self.de_count_by_gene = self.count_by_gene(result)
         self.de_gene_list_by_stage = {time: df.index for time, df in time_result}
         self.complete_de_gene_list = set(sorted(reduce(lambda x, y: pd.concat([x, y], axis=0), result).index.tolist()))
-        
+
         return None
 
     def count_by_gene(self, result):
@@ -77,7 +77,7 @@ class PairedSampleFilter(object):
 
             for gene in df.index:
                 if gene in gene_count.keys():
-                    gene_count[gene] += 1  
+                    gene_count[gene] += 1
                 else:
                     gene_count[gene] = 1
 
@@ -91,17 +91,17 @@ class PairedSampleFilter(object):
             result = np.log2(df[treated_col].div(df[control_col])).abs()
 
             fold_change_dfs.append(result)
-            filtered_results.append(df[result > self.log2fold])            
+            filtered_results.append(df[result > self.log2fold])
 
         self.fold_change_filtered_dfs = pd.concat(fold_change_dfs, axis=1)
         return filtered_results
 
     def apply_diff(self, input_df_list):
         """
-        
+
         Arguments:
             input_df_list {[type]} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
@@ -114,10 +114,10 @@ class PairedSampleFilter(object):
             diff_dfs.append(result)
 
             df = df[(result >= self.diff[0]) & (result <= self.diff[1])]
-            filtered_results.append(df)            
+            filtered_results.append(df)
 
         self.diff_filtered_dfs = pd.concat(diff_dfs, axis=1)
-        return filtered_results     
+        return filtered_results
 
     def apply_low(self, input_df_list):
         """
@@ -133,9 +133,9 @@ class PairedSampleFilter(object):
             df.columns = [control_col, treated_col]
             passing = df[(df[control_col] >= self.low) | (df[treated_col] >= self.low)]
             filtered_results.append(passing)
-            
+
             deactivated = df[(df[control_col] > self.low) & (df[treated_col] < self.low)]
-            activated = df[(df[control_col] < self.low) & (df[treated_col] > self.low)]    
+            activated = df[(df[control_col] < self.low) & (df[treated_col] > self.low)]
             undetected = df[(df[control_col] < self.low) & (df[treated_col] < self.low)]
             state_change.append((deactivated[deactivated[control_col].sub(deactivated[treated_col]).abs() > self.diff[0]],
                                  activated[activated[control_col].sub(activated[treated_col]).abs() > self.diff[0]],
@@ -152,7 +152,7 @@ class PairedSampleFilter(object):
         for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
 
             passing = df[
-                (df[control_col] < self.hi) | 
+                (df[control_col] < self.hi) |
                 (df[treated_col] < self.hi)
                 ]
             filtered_results.append(passing)

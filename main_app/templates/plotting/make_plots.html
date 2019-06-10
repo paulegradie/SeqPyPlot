@@ -1,6 +1,10 @@
 <!DOCTYPE html>
-{# _app/templates/index.html_ #} {% extends "base.html" %} {% block title
-%}Home{% endblock %} {% block body %}
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block body %}
 
 <hr>
 <span align="middle"><h1>Plotting using your SPPLOT results</h1></span>
@@ -15,7 +19,7 @@
 <p>
     There are three threshold indicators that are shown on the plots, two of which may not be visible depending on your data.
 </p>
-    <h3><b>Log2Fold threshold indicator<b></h3>
+    <h3><b>Log2Fold threshold indicator</b></h3>
 <p>
     The log2fold threshold indicator is a vertical line that sits between the two points associated with a given time
     point. The vertical indicator line will change size depending on the value range of the points on the plot. For example,
@@ -45,52 +49,160 @@
 <hr>
 <span align="middle"><h1>Plot your data </h1></span>
 <hr>
-<div class="required_data">
-  <h2>Analysis Config: <input type="file" class="plot_config"></h2>
-  <p>
-      Upload the config output by the SPPLOT analyzer. While you are free to change this config
-      to suit the particulars of your plotting needs, it is advised that you leave the config as is.
-      If you change the thresholds, the plot threshold indicators will not reflect the original descriptive analysis
-      you performed.
-  </p>
-  <h2>Number of series:
-  <select name="num_series">
-    <!-- <option value="one">1</option> -->
-    <option value="two">2</option>
-  </select></h2>
-  This is <b>important</b>. This determines how the plottable data file will be read.
-</div>
-<br />
-<div id="plottableInputText"></div>
-<br />
+<form method="POST" autocomplete="off" data-lpignore="true" id="plotting-search"
+    enctype="multipart/form-data" onsubmit="return plotting_form_validation(this);">
 
-<h2>SPPLOT plottable data file:       <input type="file" class="plot_file"></h2>
-This is the file output from the SPPLOT analysis. It will be (experiment-name)_plottable_data.spp<br>
+    <div class="required_data">
+        <h2>Analysis Config: <input type="file" class="plot_config" name="analysis_config"></h2>
+        <p>
+            Upload the config output by the SPPLOT analyzer. While you are free to change this config
+            to suit the particulars of your plotting needs, it is advised that you leave the config as is.
+            If you change the thresholds, the plot threshold indicators will not reflect the original descriptive analysis
+            you performed.
+        </p>
+        <h2>Number of series:
+        <select name="num_series">
+          <!-- <option value="one">1</option> -->
+          <option value="two">2</option>
+        </select></h2>
+        This is <b>important</b>. This determines how the plottable data file will be read.
+      </div>
+      <br />
+      <div id="plottableInputText"></div>
+      <br />
 
-<br><br>
-<span><h3>Gene list to plot</h3></span>
-<span><h5>Paste a single column gene list in the box below</h5></span>
+      <h2>SPPLOT plottable data file:       <input type="file" class="plot_file" name="data_file"></h2><br>
+      This is a file output from the SPPLOT analysis. It will be (experiment-name)_plottable_data.spp<br>
+      <br><br>
+      <h2>SPPLOT de gene list file:       <input type="file" class="plot_file" name="de_gene_list"></h2><br>
+      This is a file output from the SPPLOT analysis. It will be (experiment-name)_de_gene_list.spp<br>
+      <br><br>
+      <span><h3>Gene list to plot</h3></span>
+      <span><h5>Paste a single column gene list in the box below</h5></span>
 
-Gene List:<br>
-<textarea placeholder="Paste Gene List Here"></textarea>
-<br />
-<button id="plotGeneList">Plot Genes</button>
+      Gene List:<br>
+      <textarea id="genelist" placeholder="Paste Gene List Here" class="text" cols="25" rows ="10" name="gene_list"></textarea>
+      <br />
+      <input value="Plot gene data" type="submit" id="plotGeneList">
+</form>
+
 <hr />
-<p>This</p>
-<p>is</p>
-<p>Where</p>
-The Plots Will Show UP
+<div class="result_window">
+    {% for idx, image_path in image_files %}
+    <div class="image_result">
+        <div class="result_images_{{ idx }}">
+            <img class="plotimages" src="{{ image_path }}" alt=" Plot">
+        </div>
+    </div>
+    <hr>
+    {% endfor %}
+</div>
 
 <script>
-  $(function(){
-      $("#select").change(function(){
-          var text = "";
-          $( "select option:selected" ).each(function() {
-              text += $(this).text() += " ";
-          })
-          $( "#plottableInputText" ).text( text )
-      }).change();
-  })
+    $('textarea').keypress(function(event) {
+        if (event.which == 13) {
+            event.stopPropagation();
+        }
+    });
+
+    $('#plotGeneList').keypress(function(event) {
+        event.stopPropagation();
+    })
+
+    $(function(){
+        $("#select").change(function(){
+            var text = "";
+            $( "select option:selected" ).each(function() {
+                text += $(this).text() += " ";
+            })
+            $( "#plottableInputText" ).text( text )
+        }).change();
+    })
+
+    function plotting_form_validation (curForm) {
+
+        // four items to check for this form
+        // - gene_list - text area
+        // - data_file - file
+        // - analysis_config - file
+
+        function validate_extensions (curForm) {
+            var valid_extensions = ['spp']
+            var form_inputs = curForm.getElementsByTagName("Input");
+            var extensions_all_good = true;
+
+            // get all extensions
+            var extensions = [];
+            for (var i = 0; i < form_inputs.length; i++) {
+                var form_input = form_inputs[i]
+                if (form_input.type == "file") {
+                    filename = form_input.value
+                    var filename_parts = filename.split('.')
+                    var file_extension = filename_parts[filename_parts.length-1]
+                    extensions.push(file_extension)
+                }
+            }
+
+            // check each extension is in the allowed extensions
+            for (var ext_idx = 0; ext_idx < extensions.length; ext_idx++) {
+
+                var file_extension = extensions[ext_idx];
+                if (valid_extensions.indexOf(file_extension) == -1) {
+                    extensions_all_good = false
+                }
+
+            }
+            return extensions_all_good
+        }
+        function validate_gene_list (curForm) {
+            var gene_list_inputs = document.getElementsByName("gene_list")
+            console.log(gene_list_inputs)
+            content = gene_list_inputs[0].value
+            var genelist_not_empty = false;
+            if (content.length > 0) {
+                genelist_not_empty = true;
+            }
+            return genelist_not_empty
+        }
+
+        function validate_file_present (curForm, element_name) {
+            var form_input = document.getElementsByName(element_name);
+
+            var file_is_present = false;
+            var filename = form_input[0].value
+            if (filename.length > 0) {
+                file_is_present = true
+            }
+            return file_is_present
+        }
+
+        // calls
+        var data_file_present = validate_file_present(curForm, "data_file")
+        var analysis_config_present = validate_file_present(curForm, "analysis_config")
+        var DE_genelist_present = validate_file_present(curForm, "de_gene_list")
+        var gene_list_present = validate_gene_list(curForm)
+        var extensions_valid = validate_extensions(curForm)
+
+        var form_validated = true;
+        if(!data_file_present) {
+            alert("Plottable data file is missing.")
+            form_validated = false;
+        }
+        if (!analysis_config_present) {
+            alert("Config file is missing.")
+            form_validated = false;
+        }
+        if (!gene_list_present) {
+            alert("Gene list is emtpy.")
+            form_validated = false;
+        }
+        if(!extensions_valid) {
+            alert('Only files with extension .spp allowed')
+            form_valiated = false;
+        }
+        return form_validated;
+    }
+
 </script>
 
 {% endblock %}
