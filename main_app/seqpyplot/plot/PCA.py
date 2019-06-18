@@ -5,13 +5,22 @@ import os
 
 class PCADecomposition(PlotBase):
 
-    def __init__(self, config_obj, container_obj):
-        self.config_obj = config_obj
-        self.plottable_data = container_obj.normalized_df
+    def __init__(self, output_dir, container_obj, experiment_name, plottable_data, col_names):
+        """perform PCA on input data columnwise
 
-        self.names = self.plottable_data.columns.tolist()
-        self.output_dir = self.create_output_directory()
-        self.prefix = self.config_obj.get('names', 'experiment_name')
+        Arguments:
+            container_obj {obj} -- data container object
+            experiment_name {str} -- name of experiment (AKA PREFIX)
+            plottable_data {data frame} -- data frame of normalized expression data (column normalized)
+            col_names {list} -- list of sample names
+        """
+        super()
+
+        self.plottable_data = plottable_data  # container_obj.normalized_df
+
+        self.names = col_names  #self.plottable_data.columns.tolist()
+        self.output_dir = output_dir
+        self.experiment_name = experiment_name  #self.config_obj.get('names', 'experiment_name')
 
     def execute_pca(self, n_components):
 
@@ -39,7 +48,7 @@ class PCADecomposition(PlotBase):
                      fontsize=14,
                      )
 
-        # rcParams['legend.frameon'] = 'False' 
+        # rcParams['legend.frameon'] = 'False'
 
         return fig
 
@@ -70,7 +79,7 @@ class PCADecomposition(PlotBase):
 
     def save_plot(self, fig):
 
-        path_ = os.path.join(self.output_dir, self.prefix)
+        path_ = os.path.join(self.output_dir, self.experiment_name)
         file_name = "_".join([path_,"PCA_plot.png"])
 
         fig.savefig(file_name, format='png', bbox_inches='tight')

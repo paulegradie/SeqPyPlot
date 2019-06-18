@@ -8,26 +8,33 @@ plt.style.use('bmh')
 
 class PairedBarPlot(PlotBase):
 
-    def __init__(self, config_obj):
-        
-        super(PairedBarPlot, self).__init__()
+    def __init__(
+        self,
+        time_point_names,
+        output_dir,
+        experiment_name,
+        log2fold,
+        expression_max,
+        expression_min,
+        min_diff,
+        max_diff
+        ):
+
+        super()
 
         plt.close()
 
-        self.config_obj = config_obj
-
-        self.labels = self.config_obj.getlist('names', 'times')
-        self.output_dir = self.create_output_directory()
-        self.prefix = self.config_obj.get('names', 'experiment_name')
-
-        self.log = self.config_obj.getfloat('params', 'log2fold')
-        self.hi = self.config_obj.getint('params', 'hi')
-        self.low = self.config_obj.getint('params', 'low')
-        self.diff = self.config_obj.getlist('params', 'diff')
+        self.time_point_names = time_point_names
+        self.output_dir = output_dir
+        self.experiment_name = experiment_name
+        self.log2fold = log2fold
+        self.expression_max = expression_max
+        self.expression_min = expression_min
+        self.diff = [min_diff, max_diff]
 
     def save_plot(self, fig):
 
-        path_ = os.path.join(self.output_dir, self.prefix)
+        path_ = os.path.join(self.output_dir, self.experiment_name)
         file_name = "_".join([path_,"DE_Gene_by_time.png"])
 
         fig.savefig(file_name, format='png', bbox_inches='tight')
@@ -36,17 +43,21 @@ class PairedBarPlot(PlotBase):
 
     def tidy_figure_up(self, fig, handles):
 
-        hi = 'inf' if self.hi > 99999 else self.hi
+        # leading underscore to avoid confusion
+        _hi = 'inf' if self.expression_max > 99999 else self.expression_max
 
         diffstart = str(int(self.diff[0]))
         diffend = str(int(self.diff[1]))
-        fig.legend(handles=[self.set_line({'color': 'white'}) for _ in range(3)],
-                   labels=(
-                       ["Log2: " + str(self.log),
-                        "Range: " + " - ".join([str(self.low), str(hi)]),
-                        "Diff: " + " - ".join([diffstart, diffend])]
-                        ),
-                   loc='upper right')
+        fig.legend(
+            handles=[self.set_line({'color': 'white'}) for _ in range(3)],
+            labels=(
+                [
+                    "Log2: " + str(self.log2fold),
+                    "Range: " + " - ".join([str(self.expression_min), str(_hi)]),
+                    "Diff: " + " - ".join([diffstart, diffend])
+                ]
+            ),
+            loc='upper right')
         return fig
 
 
@@ -105,10 +116,10 @@ class PairedBarPlot(PlotBase):
 
     def create_bar_plot(self, de_count_by_time_dict):
 
-        y_values = [int(de_count_by_time_dict[x]) for x in self.labels]
-        x_label = self.labels
+        y_values = [int(de_count_by_time_dict[x]) for x in self.time_point_names]
+        x_label = self.time_point_names
         ymax = max(y_values) * 1.2
-  
+
         x_axis = range(len(y_values))
 
         fig = self.set_figure(figure_prefix='Paired Sample DE Bar Plot')

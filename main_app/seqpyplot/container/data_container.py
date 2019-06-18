@@ -49,21 +49,29 @@ class DataContainer(object):
     Class for holding normalized data in a standard format. Calls parsers to collect data in to
     pandas data frames. Matrix generation and normalization happens here
     """
+    def __init__(
+        self,
+        data_directory,
+        data_paths,
+        sample_names,
+        time_point_names,
+        file_name_pairs,
+        num_file_pairs,
+        num_components,
+        data_type
+    ):
+        self.data_directory = data_directory
+        self.data_paths = data_paths
+        self.sample_names = sample_names
+        self.time_point_names = time_point_names
+        self.file_name_pairs = file_name_pairs
+        self.num_file_pairs = num_file_pairs
+        self.num_components = num_components
+        self.data_type = data_type
 
-    def __init__(self, config_obj):
-
-        self.config_obj = config_obj
-        self.data_directory = Path(self.config_obj.get('data_directory', 'dir'))
-        self.paths = [str(Path(x)) for x in self.config_obj.getlist('data', 'paths')]
-        self.names = self.config_obj.getlist('names', 'sample_names')
-        self.times = self.config_obj.getlist('names', 'times')
-        self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
-        self.num_file_pairs = self.config_obj.getint('misc', 'num_file_pairs')
-        self.num_components = self.config_obj.getint('params', 'num_components')
 
     def split(self, normalized_df):
-        self.normalized_df = normalized_df
-        self.split_normalized_dfs = [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_pairs]
+        self.split_normalized_dfs = [normalized_df[[control_col, treated_col]] for (control_col, treated_col) in self.file_name_pairs]
         return self.split_normalized_dfs
 
     def parse_plotter_data(self, datafile):
@@ -71,13 +79,12 @@ class DataContainer(object):
         data_df, ercc_df = parser.parse_data(datafile)
         return data_df, ercc_df
 
-
     def parse_input(self):
         # Instantiante parser
-        parser = PARSERS[self.config_obj.get('data', 'data_type')]()
+        parser = PARSERS[self.data_type]()
 
         # Execute parser given the data paths and the sample names
-        data_df, ercc_df = parser.parse_data(self.paths, self.names)
+        data_df, ercc_df = parser.parse_data(self.data_paths, self.sample_names)
 
         self.data_df = data_df
         self.ercc_df = ercc_df
@@ -111,9 +118,9 @@ class DataContainer(object):
             normalized_pairs.append(normalized_sub_df)
 
         remerged_df = self.merge_dfs(normalized_pairs)
-        reordered_df = self.reorder_cols(remerged_df)
-        self.normalized_data = reordered_df
-        return reordered_df
+        normalized_df = self.reorder_cols(remerged_df)
+        self.normalized_df = normalized_df
+        return normalized_df
 
     def execute_normalization(self, unnormalized_matrix):
         return TMM(unnormalized_matrix)

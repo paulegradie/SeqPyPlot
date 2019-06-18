@@ -6,21 +6,23 @@ from pathlib import Path
 class MakeFigureList(object):
 
 
-    def __init__(self, config_obj):
+    def __init__(self, genelist=None, genelist_file=None):
 
-        self.config_obj = config_obj
+        if genelist_file:
+            self.gene_list = self.input_file_parser()
+        elif genelist:
+            self.gene_list = genelist
 
-        self.gene_list = self.input_file_parser()
         self.plot_groups = self.make_plot_groups(self.gene_list)
         assert len(self.plot_groups) > 0, "No input genes. Comon now! gene_list_parser 1"
 
 
-    def input_file_parser(self):
+    def input_file_parser(self, genelist_file):
 
         # Handle file encodings when you open the input file
         file_parsed = False
 
-        input_file = Path(self.config_obj.get('file_names', 'genelist'))
+        input_file = Path(self.genelist_file)
         assert os.stat(input_file).st_size > 0, "Gene list for plotting was empty, gene_list_parser 2"
 
         for e in ["utf-8", "ascii", "ansi"]:

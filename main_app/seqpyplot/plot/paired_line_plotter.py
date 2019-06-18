@@ -20,23 +20,35 @@ except ImportError:
 
 class PairedDataLinePlotter(PlotBase):
 
-    def __init__(self, config_obj, filter_obj, normalized_df):
+    def __init__(
+        self,
+        normalized_df,
+        complete_de_gene_list,
+        log2fold,
+        expression_min,
+        time_point_names,
+        condition_labels,
+        experiment_name,
+        min_diff,
+        max_diff
+    ):
+
         super(PairedDataLinePlotter, self).__init__()
         plt.close()
 
-        self.config_obj = config_obj
+        # self.config_obj = config_obj
         self.output_dir = self.create_output_directory()
 
-        self.filter_obj = filter_obj
+        # self.filter_obj = filter_obj
         self.normalized_df = normalized_df
-        self.complete_de_gene_list = filter_obj.complete_de_gene_list
+        self.complete_de_gene_list = complete_de_gene_list
 
-        self.log = self.filter_obj.log2fold
-        self.low = self.filter_obj.low
-        self.times = self.config_obj.getlist('names', 'times')
-        self.labels = self.config_obj.getlist('names', 'conditions')
-        self.prefix = self.config_obj.get('names', 'experiment_name')
-        self.diffrange = self.config_obj.getlist('params', 'diff')
+        self.log2fold = log2fold
+        self.expression_min = expression_min
+        self.time_point_names = time_point_names
+        self.condition_labels = condition_labels
+        self.experiment_name = experiment_name
+        self.diffrange = [min_diff, max_diff]
 
     def plot_figure(self, figure_list, plottable_data):
         """
@@ -59,7 +71,7 @@ class PairedDataLinePlotter(PlotBase):
         image_files = list()
         for fig_idx, figure in enumerate(figure_list, start=1):
 
-            fig = self.set_figure(figure_prefix=self.config_obj.get('file_names', 'prefix'))
+            fig = self.set_figure(figure_prefix=self.experiment_name)
 
             line_plot_kwargs.update({'color': 'blue', 'markeredgecolor': 'blue', 'markerfacecolor': 'white'})
             series1 = self.set_line(kwargs=line_plot_kwargs)
@@ -105,9 +117,9 @@ class PairedDataLinePlotter(PlotBase):
         diffend = str(int(self.diffrange[1]))
 
         figlabels = [
-            self.labels,
-            ["Log2: " + str(self.log)],
-            ["Fold: " + str(round(2.0 ** self.log, ndigits=1))],
+            self.condition_labels,
+            ["Log2: " + str(self.log2fold)],
+            ["Fold: " + str(round(2.0 ** self.log2fold, ndigits=1))],
             ["Diff: " + " - ".join([diffstart, diffend])]
         ]
         labels = (reduce(concat, figlabels))
@@ -135,7 +147,7 @@ class PairedDataLinePlotter(PlotBase):
 
     def save_figure(self, fig, fig_idx, figure_list):
 
-        path_ = os.path.join(self.output_dir, self.prefix)
+        path_ = os.path.join(self.output_dir, self.experiment_name)
         genes = "_".join([fi.strip() for fi in figure_list[fig_idx-1]])
         file_name = "{}_{}_{}.png".format(path_, str(fig_idx), genes)
         plt.savefig(str(file_name), format='png', bbox_inches='tight')
@@ -188,7 +200,7 @@ class PairedDataLinePlotter(PlotBase):
                        which='major',
                        labelsize=14)
 
-        num_stages = len(self.times)
+        num_stages = len(self.time_point_names)
 
         # xlim is the length of the label list
         ax.set_xlim(-0.85, (num_stages)-0.15)
@@ -198,15 +210,15 @@ class PairedDataLinePlotter(PlotBase):
         ax.yaxis.set_ticks_position('left')
         ax.spines['bottom'].set_position(('data', 0))
 
-        ax.set_xticks([i for i in range(num_stages)], self.times)
+        ax.set_xticks([i for i in range(num_stages)], self.time_point_names)
 
         if is_de:  # set background color
             ax.set_facecolor('#FFFC97')
 
-        ax.axhline(self.low, color='gray', linestyle='--', label="-low")
+        ax.axhline(self.expression_min, color='gray', linestyle='--', label="-low")
 
-        if y_max < self.low:
-            ax.set_ylim(0, self.low + 10)
+        if y_max < self.expression_min:
+            ax.set_ylim(0, self.expression_min + 10)
         else:
             ax.set_ylim(0, y_max)
 
@@ -239,10 +251,10 @@ class PairedDataLinePlotter(PlotBase):
                        'markersize': 4}
 
         # Layer up plot elements
-        plot_kwargs.update({'color': 'blue', 'markeredgecolor': 'blue', 'markerfacecolor': 'white', 'label': self.labels[0]}) # .update returns NoneType
+        plot_kwargs.update({'color': 'blue', 'markeredgecolor': 'blue', 'markerfacecolor': 'white', 'label': self.condition_labels[0]}) # .update returns NoneType
         ax = self.plot_series(series1_data, series1_mask, ax, x_axis, plot_kwargs)
 
-        plot_kwargs.update({'color': 'red', 'markeredgecolor': 'red', 'markerfacecolor': 'white', 'label': self.labels[1]})
+        plot_kwargs.update({'color': 'red', 'markeredgecolor': 'red', 'markerfacecolor': 'white', 'label': self.condition_labels[1]})
         ax = self.plot_series(series2_data, series2_mask, ax, x_axis, plot_kwargs)
 
         _ = self.plot_log_fold_bounds(ax, data_mean, diffs, x_axis)  # May need the mean mask here
@@ -275,7 +287,7 @@ class PairedDataLinePlotter(PlotBase):
 
         diffs = list()
         for i in series_mean:
-            b = (2.0 * i) / ((2.0 ** self.log) + 1)
+            b = (2.0 * i) / ((2.0 ** self.log2fold) + 1)
             dif = i - b
             diffs.append(float(dif))
 

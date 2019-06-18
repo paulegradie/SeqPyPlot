@@ -18,7 +18,7 @@ TIME_STAMP = str(datetime.now()).split()[0]
 #     output_path = os.path.join(output_path, "_".join([filename, TIMESTAMP]))
 #     with open(output_path, 'wb+') as outfile:
 #         result_writer = writer(outfile, delimiter='\n')
-        
+
 #         for de_gene in sorted(data_list):
 #             result_writer.writerow([de_gene])
 
@@ -33,23 +33,24 @@ TIME_STAMP = str(datetime.now()).split()[0]
 #     data.to_csv(file_name, sep='\t')
 #     return None
 
-
-
-
 class DataPrinter(object):
 
-    def __init__(self, config_obj, container, filter_obj):
+    def __init__(
+        self,
+        output_dir,
+        experiment_name,
+        container_obj,
+        time_point_names,
+        filtered_df_list,
+        complete_de_gene_list
+        ):
 
-        assert config_obj.get('data_directory', 'output')
-        assert config_obj.get('file_names', 'prefix')
-
-        self.output_dir = config_obj.get('data_directory', 'output')
-        self.prefix = config_obj.get('names', 'experiment_name')
-
-        self.config_obj = config_obj
-        self.container = container
-        self.filter_obj = filter_obj
-
+        self.output_dir = output_dir
+        self.experiment_name = experiment_name
+        self.container = container_obj
+        self.filtered_df_list = filtered_df_list
+        self.complete_de_gene_list = complete_de_gene_list
+        self.time_point_names = time_point_names
         self.kwargs = {'sep': '\t'}
 
     def __call__(self):
@@ -60,7 +61,7 @@ class DataPrinter(object):
             self.write_filtered_data,
             self.write_complete_de_list
             ]
-        
+
         for foo in foos_to_print:
             try:
                 foo()
@@ -72,38 +73,38 @@ class DataPrinter(object):
 
         ercc_data = self.container.ercc_df
 
-        output_name = '_'.join([self.prefix, "all_ercc.spp"])
+        output_name = '_'.join([self.experiment_name, "all_ercc.spp"])
         output_path = os.path.join(self.output_dir, output_name)
 
         ercc_data.to_csv(output_path, **self.kwargs)
-            
+
     def write_normalized_data(self):
 
-        normalized_data = self.container.normalized_data
+        normalized_data = self.container.normalized_df
 
-        output_name = '_'.join([self.prefix, "normalized_data.spp"])
+        output_name = '_'.join([self.experiment_name, "normalized_plottable_data.spp"])
         output_path = os.path.join(self.output_dir, output_name)
 
         normalized_data.to_csv(output_path, **self.kwargs)
 
     def write_filtered_data(self):
-        
-        filtered_df_list = self.filter_obj.filtered_df_list
 
-        for stage, data in zip(self.config_obj.getlist('names', 'times'), filtered_df_list):
-            
-            output_name = '_'.join([self.prefix, stage, 'filtered_data.spp'])
-            output_path = os.path.join(self.output_dir, output_name)            
+        # self.filtered_df_list = self.filter_obj.filtered_df_list
+
+        for stage, data in zip(self.time_point_names, self.filtered_df_list):
+
+            output_name = '_'.join([self.experiment_name, stage, 'filtered_data.spp'])
+            output_path = os.path.join(self.output_dir, output_name)
             data.to_csv(output_path, **self.kwargs)
 
     def write_complete_de_list(self):
 
-        de_gene_list = list(self.filter_obj.complete_de_gene_list)
-        output_name = "_".join([self.prefix, 'de_gene_list.spp'])
-        output_path = os.path.join(self.output_dir, output_name)            
+        de_gene_list = list(self.complete_de_gene_list)
+        output_name = "_".join([self.experiment_name, 'de_gene_list.spp'])
+        output_path = os.path.join(self.output_dir, output_name)
 
         with open(output_path, 'w+', newline='') as outfile:
             result_writer = writer(outfile, delimiter=' ')
-            
+
             for de_gene in sorted(de_gene_list):
                 result_writer.writerow([de_gene])

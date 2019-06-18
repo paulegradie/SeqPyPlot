@@ -26,19 +26,26 @@ class PairedSampleFilter(object):
     Returns:
         [type] -- [description]
     """
+    def __init__(
+        self,
+        log2fold,
+        expression_min,
+        expression_max,
+        min_diff,
+        max_diff,
+        time_point_names,
+        file_name_pairs
+    ):
 
-    def __init__(self, config_obj, log2fold=None, low=None, hi=None, diff=None):
+        self.log2fold = log2fold
+        self.expression_min = expression_min
+        self.expression_max = expression_max
+        self.diff = [min_diff, max_diff]
+        # assert isinstance(self.diff, list), 'diff must be iterable - 2 values'
 
-        self.config_obj = config_obj
+        self.time_point_names = time_point_names
+        self.file_name_pairs = file_name_pairs
 
-        self.log2fold = log2fold or self.config_obj.getfloat('params', 'log2fold')
-        self.low = low or self.config_obj.getint('params', 'low')
-        self.hi = hi or self.config_obj.getint('params', 'hi')
-        self.diff = diff or self.config_obj.getlist('params', 'diff')
-        assert isinstance(self.diff, list), 'diff must be iterable - 2 values'
-
-        self.times = self.config_obj.getlist('names', 'times')
-        self.file_pairs = self.config_obj.getlist('names', 'file_pairs')
 
     def main_filter_process(self, input_df_list):
 
@@ -61,7 +68,7 @@ class PairedSampleFilter(object):
         Arguments:
             result {list of pandas dfs} -- filter results
         """
-        time_result = zip(self.times, result)
+        time_result = zip(self.time_point_names, result)
         self.filtered_genes = result
         self.de_count_by_stage = {time: len(df) for time, df in time_result}
         self.de_count_by_gene = self.count_by_gene(result)
@@ -86,7 +93,7 @@ class PairedSampleFilter(object):
     def apply_fold_change(self, input_df_list):
         fold_change_dfs = list()
         filtered_results = list()
-        for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
+        for (control_col, treated_col), df in zip(self.file_name_pairs, input_df_list):
 
             result = np.log2(df[treated_col].div(df[control_col])).abs()
 
@@ -108,7 +115,7 @@ class PairedSampleFilter(object):
 
         diff_dfs = list()
         filtered_results = list()
-        for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
+        for (control_col, treated_col), df in zip(self.file_name_pairs, input_df_list):
 
             result = df[control_col].sub(df[treated_col]).abs()
             diff_dfs.append(result)
@@ -129,14 +136,14 @@ class PairedSampleFilter(object):
         """
         filtered_results = list()
         state_change = list()
-        for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
+        for (control_col, treated_col), df in zip(self.file_name_pairs, input_df_list):
             df.columns = [control_col, treated_col]
-            passing = df[(df[control_col] >= self.low) | (df[treated_col] >= self.low)]
+            passing = df[(df[control_col] >= self.expression_min) | (df[treated_col] >= self.expression_min)]
             filtered_results.append(passing)
 
-            deactivated = df[(df[control_col] > self.low) & (df[treated_col] < self.low)]
-            activated = df[(df[control_col] < self.low) & (df[treated_col] > self.low)]
-            undetected = df[(df[control_col] < self.low) & (df[treated_col] < self.low)]
+            deactivated = df[(df[control_col] > self.expression_min) & (df[treated_col] < self.expression_min)]
+            activated = df[(df[control_col] < self.expression_min) & (df[treated_col] > self.expression_min)]
+            undetected = df[(df[control_col] < self.expression_min) & (df[treated_col] < self.expression_min)]
             state_change.append((deactivated[deactivated[control_col].sub(deactivated[treated_col]).abs() > self.diff[0]],
                                  activated[activated[control_col].sub(activated[treated_col]).abs() > self.diff[0]],
                                  undetected))
@@ -149,15 +156,15 @@ class PairedSampleFilter(object):
 
         filtered_results = list()
         saturated_dfs = list()
-        for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
+        for (control_col, treated_col), df in zip(self.file_name_pairs, input_df_list):
 
             passing = df[
-                (df[control_col] < self.hi) |
-                (df[treated_col] < self.hi)
+                (df[control_col] < self.expression_max) |
+                (df[treated_col] < self.expression_max)
                 ]
             filtered_results.append(passing)
 
-            saturated = df[(df[control_col] > self.hi) & (df[treated_col] > self.hi)]
+            saturated = df[(df[control_col] > self.expression_max) & (df[treated_col] > self.expression_max)]
             saturated_dfs.append(saturated)
 
         self.saturated_dfs = saturated_dfs
@@ -167,7 +174,7 @@ class PairedSampleFilter(object):
     def calculate_dispersion_estimate(self, normalized_df):
 
         dispersion_df = list()
-        for cont, treat in self.file_pairs:
+        for cont, treat in self.file_name_pairs:
             dispersion_df.append((normalized_df[cont] - normalized_df[treat]).abs())
 
         disp_df = pd.concat(dispersion_df, axis=1)
@@ -180,7 +187,7 @@ class PairedSampleFilter(object):
     def apply_min_dispersion_estimate(self, input_df_list):
         pass
     #     filtered_results = list()
-    #     for (control_col, treated_col), df in zip(self.file_pairs, input_df_list):
+    #     for (control_col, treated_col), df in zip(self.file_name_pairs, input_df_list):
     #         result = df[(df[control_col])]
     #         filtered_results.append(s)
 

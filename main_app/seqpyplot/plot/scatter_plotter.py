@@ -18,32 +18,45 @@ class ScatterPlots(PlotBase):
     if they wish to.
 
     Line plots are the only exception.
-    
+
     Arguments:
         PlotBase {[type]} -- [description]
-    
+
     Returns:
         [type] -- [description]
     """
 
-    def __init__(self, config_obj, container_obj, filter_obj):
-        super(ScatterPlots, self).__init__()
+    def __init__(
+        self,
+        output_dir,
+        container_obj,
+        filter_obj,
+        experiment_name,
+        log2fold,
+        expression_min,
+        expression_max,
+        min_diff,
+        max_diff,
+        time_point_names,
+        scatter_min,
+        scatter_max
+    ):
+        super()
         plt.close()
 
-        self.config_obj = config_obj
         self.container_obj = container_obj
         self.filter_obj = filter_obj
 
-        self.output_dir = self.create_output_directory()
-        self.prefix = self.config_obj.get('names', 'experiment_name')
+        self.output_dir = output_dir
+        self.experiment_name = experiment_name
 
-        self.log = self.config_obj.getfloat('params', 'log2fold')
-        self.low = self.config_obj.getint('params', 'low')
-        self.hi = self.config_obj.getint('params', 'hi')
-        self.diff = self.config_obj.getlist('params', 'diff')
-        self.times = self.config_obj.getlist('names', 'times')
+        self.log2fold = log2fold
+        self.expression_min = expression_min
+        self.expression_max = expression_max
+        self.diff = [min_diff, max_diff]
+        self.time_point_names = time_point_names
 
-        self.scatrange = self.config_obj.getlist('plot_options', 'scatrange')
+        self.scatrange = [scatter_min, scatter_max]
 
         # organize plot data
         self.flagged_data = self.filter_obj.filtered_genes  # a list of dfs
@@ -57,7 +70,7 @@ class ScatterPlots(PlotBase):
         for (filtered_df,
              normalized_df) in zip(self.filter_obj.filtered_genes,
                                    self.container_obj.split_normalized_dfs):
-            
+
             flagged_genes = set(filtered_df.index.tolist())
             unflagged =  (complete_gene_set - flagged_genes)
             unflagged_data.append(normalized_df.loc[unflagged])
@@ -68,19 +81,19 @@ class ScatterPlots(PlotBase):
         This need only take in the result from filter_obj:
             analyzer.filterd_genes
         which is a list of data frames
-        
+
         """
 
         for flagged_df, unflagged_df, time in zip(self.flagged_data,
                                                    self.unflagged_data,
-                                                   self.times):
+                                                   self.time_point_names):
 
             suptitle = " ".join([time, 'Expression Scatter Plot'])
             fig, axes = self.create_figure(suptitle)
-            
+
             titles = ['Flagged Genes', 'Unflagged Genes']
             lims = (self.scatrange[0], self.scatrange[1])
-            
+
             dfs = [flagged_df, unflagged_df]
             for ax, df, title in zip(axes.flatten(), dfs, titles):
 
@@ -131,8 +144,8 @@ class ScatterPlots(PlotBase):
         handles = [self.set_line('white') for _ in range(3)]
         labels = ['ScatRange:' + " - ".join([str(x) for x in self.scatrange]),
                   "DiffRange:" + " - ".join([str(x) for x in self.diff]),
-                  "Log2: " + str(self.log)]
-        
+                  "Log2: " + str(self.log2fold)]
+
         fig.legend(handles=handles,
                    labels=(labels),
                    loc='upper right',
@@ -143,8 +156,8 @@ class ScatterPlots(PlotBase):
 
     def format_plot(self, ax, time, lims):
 
-        ax.axvline(self.low, color='gray', linestyle='--')
-        ax.axvline(self.hi, color='gray', linestyle='--')
+        ax.axvline(self.expression_min, color='gray', linestyle='--')
+        ax.axvline(self.expression_max, color='gray', linestyle='--')
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -164,8 +177,8 @@ class ScatterPlots(PlotBase):
 
 
     def save_fig(self, time):
-      
-        path_ = os.path.join(self.output_dir, self.prefix)
+
+        path_ = os.path.join(self.output_dir, self.experiment_name)
         file_name = "_".join([path_, time, 'ScatterPlot.png'])
 
         plt.savefig(file_name, format='png', bbox_inches='tight')
@@ -178,7 +191,7 @@ class ScatterPlots(PlotBase):
         :param series_mean:
         :return:
         """
-        var = self.log
+        var = self.log2fold
         upper_list = []
         lower_list = []
         low_plot = []
