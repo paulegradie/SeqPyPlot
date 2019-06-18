@@ -2,33 +2,25 @@ import json
 import os
 import sys
 import uuid
-from shutil import rmtree, make_archive
-from static.python.utils import make_temp_upload_dir, safe_string_to_number
-from static.python.analyze import check_filetypes, check_num_conditions, upload_datafiles_to_tmp, generate_analyze_kwargs
-from static.python.plot import generate_plots
-
+from pathlib import Path
+from shutil import make_archive, rmtree
 
 from flask import (Flask, flash, jsonify, redirect, render_template, request,
-                   url_for, session)
-from flask_wtf import FlaskForm
+                   session, url_for)
 from livereload import Server
 from werkzeug.utils import secure_filename
 from wtforms import (DecimalField, FieldList, FileField, FormField,
                      IntegerField, StringField)
 from wtforms.validators import InputRequired, NumberRange
-from static.python.analyze import run_spplot_analysis, create_experiment_record, write_config_to_tmp_data_upload_dir, get_experiment_name
 
-from pathlib import Path
-
-# from main_app.seqpyplot.analyzer.paired_sample_filter import PairedSampleFilter
-# from main_app.seqpyplot.container.data_container import DataContainer
-# from main_app.seqpyplot.parsers.config_parser import config_parser
-# from main_app.seqpyplot.plot.bar_plotter import PairedBarPlot
-# from main_app.seqpyplot.plot.de_tally_plotter import TallyDe
-# from main_app.seqpyplot.plot.PCA import PCADecomposition
-# from main_app.seqpyplot.plot.scatter_plotter import ScatterPlots
-# from main_app.seqpyplot.printers.data_printer import DataPrinter
-# from main_app.seqpyplot.utils import make_default_output_dir
+from static.python.analyze import (check_filetypes, check_num_conditions,
+                                   create_experiment_record,
+                                   generate_analyze_kwargs,
+                                   get_experiment_name, run_spplot_analysis,
+                                   upload_datafiles_to_tmp,
+                                   write_config_to_tmp_data_upload_dir)
+from static.python.plot import generate_plots
+from static.python.utils import make_temp_upload_dir
 
 os.environ['FLASK_DEBUG'] = '1'
 os.environ['FLASK_APP'] = 'app.py'
