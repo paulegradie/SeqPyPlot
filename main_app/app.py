@@ -37,7 +37,7 @@ UPLOAD_FOLDER = 'tmp'
 
 
 app.config['SECRET_KEY'] = SECRET_KEY
-ALLOWED_EXTENSIONS = ['.splot']
+ALLOWED_EXTENSIONS = ['.spp']
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 

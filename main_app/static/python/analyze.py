@@ -293,7 +293,6 @@ def run_spplot_analysis(
 
     #--------------------------------------------------------------------
     # Save filter results
-    # import pdb; pdb.set_trace()
     # output_dir = make_default_output_dir(output_dir or None, overwrite=True)
     data_printer = DataPrinter(
         output_dir=output_dir,

@@ -2,11 +2,11 @@
 # coding: utf-8
 
 # # Heteroskedasticity correction notebook using linear transformations rotation matrices
-# 
+#
 # This notebook works through an idea for correcting heteroskedasticity which uses rotation matrices to align samples.
-# 
+#
 # For a given sample pair, the mean across all samples is computed. Then for each sample and the mean, linear regression is used to compute a line of best fit through the sample. The result is a coefficient for each sample. If these coeffieicients do not match, we can use a rotation matrix to rotate the data about the origin until they match, resulting in proper alignment between the control and treated samples.
-# 
+#
 # Further correction can be introduced by first negating any bias computed during linear regression.
 
 
@@ -73,7 +73,7 @@ def compute_rot_mat(rad, coef=.5):
                                     [np.sin(rad), np.cos(rad)]])
     else:
         rotation_matrix = np.array([[np.cos(rad), np.sin(rad)],
-                                    [-np.sin(rad), np.cos(rad)]])  
+                                    [-np.sin(rad), np.cos(rad)]])
     return rotation_matrix
 
 
@@ -104,12 +104,12 @@ plt.scatter(new_line1[:, 0], new_line1[:, 1], color='green')
 
 plt.scatter(xs, line2, color='black', alpha=0.4, s=95);
 for (x1, y1), (x2, y2) in zip(zip(xs, line1), new_line1):
-    
+
     plt.plot([x1, x2], [y1, y2], linestyle='--', color='y')
 
 
 # # Examle using actual Data No TMM
-# 
+#
 # 1. Correct bias
 # 2. Rotate data
 
@@ -373,8 +373,8 @@ calc_theta(1.0, regTreat.coef_)
 # The most straightforward approach is probably going to be to transform the data so that each one line is brought to the slope of another. Once both samples are transformed, then the means will be dropped, and then recomputed. This will cause the data to be reordered (since we order based on the mean). Once plotted, the redistributed data should then be in a form that is ready for filtering.
 
 # # Choosing thresholds for outlier cutoffs
-# 
-# Before performing rotation correction, its a good idea to eliminate some of the worst outlier offenders before performing linear regression. To do this, we can calculate summary statistics on the sample pair, and 
+#
+# Before performing rotation correction, its a good idea to eliminate some of the worst outlier offenders before performing linear regression. To do this, we can calculate summary statistics on the sample pair, and
 
 
 
@@ -468,7 +468,7 @@ def compute_rot_mat(rad, coef):
                                     [np.sin(rad), np.cos(rad)]])
     else:
         rotation_matrix = np.array([[np.cos(rad), np.sin(rad)],
-                                    [-np.sin(rad), np.cos(rad)]])  
+                                    [-np.sin(rad), np.cos(rad)]])
     return rotation_matrix
 
 
@@ -558,65 +558,63 @@ new_df.dropna(axis=0, inplace=False)
 
 
 # This function returns the TMM normalized of ALL sample. The next function needs to normalize by paired time point.
-def TMM_all_samples(raw_df, 
+def TMM_all_samples(raw_df,
                     threshold=10,
                     logfold_change_cutoff = 0.3,
                     absolute_intensity_cutoff = 0.05):
-    
+
     frame = raw_df.copy()
     original_df = raw_df.copy()
-    
+
     # Remove genes that don't have expression, and save them as a separate df to be added in later.
     df = frame.loc[(frame >= threshold).all(axis=1)]
     non_expressed_genes = frame.drop(df.index)
-    
+
     ## Calculate factor quantiles
     ### PERFORM TRIMMING ###
     sample_column_names = df.columns.tolist()
-    
+
     ref_col = sample_column_names[0]
     non_ref_cols = sample_column_names[1:]
-    
+
     # 1. Calculate reference column statistics -- This could be more sophistocated (PCA to find middle most sample?
-    # n_kref = column sum for reference column (first column)    
+    # n_kref = column sum for reference column (first column)
     reference_column_sum = df.loc[:, ref_col].sum()
     reference_column = df[ref_col]
 
-    
+
     # 2. Calculate the gene-wise logfold changes
     genewise_logfold_change = df.apply(lambda col: np.log2((col/col.sum())/(reference_column/reference_column_sum)))
-    
-    
+
+
     # 3. Calculate the genewise Absolute Intensity
     genewise_abs_intensity = df.apply(lambda col: (np.log2((col/col.sum())*(reference_column/reference_column_sum)))/2.)
 
-    
-    # 4 Trim logfold and absolute     
+
+    # 4 Trim logfold and absolute
     logfold_mask = genewise_logfold_change.apply(lambda col: col > genewise_logfold_change.quantile(logfold_change_cutoff, axis=1))
     abs_instensity_mask = genewise_abs_intensity.apply(lambda col: col > genewise_abs_intensity.quantile(absolute_intensity_cutoff, axis=1))
-    
-    import pdb;pdb.set_trace()
 
     # Remove rows with masked values
     df = df[logfold_mask]
     df = df[abs_instensity_mask]
     df_clean = df.dropna(axis=1)
-    
-    
+
+
     #######################################################
     """ From here we have a trimmed data frame of values that we can use to calculate normalization factors for."""
     # w-r_gk
     weight_r_gk = lambda col: ((col.sum() - col) / (col.sum() * col)) + ((reference_column_sum - reference_column) / (reference_column_sum * reference_column))
     w_r_gk = df_clean.apply(weight_r_gk)
-    
+
     # m-r_gk
     mean_r_gk = lambda col: (np.log2(col / col.sum()) ) / (np.log2(reference_column / reference_column_sum))
     m_r_gk = df_clean.apply(mean_r_gk)
-    
+
     normalization_factors = np.sum(w_r_gk * m_r_gk) / np.sum(w_r_gk)
-    
+
     normalized_df = frame.multiply(normalization_factors, axis=1)
-    
+
     return normalized_df
 
 

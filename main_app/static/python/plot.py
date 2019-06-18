@@ -57,37 +57,31 @@ def upload_de_genelist(request, tmp_plot_dir):
     gene_list = load_de_genelist(file_path)
     return gene_list
 
-# def write_textbox_genelist_to_tmp(genelist, tmp_plot_dir):
-#     output_path = os.path.join(tmp_plot_dir, 'genelist.txt')
-#     with open(output_path, 'w') as fout:
-#         for gene in genelist:
-#             fout.write(gene + '\n')
-#     return output_path
-
 
 def generate_plots(
     request,
     data_type,
-    tmp_output_dir,
+    output_dir,
     min_diff,
     max_diff
 ):
 
     num_conditions = check_num_series(request)
     processed_gene_list = collect_gene_list(request)
-    plottable_data_path = upload_plottable_data(request, tmp_output_dir)
-    complete_de_genelist = upload_de_genelist(request, tmp_output_dir)
+    plottable_data_path = upload_plottable_data(request, output_dir)
+    complete_de_genelist = upload_de_genelist(request, output_dir)
 
     # the params need t come from the config
-    config_path = collect_plot_config_path(request, tmp_output_dir)
+    config_path = collect_plot_config_path(request, output_dir)
     config_obj = config_parser(config_path)
-    time_point_names = config_obj.get('names', 'times')
+
+    time_point_names = config_obj.getlist('names', 'times')
     control_sample_names = config_obj.get('names', 'controls')
     treated_sample_names = config_obj.get('names', 'treated')
     log2fold = config_obj.getfloat('params', 'log2fold')
-    expression_min = config_obj.get('params', 'expression_min')
-    min_diff =  config_obj.getint('params', 'min_diff')
-    max_diff =  config_obj.getint('params', 'max_diff')
+    expression_min = config_obj.getint('params', 'expression_min')
+    min_diff = config_obj.getint('params', 'min_diff')
+    max_diff = config_obj.getint('params', 'max_diff')
     experiment_name = config_obj.get('names', 'experiment_name')
 
 
@@ -107,9 +101,9 @@ def generate_plots(
 
     normalized_data, ercc_data = container_obj.parse_plotter_data(plottable_data_path)
 
-    # import pdb; pdb.set_trace()
     print("\nPlotting data...\n")
     line_plotter = PairedDataLinePlotter(
+        output_dir=output_dir,
         normalized_df=normalized_data,
         complete_de_gene_list=complete_de_genelist,
         log2fold=log2fold,
@@ -123,5 +117,5 @@ def generate_plots(
 
     fig_list = MakeFigureList(genelist=processed_gene_list)
     line_plotter.plot_figure(figure_list=fig_list.plot_groups, plottable_data=normalized_data)
-    image_files = [os.path.join(tmp_output_dir, x) for x in os.listdir(tmp_output_dir) if x.endswith('png')]
+    image_files = [os.path.join(output_dir, x) for x in os.listdir(output_dir) if x.endswith('png')]
     return image_files

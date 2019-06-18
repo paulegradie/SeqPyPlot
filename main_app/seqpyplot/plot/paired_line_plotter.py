@@ -9,19 +9,24 @@ from operator import concat
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from seqpyplot.plot.base.plot_base import PlotBase
 from tqdm import tqdm
 
-from seqpyplot.plot.base.plot_base import PlotBase
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('Agg')
 
 try:
     from functools import reduce
 except ImportError:
     pass
 
+
 class PairedDataLinePlotter(PlotBase):
 
     def __init__(
         self,
+        output_dir,
         normalized_df,
         complete_de_gene_list,
         log2fold,
@@ -36,12 +41,11 @@ class PairedDataLinePlotter(PlotBase):
         super(PairedDataLinePlotter, self).__init__()
         plt.close()
 
-        # self.config_obj = config_obj
-        self.output_dir = self.create_output_directory()
+        self.output_dir = output_dir
 
-        # self.filter_obj = filter_obj
         self.normalized_df = normalized_df
-        self.complete_de_gene_list = complete_de_gene_list
+        self.normalized_df_genes = [x.lower() for x in self.normalized_df.index.tolist()]
+        self.complete_de_gene_list = [x.lower() for x in complete_de_gene_list]
 
         self.log2fold = log2fold
         self.expression_min = expression_min
@@ -155,10 +159,10 @@ class PairedDataLinePlotter(PlotBase):
         return file_name
 
     def gene_exists(self, gene):
-        return gene in self.normalized_df.index.tolist()
+        return gene.lower() in self.normalized_df_genes
 
     def is_de(self, gene):
-        return gene in self.complete_de_gene_list
+        return gene.lower() in self.complete_de_gene_list
 
     def retrieve_data(self, gene):
         """
@@ -171,12 +175,11 @@ class PairedDataLinePlotter(PlotBase):
             [type] -- [description]
         """
         data_length = self.normalized_df.shape[1]
-
         try:
-            data = self.normalized_df.loc[gene]
+            data = self.normalized_df.loc[gene.title()]
 
         except KeyError:
-            print("The current gene: -- {} -- was not found in the plot data.".format(gene_name))
+            print("The current gene: -- {} -- was not found in the plot data.".format(gene))
             data = [0] * data_length
 
         # These complicated comprehension is to handle cases where the user includes an
