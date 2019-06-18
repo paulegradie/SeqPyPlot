@@ -1,5 +1,5 @@
 
-#             ***SPPLOT v0.4***
+#             ***SPPLOT v0.5***
 A tool for helping you analyze pilot data (data without replicates).
 
 ## Installation
