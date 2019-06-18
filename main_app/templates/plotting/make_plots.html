@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+<hr>
+<span align="middle"><h1>Plotting using your SPPLOT results</h1></span>
+<hr>
+
+<p>
+    SPPLOT provides standard utilities for plotting out your time series gene expression results with non-standard
+    additions. For example, if you provide a plottable_data.spp file, a config, and a selection of gene names
+    found in your plottable data, spplot will produce for you nicely formatted line plots. The non standard
+    additions to this are the threshold indicators.
+</p>
+<p>
+    There are three threshold indicators that are shown on the plots, two of which may not be visible depending on your data.
+</p>
+    <h3><b>Log2Fold threshold indicator</b></h3>
+<p>
+    The log2fold threshold indicator is a vertical line that sits between the two points associated with a given time
+    point. The vertical indicator line will change size depending on the value range of the points on the plot. For example,
+    if the values are at around 500 counts, the vertical line will be shorter than if the points were around 5000 counts.
+    This is because that line represents the size of the log2fold threshold chosen by you in the configuration file
+    relative to the mean of the two points on the plot at a particlar time point.
+</p>
+<p>
+    This range is also shown by the dashed lines in the scatter plot -- as the mean (x axis) increases, the distance bewteen
+    the dashed lines increases. The angle between the lines is determined by the log2fold threshold you provide, and the
+    distance is the same as the vertical indicator line at the mean of the two points on the plot for a given time point.
+</p>
+    <h3>Differential Expression threshold indicator</h3>
+<p>
+    When the difference between two values crosses the log2fold threshold, it triggers the differential expression threshold
+    indicator. For a given plot, if the distance between the two points for any time point is greater than the log2fold threshold
+    given in the config, then the background for this plot will become yellow. I.e. A yellow plot indicates a gene where
+    at some time point the expression difference was greater than the log2fold threshold you specified.
+</p>
+    <h3>Min Expression indicator</h3>
+<p>
+    It is highly probable that many if not most of your genes will have very low expression. In the cases where
+    there are expression values, but they are very low, a horizontal dashed line is plotted to show the min expression
+    value you specified in the config. If both expression values for a given time point fall below this line, they are not
+    considered during differential expression evaluation using the log2fold threshold you specified.
+</p><br>
+<hr>
+<span align="middle"><h1>Plot your data </h1></span>
+<hr>
+<form method="POST" autocomplete="off" data-lpignore="true" id="plotting-search"
+    enctype="multipart/form-data" onsubmit="return plotting_form_validation(this);">
+
+    <div class="required_data">
+        <h2>Analysis Config: <input type="file" class="plot_config" name="analysis_config"></h2>
+        <p>
+            Upload the config output by the SPPLOT analyzer. While you are free to change this config
+            to suit the particulars of your plotting needs, it is advised that you leave the config as is.
+            If you change the thresholds, the plot threshold indicators will not reflect the original descriptive analysis
+            you performed.
+        </p>
+        <h2>Number of series:
+        <select name="num_series">
+          <!-- <option value="one">1</option> -->
+          <option value="two">2</option>
+        </select></h2>
+        This is <b>important</b>. This determines how the plottable data file will be read.
+      </div>
+      <br />
+      <div id="plottableInputText"></div>
+      <br />
+
+      <h2>SPPLOT plottable data file:       <input type="file" class="plot_file" name="data_file"></h2><br>
+      This is a file output from the SPPLOT analysis. It will be (experiment-name)_plottable_data.spp<br>
+      <br><br>
+      <h2>SPPLOT de gene list file:       <input type="file" class="plot_file" name="de_gene_list"></h2><br>
+      This is a file output from the SPPLOT analysis. It will be (experiment-name)_de_gene_list.spp<br>
+      <br><br>
+      <span><h3>Gene list to plot</h3></span>
+      <span><h5>Paste a single column gene list in the box below</h5></span>
+
+      Gene List:<br>
+      <textarea id="genelist" placeholder="Paste Gene List Here" class="text" cols="25" rows ="10" name="gene_list"></textarea>
+      <br />
+      <input value="Plot gene data" type="submit" id="plotGeneList">
+</form>
+
+<hr />
+<div class="result_window">
+    <span align="middle"><h1>Plot display </h1></span>
+
+    {% for idx, image_path in image_files %}
+    <div class="image_result">
+        <div class="result_images_{{ idx }}">
+            <img class="plotimages" src="{{ image_path }}" alt=" Plots not yet made...">
+        </div>
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+
+<script src='/static/js/plotting.js'></script>
+
+{% endblock %}

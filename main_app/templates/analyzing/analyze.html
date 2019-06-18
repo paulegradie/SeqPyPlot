@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+<h1>Analyze your data</h1>
+    To perform the analysis, perform the following steps:
+    <ol>
+        <li>Select the number of samples you wish to plot.</li>
+        <li>Add samples to the sample list, fill in the time point name, and select the appropriate files.</li>
+        <li>Select reasonable filter parameters.</li>
+        <li>Click the 'Perform Analysis' button.</li>
+    </ol>
+<br>
+    <h2>Reasonable filter parameters</h2>
+    <p><span>
+            Choose reasonable filter parameters may require multiple analyses using the tool provided on this page.
+            Typically, you will
+            want to first run the analysis in 'parameter search mode'. This will produce a series of parameter search
+            plots which will be displayed
+            on the page which may assist you in selecting appropriate parameters.
+        </span></p>
+    <p><span>
+            Ideally you want to select parameters that will return a reasonable number of genes. What is reasonable
+            depends on your experiment and
+            may be somewhat indicated by the log2fold cutoff plot. It is suggested to take a log2fold cutoff that is
+            very close to the tip of the
+            elbow in this plot.
+        </span></p>
+<br>
+<p>
+    When you click the 'Perform Analysis' button, your data will be submitted and a zip file will
+    be returned for you to download. This file contains all of the analysis results. You can use the
+    'filename'_plotter_data.splot' file plotting in the <a href='make_plots'>plotting</a> page.
+</p>
+<hr />
+<br /><br />
+
+<p>Status: -- {{ status }} --</p>
+
+<p>
+    File Type
+    <select name="fileType">
+        <option value="htseq">ht-seq</option>
+        <!-- <option value="cuffnorm">cuffnorm</option> -->
+    </select>
+</p>
+<p>
+Number of conditions
+<select name="numberofconditions" id="numCondition">
+    <!-- dafault goes on top of this list -->
+    <option value="two" id="two_conditions">two</option>
+    <option value="one" id="one_condition">one</option>
+</select>
+</p>
+<br />
+<br />
+<br />
+<hr>
+
+<h3>Sample uploads</h3>
+<p>To add more time points, click the 'add another sample' button.</p>
+<p>
+    <input id="control_fileid" type="file" hidden />
+</p>
+<button id="addSample">Add sample</button>
+<button id="deleteSample">Remove last sample</button>
+<br><br>
+
+
+<!-- SINGLE COLUM FORM -->
+<form method="POST" autocomplete="off" data-lpignore="true" id="singlesample-search"
+    enctype="multipart/form-data" onsubmit="return analysis_form_validation(this);">
+
+    <p>Experiment Name<br><br>
+    <input type="text" name="experimentname_1" id="singlexperimentname" placeholder="Experiment Name" value="TEST_NAME">
+
+    <table id="OneSampleTable">
+        <tr>
+            <td></td>
+            <td><span class="sampleItemSpan">Sample Names</span></td>
+            <td><span class="sampleItemSpan">Control</span></td>
+        </tr>
+        <tr>
+            <td><span name="time_name2_1" class="sampleItemSpan">1.</span></td>
+            <td><input name="time_name1_1" id="singletimename_1" class="sampleItemSpan" type="text" placeholder="T1" value="T1"></td>
+            <td><input id="singlecontrol_1" name="control_1" class="sampleItemSpan" type="file"></td>
+        </tr>
+        <!-- New rows will go here -->
+        <!-- On submit, the request will contain all of the elements of this form!  -->
+    </table>
+    <br><br>
+    <div class="paramform" id="paramform">
+        <br><br>
+        Filter Params
+        <table>
+            <tr><td><span class="params">Log2Fold:</span></td><td><input name="param_log2fold_1" id="param1_1" type="number" placeholder="0.55" step="0.01" min="0.00"></td></tr>
+            <tr><td><span class="params">Expression Min:</span></td><td><input name="param_expressionmin_1" id="param1_2" type="number" placeholder="2" min="1"></td></tr>
+            <tr><td><span class="params">Expression Max:</span></td><td><input name="param_expressionmax_1" id="param1_3" type="number" placeholder="100000" min="1"></td></tr>
+            <tr><td><span class="params">Expression Minimum Difference:</span></td><td><input name="param_min_diff_1" id="param1_4" type="number" placeholder="200" min="1"></td></tr>
+            <tr><td><span class="params">Expression Maximum Difference:</span></td><td><input name="param_max_diff_1" id="param1_5" type="number" placeholder="10000" min="1"></td></tr>
+            <tr><td><span class="params">Correction Interval Min (opt):</span></td><td><input name="param_corrintervalmin_1" id="param1_6" type="number" placeholder="200" min="1"></td></tr>
+            <tr><td><span class="params">Correction Interval Max (opt):</span></td><td><input name="param_corrintervalmax_1" id="param1_7" type="number" placeholder="500" min="1"></td></tr>
+            <tr><td><span class="params">Num Components:</span></td><td><input name="param_numcomponents_1" id="param1_8" type="number" placeholder="2"></td></tr>
+        </table>
+    </div>
+    <br><br>
+    <input value="Perform Experiment" type="submit" id="submitONEcolumn">
+</form>
+
+
+<!-- TWO COLUMN FORM -->
+<form method="POST" autocomplete="off" data-lpignore="true" id="doublesample-search"
+    enctype="multipart/form-data" onsubmit="return analysis_form_validation(this);">
+
+    <p>Experiment Name<br><br>
+    <input type="text" name="experimentname_2" id="doubleexperimentname" placeholder="Experiment Name" value="TEST_NAME">
+    </p>
+
+    <table id="TwoSampleTable">
+        <tr>
+            <td></td>
+            <td><span class="sampleItemSpan">Sample Names</span></td>
+            <td><span class="sampleItemSpan">Control</span></td>
+            <td><span class="sampleItemSpan">Treated</span></td>
+        </tr>
+        <tr>
+            <td><span class="">1.</span></td>
+            <td><input name="time_name2_1" id="doubletimename_1" class="sampleItemSpan" type="text" placeholder='T1' value="T1"></td>
+            <td><input name="doublecontrol_1" class="sampleItemSpan" type="file"></td>
+            <td><input name="doubletreated_1" type="file"></td>
+        </tr>
+        <!-- New rows will go here -->
+        <!-- On submit, the request will contain all of the elements of this form!  -->
+    </table>
+    <br><br>
+    <div class="paramform" id="paramform2">
+    <br><br>
+    Filter Params
+    <table>
+        <tr><td><span class="params">Log2Fold:</span></td><td><input name="param_log2fold_2" id="param2_1" type="number" placeholder="0.55" value="0.55" step="0.01" min="0.00"></td></tr>
+        <tr><td><span class="params">Expression Min:</span></td><td><input name="param_expressionmin_2" id="param2_2" type="number" placeholder="2" value="2" min="1"></td></tr>
+        <tr><td><span class="params">Expression Max:</span></td><td><input name="param_expressionmax_2" id="param2_3" type="number" placeholder="100000" value="100000" min="1"></td></tr>
+        <tr><td><span class="params">Expression Minimum Difference:</span></td><td><input name="param_min_diff_2" id="param2_4" type="number" placeholder="200" value="200" min="1"></td></tr>
+        <tr><td><span class="params">Expression Maximum Difference:</span></td><td><input name="param_max_diff_2" id="param2_5" type="number" placeholder="10000" value="10000" min="1"></td></tr>
+        <tr><td><span class="params">Correction Interval Min (opt):</span></td><td><input name="param_corrintervalmin_2" id="param2_6" type="number" placeholder="200" value="200" min="1"></td></tr>
+        <tr><td><span class="params">Correction Interval Max (opt):</span></td><td><input name="param_corrintervalmax_2" id="param2_7" type="number" placeholder="500" value="500" min="1"></td></tr>
+        <tr><td><span class="params">Num Components:</span></td><td><input name="param_numcomponents_2" id="param2_8" type="number" placeholder="2" value="2"></td></tr>
+    </table>
+    </div><br><br>
+    <input value="Perform Experiment" type="submit" id="submitTWOcolumns">
+</form>
+
+<br>
+
+<hr>
+<script src='/static/js/analysis.js'></script>
+
+{% endblock %}

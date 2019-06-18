@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+{# _app/templates/index.html_ #}
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+<article>
+        <br />
+        <div class="choices">
+            <p>
+                First Analyze your data using the link button on the left. This will
+                provide you with options for setting thresholds to roughly guage the
+                number of DE genes in your dataset. This is NOT a statistical process.
+                You set a log2fold cutoff, and simple see how many of your genes are
+                expressed greater than that threshold in your dataset. To observe the
+                effect of various cuttoffs, you can choose to produce a tally plot
+                (<a href="interpretting">see plot descriptions</a>).
+                This will also produce a formatted plottable dataset that can be used when making plots.
+            </p>
+            <button onclick="window.location.href = 'analyze'">
+                Step 1: Analyze Data
+            </button>
+            <br>
+            <button onclick="window.location.href = 'make_plots'">
+                Step 2: Make Plots
+            </button>
+        </div>
+    </article>
+    <article>
+        <h2>Description</h2>
+        <p></p>
+        <h3>History and background</h3>
+        SPPLOT (rna-Seq Python PLOT library) was written to provide a simple to
+        use, quick analysis tool for interrogating pilot RNA-seq data. Pilot study
+        data is defined here as data that doesn't include replicates. A common
+        need among developmental biologists right now is the ability to interogate
+        pilot study data and access gene expression quickly. Usually these data
+        are not used for publishing, but rather to guide future experiments and
+        provide a quick peak at approximate expression levels within the target
+        tissue.
+        <p>
+            Quoted from the edgeR manual (a popular tool written in R used for
+            calculating differential expression of genes:
+            <pre>
+            RNA-Seq and ChIP-Seq are still expensive technologies, so it sometimes happens that only one
+            library can be created for each treatment condition. In these cases there are no replicate
+            libraries from which to estimate biological variability. In this situation, the data analyst
+            is faced with the following choices, none of which are ideal. We do not recommend any of
+            these choices as a satisfactory alternative for biological replication. Rather, they are the
+            best that can be done at the analysis stage [using no replicates].
+        </pre>
+        </p>
+        <p>
+            The manual goes to suggest the following option (which is admittedly not
+            their preferred suggestion...) 1. Be satisfied with a descriptive
+            analysis, that might include an MDS plot and an analysis of fold
+            changes. Do not attempt a significance analysis. This may be the best
+            advice.
+        </p>
+        <p>
+            The motivation behind SPPLOT is to provide a means to analyze time
+            series data under the assumption of no biological variability (even
+            though we know this isn't true). With unreplicated time series data,
+            there is no way to reasonably estimate variance within the data, since
+            any gene could potentially change over time. SPPLOT therefore ignores
+            dispersion estimates and biological variability to give a quick and
+            dirty assessment of fold change. The advantage of using SPPLOT is
+            twofold. First, it provides a set of optimizable parameters that can be
+            used to filter data included in the final output. Second, it provides a
+            very useful plotting function for rapidly visualizing gene expression.
+            Using this program, you can create a list of flagged genes, and plot
+            them within minutes.
+        </p>
+    </article>
+
+{% endblock %}

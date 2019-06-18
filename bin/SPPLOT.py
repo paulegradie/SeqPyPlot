@@ -28,7 +28,7 @@ if __name__ == "__main__":
     """
 
     epilog = "\n\n"
-    
+
     parser = ArgumentParser(description=usage,
                             prog='SPPLOT v0.4',
                             epilog=epilog)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # load the data container_obj
     container_obj = DataContainer(config_obj)
     data, ercc_data = container_obj.parse_input()
-    
+
     if args.impute:
         print('Imputation not yet implemented')
 
@@ -79,8 +79,7 @@ if __name__ == "__main__":
     output_path = config_obj.get('data_directory', 'output')
     output_path = make_default_output_dir(output_path or None, args.overwrite)
 
-    data_printer = DataPrinter(config_obj, container_obj or None, filter_obj or None)
-    data_printer()
+    data_printer = DataPrinter(config_obj, container_obj or None, filter_obj or None)()
 
 #--------------------------------------------------------------------
 # Generate Plots
