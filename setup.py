@@ -14,7 +14,7 @@ setup(
     long_description=open('docs/README.txt').read(),
     install_requires=[
         "pandas == 0.22.0",
-        "numpy == 1.14.3",
+        "numpy == 1.22.0",
         "pathos",
         "seaborn",
         "sklearn",
